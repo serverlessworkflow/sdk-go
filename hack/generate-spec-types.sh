@@ -14,17 +14,17 @@
 # limitations under the License.
 
 
-which ./bin/gojsonschema >/dev/null || go build -o ./bin/gojsonschema github.com/atombender/go-jsonschema/cmd/gojsonschema
+which ./bin/gojsonschema >/dev/null || go build -o ./bin/gojsonschema github.com/atombender/go-jsonschema/cmd/gojsonschema && go mod tidy
 
 echo "--> Generating specification types"
 
 declare targetdir="/tmp/serverlessworkflow"
 
-if [ -d "${targetdir}" ]; then
+if [ ! -d "${targetdir}" ]; then
   git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
 fi
 
-./bin/gojsonschema -o generated.types_spec.go -p sw "${targetdir}"/specification/schema/workflow.json
+./bin/gojsonschema -o generated.types_spec.go -p sw "${targetdir}"/schema/workflow.json
 
 cp -v generated.types_spec.go ./pkg/apis/sw/
 

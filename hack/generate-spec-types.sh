@@ -14,42 +14,42 @@
 # limitations under the License.
 
 
-which ./bin/gojsonschema >/dev/null || go build -o ./bin/gojsonschema github.com/atombender/go-jsonschema/cmd/gojsonschema && go mod tidy
+command -v ./bin/gojsonschema >/dev/null || go build -o ./bin/gojsonschema github.com/atombender/go-jsonschema/cmd/gojsonschema && go mod tidy
 
 echo "--> Generating specification types"
 
+declare package="model"
 declare targetdir="/tmp/serverlessworkflow"
 
 if [ ! -d "${targetdir}" ]; then
   git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
 fi
 
-./bin/gojsonschema -o generated.types_spec.go -p sw "${targetdir}"/schema/workflow.json
+# remove once we have https://github.com/atombender/go-jsonschema/pull/16
+# shellcheck disable=SC2016
+sed -i 's/$id/id/g' "${targetdir}/schema/common.json"
+# shellcheck disable=SC2016
+sed -i 's/$id/id/g' "${targetdir}/schema/events.json"
+# shellcheck disable=SC2016
+sed -i 's/$id/id/g' "${targetdir}/schema/functions.json"
+# shellcheck disable=SC2016
+sed -i 's/$id/id/g' "${targetdir}/schema/workflow.json"
 
-cp -v generated.types_spec.go ./pkg/apis/sw/
+./bin/gojsonschema -v \
+  --schema-package=https://serverlessworkflow.org/core/common.json=github.com/serverlessworkflow/sdk-go/model \
+   --schema-output=https://serverlessworkflow.org/core/common.json=generated_types_common.go \
+  --schema-package=https://serverlessworkflow.org/core/events.json=github.com/serverlessworkflow/sdk-go/model \
+   --schema-output=https://serverlessworkflow.org/core/events.json=generated_types_events.go \
+  --schema-package=https://serverlessworkflow.org/core/functions.json=github.com/serverlessworkflow/sdk-go/model \
+   --schema-output=https://serverlessworkflow.org/core/functions.json=generated_types_functions.go \
+  --schema-package=https://serverlessworkflow.org/core/workflow.json=github.com/serverlessworkflow/sdk-go/model \
+   --schema-output=https://serverlessworkflow.org/core/workflow.json=generated_types_workflow.go \
+  "${targetdir}"/schema/common.json "${targetdir}"/schema/events.json "${targetdir}"/schema/functions.json "${targetdir}"/schema/workflow.json
 
-echo "--> Adapting specification types for Kubernetes"
+sed -i '/type Workflow/d' generated_types_workflow.go
 
-# fix interface{} types
-# this is a quick and dirty method to adapt the types to Kubernetes format
-# we should write a better parse to handle this and/or add metadata info to the schema and suggest a PR to the tool to handle it
-sed -i '8 i\import "k8s.io/apimachinery/pkg/runtime"' generated.types_spec.go
-sed -i 's/Extensions \[\]WorkflowExtensionsElem/Extensions []runtime.RawExtension/g' generated.types_spec.go
-sed -i 's/Metadata map\[string\]interface{}/Metadata map\[string\]string/g' generated.types_spec.go
-sed -i 's/States \[\]interface{}/States []runtime.RawExtension/g' generated.types_spec.go
-sed -i 's/\[\]interface{}{/\[\]string{/g' generated.types_spec.go
-sed -i 's/\[\]interface{}/runtime.RawExtension/g' generated.types_spec.go
-sed -i 's/ interface{}/ runtime.RawExtension/g' generated.types_spec.go
-sed -i 's/var raw map\[string\]interface{}/var raw placeholder/g' generated.types_spec.go
-sed -i 's/map\[string\]interface{}/runtime.RawExtension/g' generated.types_spec.go
-sed -i 's/var raw placeholder/var raw map[string]interface{}/g' generated.types_spec.go
-sed -i '/runtime.RawExtension/i \/\/ \+kubebuilder:pruning:PreserveUnknownFields' generated.types_spec.go
-sed -i '/pruning:PreserveUnknownFields/i \/\/ \+kubebuilder:object:generate=false' generated.types_spec.go
+mv -v generated_types_*.go "./${package}/"
 
-mv -v generated.types_spec.go ./pkg/apis/kubernetes/sw/
-
-go fmt ./pkg/...
-
-sh ./hack/run-controller-gen.sh
+go fmt ./...
 
 make addheaders

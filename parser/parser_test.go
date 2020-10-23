@@ -15,12 +15,32 @@
 package parser
 
 import (
+	"github.com/serverlessworkflow/sdk-go/model"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestFromFile(t *testing.T) {
-	workflow, err := FromFile("./testdata/greetings.sw.json")
-	assert.NoError(t, err)
-	assert.NotNil(t, workflow)
+	files := map[string]func(*testing.T, *model.Workflow){
+		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) { assert.IsType(t, &model.Operationstate{}, w.States[0]) },
+		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Eventstate{}, w.States[0])
+			eventState := w.States[0].(*model.Eventstate)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.OnEvents)
+			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+		},
+		"./testdata/eventbasedswitch.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Eventbasedswitch{}, w.States[0])
+			eventState := w.States[0].(*model.Eventbasedswitch)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.EventConditions)
+		},
+	}
+	for file, f := range files {
+		workflow, err := FromFile(file)
+		assert.NoError(t, err)
+		assert.NotNil(t, workflow)
+		f(t, workflow)
+	}
 }

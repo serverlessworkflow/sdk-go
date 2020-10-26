@@ -17,241 +17,241 @@
 package model
 
 // GetId ...
-func (j *Delaystate) GetId() string { return *j.Id }
+func (j Delaystate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Delaystate) GetName() string { return *j.Name }
+func (j Delaystate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Delaystate) GetType() string { return *j.Type }
+func (j Delaystate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Delaystate) GetStart() Start { return *j.Start }
+func (j Delaystate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Delaystate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Delaystate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Delaystate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Delaystate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Delaystate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Delaystate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Delaystate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Delaystate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Eventstate) GetId() string { return *j.Id }
+func (j Eventstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Eventstate) GetName() string { return *j.Name }
+func (j Eventstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Eventstate) GetType() string { return *j.Type }
+func (j Eventstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Eventstate) GetStart() Start { return *j.Start }
+func (j Eventstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Eventstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Eventstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Eventstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Eventstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Eventstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Eventstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Eventstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Eventstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Operationstate) GetId() string { return *j.Id }
+func (j Operationstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Operationstate) GetName() string { return *j.Name }
+func (j Operationstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Operationstate) GetType() string { return *j.Type }
+func (j Operationstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Operationstate) GetStart() Start { return *j.Start }
+func (j Operationstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Operationstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Operationstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Operationstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Operationstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Operationstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Operationstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Operationstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Operationstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Parallelstate) GetId() string { return *j.Id }
+func (j Parallelstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Parallelstate) GetName() string { return *j.Name }
+func (j Parallelstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Parallelstate) GetType() string { return *j.Type }
+func (j Parallelstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Parallelstate) GetStart() Start { return *j.Start }
+func (j Parallelstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Parallelstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Parallelstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Parallelstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Parallelstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Parallelstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Parallelstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Parallelstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Parallelstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Subflowstate) GetId() string { return *j.Id }
+func (j Subflowstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Subflowstate) GetName() string { return *j.Name }
+func (j Subflowstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Subflowstate) GetType() string { return *j.Type }
+func (j Subflowstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Subflowstate) GetStart() Start { return *j.Start }
+func (j Subflowstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Subflowstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Subflowstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Subflowstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Subflowstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Subflowstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Subflowstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Subflowstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Subflowstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Injectstate) GetId() string { return *j.Id }
+func (j Injectstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Injectstate) GetName() string { return *j.Name }
+func (j Injectstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Injectstate) GetType() string { return *j.Type }
+func (j Injectstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Injectstate) GetStart() Start { return *j.Start }
+func (j Injectstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Injectstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Injectstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Injectstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Injectstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Injectstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Injectstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Injectstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Injectstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Foreachstate) GetId() string { return *j.Id }
+func (j Foreachstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Foreachstate) GetName() string { return *j.Name }
+func (j Foreachstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Foreachstate) GetType() string { return *j.Type }
+func (j Foreachstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Foreachstate) GetStart() Start { return *j.Start }
+func (j Foreachstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Foreachstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Foreachstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Foreachstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Foreachstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Foreachstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Foreachstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Foreachstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Foreachstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Callbackstate) GetId() string { return *j.Id }
+func (j Callbackstate) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Callbackstate) GetName() string { return *j.Name }
+func (j Callbackstate) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Callbackstate) GetType() string { return *j.Type }
+func (j Callbackstate) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Callbackstate) GetStart() Start { return *j.Start }
+func (j Callbackstate) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Callbackstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Callbackstate) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Callbackstate) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Callbackstate) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Callbackstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Callbackstate) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Callbackstate) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Callbackstate) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Databasedswitch) GetId() string { return *j.Id }
+func (j Databasedswitch) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Databasedswitch) GetName() string { return *j.Name }
+func (j Databasedswitch) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Databasedswitch) GetType() string { return *j.Type }
+func (j Databasedswitch) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Databasedswitch) GetStart() Start { return *j.Start }
+func (j Databasedswitch) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Databasedswitch) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Databasedswitch) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Databasedswitch) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Databasedswitch) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Databasedswitch) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Databasedswitch) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Databasedswitch) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Databasedswitch) GetMetadata() Metadata_1 { return j.Metadata }
 
 // GetId ...
-func (j *Eventbasedswitch) GetId() string { return *j.Id }
+func (j Eventbasedswitch) GetId() string { return *j.Id }
 
 // GetName ...
-func (j *Eventbasedswitch) GetName() string { return *j.Name }
+func (j Eventbasedswitch) GetName() string { return *j.Name }
 
 // GetType ...
-func (j *Eventbasedswitch) GetType() string { return *j.Type }
+func (j Eventbasedswitch) GetType() string { return *j.Type }
 
 // GetType ...
-func (j *Eventbasedswitch) GetStart() Start { return *j.Start }
+func (j Eventbasedswitch) GetStart() Start { return *j.Start }
 
 // GetStateDataFilter ...
-func (j *Eventbasedswitch) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
+func (j Eventbasedswitch) GetStateDataFilter() Statedatafilter { return *j.StateDataFilter }
 
 // GetDataInputSchema ...
-func (j *Eventbasedswitch) GetDataInputSchema() string { return *j.DataInputSchema }
+func (j Eventbasedswitch) GetDataInputSchema() string { return *j.DataInputSchema }
 
 // GetDataOutputSchema ...
-func (j *Eventbasedswitch) GetDataOutputSchema() string { return *j.DataOutputSchema }
+func (j Eventbasedswitch) GetDataOutputSchema() string { return *j.DataOutputSchema }
 
 // GetMetadata ...
-func (j *Eventbasedswitch) GetMetadata() Metadata_1 { return j.Metadata }
+func (j Eventbasedswitch) GetMetadata() Metadata_1 { return j.Metadata }

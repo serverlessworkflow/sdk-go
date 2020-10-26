@@ -14,13 +14,26 @@
 
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
+var actionsModelMapping = map[string]func(state map[string]interface{}) State{
+	"delay":     func(map[string]interface{}) State { return &Delaystate{} },
+	"event":     func(map[string]interface{}) State { return &Eventstate{} },
+	"operation": func(map[string]interface{}) State { return &Operationstate{} },
+	"parallel":  func(map[string]interface{}) State { return &Parallelstate{} },
+	"switch": func(s map[string]interface{}) State {
+		if _, ok := s["dataConditions"]; ok {
+			return &Databasedswitch{}
+		}
+		return &Eventbasedswitch{}
+	},
+	"subflow":  func(map[string]interface{}) State { return &Subflowstate{} },
+	"inject":   func(map[string]interface{}) State { return &Injectstate{} },
+	"foreach":  func(map[string]interface{}) State { return &Foreachstate{} },
+	"callback": func(map[string]interface{}) State { return &Callbackstate{} },
+}
 
-// Workflow base definition
-type Workflow struct {
+// WorkflowMeta describes the partial Workflow definition that does not rely on generic interfaces
+// to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
+type WorkflowMeta struct {
 	Id               string     `json:"id"`
 	Name             string     `json:"name"`
 	Description      string     `json:"description,omitempty"`
@@ -31,7 +44,12 @@ type Workflow struct {
 	Metadata         Metadata   `json:"metadata,omitempty"`
 	Events           []Eventdef `json:"events,omitempty"`
 	Functions        []Function `json:"functions,omitempty"`
-	States           []State    `json:"states"`
+}
+
+// Workflow base definition
+type Workflow struct {
+	WorkflowMeta
+	States []State `json:"states"`
 }
 
 // State definition for a Workflow state
@@ -44,55 +62,4 @@ type State interface {
 	GetDataInputSchema() string
 	GetDataOutputSchema() string
 	GetMetadata() Metadata_1
-}
-
-var unmarshals = map[string]func(state map[string]interface{}) State{
-	"delay":     func(map[string]interface{}) State { return &Delaystate{} },
-	"event":     func(map[string]interface{}) State { return &Eventstate{} },
-	"operation": func(map[string]interface{}) State { return &Operationstate{} },
-	"parallel":  func(map[string]interface{}) State { return &Parallelstate{} },
-	"switch":    func(s map[string]interface{}) State {
-		if _, ok := s["dataConditions"]; ok {
-			return &Databasedswitch{}
-		}
-		return &Eventbasedswitch{}
-	},
-	"subflow":   func(map[string]interface{}) State { return &Subflowstate{} },
-	"inject":    func(map[string]interface{}) State { return &Injectstate{} },
-	"foreach":   func(map[string]interface{}) State { return &Foreachstate{} },
-	"callback":  func(map[string]interface{}) State { return &Callbackstate{} },
-}
-
-// UnmarshalJSON implementation Unmarshaler interface
-// see: http://gregtrowbridge.com/golang-json-serialization-with-interfaces/
-func (w *Workflow) UnmarshalJSON(data []byte) error {
-	workflowMap := make(map[string]json.RawMessage)
-	err := json.Unmarshal(data, &workflowMap)
-	if err != nil {
-		return err
-	}
-	var rawStates []json.RawMessage
-	err = json.Unmarshal(workflowMap["states"], &rawStates)
-	if err != nil {
-		return err
-	}
-
-	w.States = make([]State, len(rawStates))
-	var mapState map[string]interface{}
-	for i, rawState := range rawStates {
-		err = json.Unmarshal(rawState, &mapState)
-		if err != nil {
-			return err
-		}
-		if _, ok := mapState["type"]; !ok {
-			return fmt.Errorf("state %s not supported", mapState["type"])
-		}
-		state := unmarshals[mapState["type"].(string)](mapState)
-		err := json.Unmarshal(rawState, &state)
-		if err != nil {
-			return err
-		}
-		w.States[i] = state
-	}
-	return nil
 }

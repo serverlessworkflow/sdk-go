@@ -724,9 +724,10 @@ type Eventref struct {
 	// Add additional extension context attributes to the produced event
 	ContextAttributes EventrefContextAttributes `json:"contextAttributes,omitempty"`
 
-	// If String, expression which selects parts of the states data output to become
-	// the data of the produced event. If object a custom object to become the data of
-	// produced event.
+	// If string type, an expression which selects parts of the states data output to
+	// become the data (payload) of the event referenced by 'triggerEventRef'. If
+	// object type, a custom object to become the data (payload) of the event
+	// referenced by 'triggerEventRef'.
 	Data interface{} `json:"data,omitempty"`
 
 	// Reference to the unique name of a 'consumed' event definition

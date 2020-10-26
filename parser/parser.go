@@ -18,9 +18,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/serverlessworkflow/sdk-go/model"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
+	"strings"
 )
+
+const (
+	extJson = ".json"
+	extYaml = ".yaml"
+	extYml  = ".yml"
+)
+
+var supportedExt = []string{extYaml, extYml, extJson}
 
 // FromFile parses the given Serverless Workflow file into the Workflow type.
 func FromFile(path string) (*model.Workflow, error) {
@@ -32,12 +42,24 @@ func FromFile(path string) (*model.Workflow, error) {
 		return nil, err
 	}
 	workflow := &model.Workflow{}
-	if err := json.Unmarshal(fileBytes, workflow); err != nil {
+	if err := mustUnmarshalerFor(path)(fileBytes, workflow); err != nil {
 		return nil, err
 	}
 	return workflow, nil
 }
 
+// mustUnmarshalerFor gets the Unmarshal function for the given file. Does not validate if the file exists.
+func mustUnmarshalerFor(path string) func([]byte, interface{}) error {
+	if strings.HasSuffix(path, extJson) {
+		return json.Unmarshal
+	} else if strings.HasSuffix(path, extYaml) || strings.HasSuffix(path, extYml) {
+		return yaml.Unmarshal
+	}
+	// we panic to make it consistent with checkFilePath call
+	panic(fmt.Errorf("unmarshal function not found for file '%s'. Supported extensions are %s", path, supportedExt))
+}
+
+// checkFilePath verifies if the file exists in the given path and if it's supported by the parser package
 func checkFilePath(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -46,5 +68,10 @@ func checkFilePath(path string) error {
 	if info.IsDir() {
 		return fmt.Errorf("file path '%s' must stand to a file", path)
 	}
-	return nil
+	for _, ext := range supportedExt {
+		if strings.HasSuffix(path, ext) {
+			return nil
+		}
+	}
+	return fmt.Errorf("file extension not supported for '%s'. supported formats are %s", path, supportedExt)
 }

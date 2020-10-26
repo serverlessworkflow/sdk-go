@@ -22,7 +22,16 @@ import (
 
 func TestFromFile(t *testing.T) {
 	files := map[string]func(*testing.T, *model.Workflow){
-		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) { assert.IsType(t, &model.Operationstate{}, w.States[0]) },
+		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "greeting", w.Id)
+			assert.IsType(t, &model.Operationstate{}, w.States[0])
+		},
+		"./testdata/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Operationstate{}, w.States[0])
+			assert.Equal(t, "greeting", w.Id)
+			assert.NotEmpty(t, w.States[0].(*model.Operationstate).Actions)
+			assert.NotNil(t, w.States[0].(*model.Operationstate).Actions[0].FunctionRef)
+		},
 		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Eventstate{}, w.States[0])
 			eventState := w.States[0].(*model.Eventstate)
@@ -35,6 +44,7 @@ func TestFromFile(t *testing.T) {
 			eventState := w.States[0].(*model.Eventbasedswitch)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.EventConditions)
+			assert.IsType(t, &model.Transitioneventcondition{}, eventState.EventConditions[0])
 		},
 	}
 	for file, f := range files {

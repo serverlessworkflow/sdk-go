@@ -32,6 +32,24 @@ const (
 
 var supportedExt = []string{extYaml, extYml, extJson}
 
+// FromYAMLSource parses the given Serverless Workflow YAML source into the Workflow type.
+func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
+	var jsonBytes []byte
+	if jsonBytes, err = yaml.YAMLToJSON(source); err != nil {
+		return nil, err
+	}
+	return FromJSONSource(jsonBytes)
+}
+
+// FromJSONSource parses the given Serverless Workflow JSON source into the Workflow type.
+func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
+	workflow = &model.Workflow{}
+	if err := json.Unmarshal(source, workflow); err != nil {
+		return nil, err
+	}
+	return workflow, nil
+}
+
 // FromFile parses the given Serverless Workflow file into the Workflow type.
 func FromFile(path string) (*model.Workflow, error) {
 	if err := checkFilePath(path); err != nil {
@@ -42,15 +60,9 @@ func FromFile(path string) (*model.Workflow, error) {
 		return nil, err
 	}
 	if strings.HasSuffix(path, extYaml) || strings.HasSuffix(path, extYml) {
-		if fileBytes, err = yaml.YAMLToJSON(fileBytes); err != nil {
-			return nil, err
-		}
+		return FromYAMLSource(fileBytes)
 	}
-	workflow := &model.Workflow{}
-	if err := json.Unmarshal(fileBytes, workflow); err != nil {
-		return nil, err
-	}
-	return workflow, nil
+	return FromJSONSource(fileBytes)
 }
 
 // checkFilePath verifies if the file exists in the given path and if it's supported by the parser package

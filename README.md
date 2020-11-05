@@ -2,21 +2,26 @@
 
 Here you will find all the [specification types](https://github.com/serverlessworkflow/specification/blob/master/schema/workflow.json) defined by our Json Schemas, in Go.
 
-Some types defined by the specification can be generic objects (such as [`Extensions`](https://github.com/serverlessworkflow/specification/blob/master/extending/README.md)) 
-or share a minimum interface, like [`States`](https://github.com/serverlessworkflow/specification/tree/master/README.md#State-Definition). 
+The final goal of the Serverless Workflow Specification is to offer SDKs that
+have similar features, so users would have the same experience no matter the chosen language.
+Go SDK is a _work in progress_, but should catch up with [Java SDK](https://github.com/serverlessworkflow/sdk-java) soon. 
 
-In cases like these, we've decided to represent their types as the Kubernetes type [`RawExtension`](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#rawextension),
-that can be found on `kuberbetes/serverlessworkflow` package. 
+Current status of features implemented in the SDK is listed below.
 
-This way the Serverless Workflow types can be Kubernetes friendly, to make it easy for one to
-use the package when developing Kubernetes applications.
+| **Feature**                                 | Java SDK           | Go SDK             |
+|-------------------------------------------- | ------------------ | ------------------ |
+| Parse workflow JSON and YAML definitions    | :heavy_check_mark: | :heavy_check_mark: |
+| Programmatically build workflow definitions | :heavy_check_mark: | :no_entry_sign:    |
+| Validate workflow definitions (Schema)      | :heavy_check_mark: | :heavy_check_mark: |
+| Validate workflow definitions (Integrity)   | :heavy_check_mark: | :no_entry_sign:    |
+| Generate workflow diagram (SVG)             | :heavy_check_mark: | :no_entry_sign:    |
 
 ## How to use
 
 Run the following command in the root of your Go's project:
 
 ```shell script
-$ go get -u github.com/serverlessworkflow/sdk-go
+$ go get github.com/serverlessworkflow/sdk-go
 ```
 
 Your `go.mod` file should be updated to add a dependency from the Serverless Workflow specification.
@@ -24,17 +29,32 @@ Your `go.mod` file should be updated to add a dependency from the Serverless Wor
 To use the generated types, import the package in your go file like this:
 
 ```go
-package mypackage
-
-import "github.com/serverlessworkflow/sdk-go/pkg/apis/sw"
+import "github.com/serverlessworkflow/sdk-go/model"
 ```
 
-Then just reference the package within your file like `myfunction := sw.Function{}`.
+Then just reference the package in your Go file like `myfunction := model.Function{}`.
 
-If you wish to use the Kubernetes friendly types, import the `kubernetes` package instead:
+### Unmarshalling Serverless Workflow files
+
+Serverless Workflow Specification supports YAML and JSON files for Workflow definitions.
+To transform such files into a Go data structure, use:
 
 ```go
-package mypackage
+package sw
 
-import "github.com/serverlessworkflow/sdk-go/pkg/apis/kubernetes/sw"
+import (
+
+"github.com/serverlessworkflow/sdk-go/model"
+"github.com/serverlessworkflow/sdk-go/parser"
+)
+
+func ParseWorkflow(filePath string) (*model.Workflow, error) {
+	workflow, err := parser.FromFile(filePath)
+    if err != nil {
+        return nil, err
+    } 
+    return workflow, nil
+} 
 ```
+
+The `Workflow` structure then can be used in your program. 

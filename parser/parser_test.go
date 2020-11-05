@@ -46,6 +46,13 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, eventState.EventConditions)
 			assert.IsType(t, &model.Transitioneventcondition{}, eventState.EventConditions[0])
 		},
+		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Operationstate{}, w.States[0])
+			operationState := w.States[0].(*model.Operationstate)
+			assert.NotNil(t, operationState)
+			assert.NotEmpty(t, operationState.Actions)
+			assert.Len(t, w.States, 2)
+		},
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)

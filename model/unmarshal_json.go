@@ -21,36 +21,33 @@ import (
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &w.WorkflowCommon); err != nil {
+		return err
+	}
+
 	workflowMap := make(map[string]json.RawMessage)
-	err := json.Unmarshal(data, &workflowMap)
-	if err != nil {
+	if err := json.Unmarshal(data, &workflowMap); err != nil {
 		return err
 	}
 	var rawStates []json.RawMessage
-	err = json.Unmarshal(workflowMap["states"], &rawStates)
-	if err != nil {
+	if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
 		return err
 	}
 
 	w.States = make([]State, len(rawStates))
 	var mapState map[string]interface{}
 	for i, rawState := range rawStates {
-		err = json.Unmarshal(rawState, &mapState)
-		if err != nil {
+		if err := json.Unmarshal(rawState, &mapState); err != nil {
 			return err
 		}
 		if _, ok := actionsModelMapping[mapState["type"].(string)]; !ok {
 			return fmt.Errorf("state %s not supported", mapState["type"])
 		}
 		state := actionsModelMapping[mapState["type"].(string)](mapState)
-		err := json.Unmarshal(rawState, &state)
-		if err != nil {
+		if err := json.Unmarshal(rawState, &state); err != nil {
 			return err
 		}
 		w.States[i] = state
-	}
-	if err := json.Unmarshal(data, &w.WorkflowMeta); err != nil {
-		return err
 	}
 	return nil
 }

@@ -31,9 +31,9 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 	"callback": func(map[string]interface{}) State { return &Callbackstate{} },
 }
 
-// WorkflowMeta describes the partial Workflow definition that does not rely on generic interfaces
+// WorkflowCommon describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
-type WorkflowMeta struct {
+type WorkflowCommon struct {
 	Id               string     `json:"id"`
 	Name             string     `json:"name"`
 	Description      string     `json:"description,omitempty"`
@@ -48,7 +48,7 @@ type WorkflowMeta struct {
 
 // Workflow base definition
 type Workflow struct {
-	WorkflowMeta
+	WorkflowCommon
 	States []State `json:"states"`
 }
 

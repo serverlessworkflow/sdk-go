@@ -22,58 +22,58 @@ on:
       - "Makefile"
     branches:
       - master
-  env:
-    GO_VERSION: 1.14
-  jobs:
-    basic_checks:
-      name: Basic Checks
-      runs-on: ubuntu-latest
-      env:
-        GOLANG_LINT_VERSION: v1.27.0
-      steps:
-        - name: Checkout Code
-          uses: actions/checkout@v2
-        - name: Setup Go ${{ env.GO_VERSION }}
-          uses: actions/setup-go@v2
-          with:
-            go-version: ${{ env.GO_VERSION }}
-          id: go
-        - name: Cache dependencies
-          uses: actions/cache@v2
-          with:
-            path: ~/go/pkg/mod/cache
-            key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
-            restore-keys: |
-              ${{ runner.os }}-go-cache-
-        - name: Check Headers
-          run: |
-            make addheaders
-            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
-        - name: Check Formatting
-          run: |
-            make fmt
-            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
-        - name: Install golinters
-          run: |
-            go get -u golang.org/x/lint/golint
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
-        - name: Check lint
-          run: |
-            make lint
-        - name: Install cover
-          run: go get golang.org/x/tools/cmd/cover
-        - run: go mod tidy
-        - name: Validate codcov yaml file
-          run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
-        - name: Run Unit Tests
-          run: |
-            ./hack/go-test.sh "true"
-        - name: Upload results to codecov
-          uses: codecov/codecov-action@v1
-          with:
-            file: ./test_coverage.txt
-            flags: sdk-go
-            name: sdk-go
-            fail_ci_if_error: true
+env:
+  GO_VERSION: 1.14
+jobs:
+  basic_checks:
+    name: Basic Checks
+    runs-on: ubuntu-latest
+    env:
+      GOLANG_LINT_VERSION: v1.27.0
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Check Headers
+        run: |
+          make addheaders
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
+      - name: Check Formatting
+        run: |
+          make fmt
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+      - name: Install golinters
+        run: |
+          go get -u golang.org/x/lint/golint
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
+      - name: Check lint
+        run: |
+          make lint
+      - name: Install cover
+        run: go get golang.org/x/tools/cmd/cover
+      - run: go mod tidy
+      - name: Validate codcov yaml file
+        run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
+      - name: Run Unit Tests
+        run: |
+          ./hack/go-test.sh "true"
+      - name: Upload results to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./test_coverage.txt
+          flags: sdk-go
+          name: sdk-go
+          fail_ci_if_error: true

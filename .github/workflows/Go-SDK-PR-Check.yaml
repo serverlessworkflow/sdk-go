@@ -71,9 +71,9 @@ on:
           run: |
             ./hack/go-test.sh "true"
         - name: Upload results to codecov
-            uses: codecov/codecov-action@v1
-            with:
-              file: ./test_coverage.txt
-              flags: sdk-go
-              name: sdk-go
-              fail_ci_if_error: true
+          uses: codecov/codecov-action@v1
+          with:
+            file: ./test_coverage.txt
+            flags: sdk-go
+            name: sdk-go
+            fail_ci_if_error: true

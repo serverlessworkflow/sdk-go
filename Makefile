@@ -20,4 +20,4 @@ lint:
 coverage="false"
 test:
 	make lint
-	./hack/go-test.sh
+	go test ./...

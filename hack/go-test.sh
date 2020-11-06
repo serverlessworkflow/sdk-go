@@ -17,7 +17,7 @@
 declare coverage=$1
 
 if [[ "${coverage}" == "true" ]]; then
-  go test ./... -coverprofile=test_coverage.out -covermode=atomic
+  go test ./... -coverprofile test_coverage.out -covermode=atomic
 else
   go test ./...
 fi

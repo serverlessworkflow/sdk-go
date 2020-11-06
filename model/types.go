@@ -34,7 +34,7 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 // WorkflowCommon describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type WorkflowCommon struct {
-	Id               string     `json:"id"`
+	ID               string     `json:"id"`
 	Name             string     `json:"name"`
 	Description      string     `json:"description,omitempty"`
 	Version          string     `json:"version"`

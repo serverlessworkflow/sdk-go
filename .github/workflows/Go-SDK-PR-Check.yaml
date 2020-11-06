@@ -73,7 +73,7 @@ jobs:
       - name: Upload results to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./test_coverage.txt
+          file: ./test_coverage.out
           flags: sdk-go
           name: sdk-go
           fail_ci_if_error: true

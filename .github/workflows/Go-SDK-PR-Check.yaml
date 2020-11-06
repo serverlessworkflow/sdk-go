@@ -16,7 +16,7 @@ name: Go SDK PR Checks
 on:
   pull_request:
     paths-ignore:
-      - "**/*.md"
+      - "**.md"
       - "hack/**"
       - "LICENSE"
       - "Makefile"

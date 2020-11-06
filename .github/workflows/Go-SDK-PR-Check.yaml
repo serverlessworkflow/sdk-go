@@ -69,7 +69,7 @@ jobs:
         run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
       - name: Run Unit Tests
         run: |
-          ./hack/go-test.sh "true"
+          go test ./... -coverprofile test_coverage.out -covermode=atomic
       - name: Upload results to codecov
         uses: codecov/codecov-action@v1
         with:

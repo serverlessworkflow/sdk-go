@@ -25,12 +25,12 @@ import (
 )
 
 const (
-	extJson = ".json"
-	extYaml = ".yaml"
-	extYml  = ".yml"
+	extJSON = ".json"
+	extYAML = ".yaml"
+	extYML  = ".yml"
 )
 
-var supportedExt = []string{extYaml, extYml, extJson}
+var supportedExt = []string{extYAML, extYML, extJSON}
 
 // FromYAMLSource parses the given Serverless Workflow YAML source into the Workflow type.
 func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
@@ -59,7 +59,7 @@ func FromFile(path string) (*model.Workflow, error) {
 	if err != nil {
 		return nil, err
 	}
-	if strings.HasSuffix(path, extYaml) || strings.HasSuffix(path, extYml) {
+	if strings.HasSuffix(path, extYAML) || strings.HasSuffix(path, extYML) {
 		return FromYAMLSource(fileBytes)
 	}
 	return FromJSONSource(fileBytes)

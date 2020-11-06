@@ -23,12 +23,12 @@ import (
 func TestFromFile(t *testing.T) {
 	files := map[string]func(*testing.T, *model.Workflow){
 		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
-			assert.Equal(t, "greeting", w.Id)
+			assert.Equal(t, "greeting", w.ID)
 			assert.IsType(t, &model.Operationstate{}, w.States[0])
 		},
 		"./testdata/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Operationstate{}, w.States[0])
-			assert.Equal(t, "greeting", w.Id)
+			assert.Equal(t, "greeting", w.ID)
 			assert.NotEmpty(t, w.States[0].(*model.Operationstate).Actions)
 			assert.NotNil(t, w.States[0].(*model.Operationstate).Actions[0].FunctionRef)
 		},

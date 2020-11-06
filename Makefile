@@ -6,8 +6,18 @@ addheaders:
 	@which addlicense > /dev/null || go get -u github.com/google/addlicense
 	@addlicense -c "The Serverless Workflow Specification Authors" -l apache .
 
-test:
-	make addheaders
+fmt:
 	go vet ./...
 	go fmt ./...
-	go test ./...
+
+lint:
+	go mod tidy
+	make addheaders
+	make fmt
+	./hack/go-lint.sh
+
+.PHONY: test
+coverage="false"
+test:
+	make lint
+	./hack/go-test.sh

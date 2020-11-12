@@ -53,6 +53,17 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, w.States, 2)
 		},
+		// validates: https://github.com/serverlessworkflow/specification/pull/175/
+		"./testdata/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Operationstate{}, w.States[0])
+			operationState := w.States[0].(*model.Operationstate)
+			assert.NotNil(t, operationState)
+			assert.NotEmpty(t, operationState.Actions)
+			assert.Len(t, operationState.OnErrors, 3)
+			assert.Equal(t, "Missing order id", *operationState.OnErrors[0].Error)
+			assert.Equal(t, "Missing order item", *operationState.OnErrors[1].Error)
+			assert.Equal(t, "Missing order quantity", *operationState.OnErrors[2].Error)
+		},
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)

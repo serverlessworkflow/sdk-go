@@ -20,156 +20,6 @@ import "fmt"
 import "encoding/json"
 import "reflect"
 
-type Action struct {
-	// ActionDataFilter corresponds to the JSON schema field "actionDataFilter".
-	ActionDataFilter *Actiondatafilter `json:"actionDataFilter,omitempty"`
-
-	// References a 'trigger' and 'result' reusable event definitions
-	EventRef *Eventref `json:"eventRef,omitempty"`
-
-	// References a reusable function definition
-	FunctionRef *Functionref `json:"functionRef,omitempty"`
-
-	// Unique action definition name
-	Name *string `json:"name,omitempty"`
-
-	// Time period to wait for function execution to complete
-	Timeout *string `json:"timeout,omitempty"`
-}
-
-type Actiondatafilter struct {
-	// JsonPath definition that selects parts of the states data input to be the
-	// action data
-	DataInputPath *string `json:"dataInputPath,omitempty"`
-
-	// JsonPath definition that selects parts of the actions data result, to be merged
-	// with the states data
-	DataResultsPath *string `json:"dataResultsPath,omitempty"`
-}
-
-// Branch Definition
-type Branch struct {
-	// Actions to be executed in this branch
-	Actions []Action `json:"actions,omitempty"`
-
-	// Branch name
-	Name *string `json:"name,omitempty"`
-
-	// Unique Id of a workflow to be executed in this branch
-	WorkflowId *string `json:"workflowId,omitempty"`
-}
-
-// This state performs an action, then waits for the callback event that denotes
-// completion of the action
-type Callbackstate struct {
-	// Defines the action to be executed
-	Action *Action `json:"action,omitempty"`
-
-	// URI to JSON Schema that state data input adheres to
-	DataInputSchema *string `json:"dataInputSchema,omitempty"`
-
-	// URI to JSON Schema that state data output adheres to
-	DataOutputSchema *string `json:"dataOutputSchema,omitempty"`
-
-	// State end definition
-	End *End `json:"end,omitempty"`
-
-	// Callback event data filter definition
-	EventDataFilter *Eventdatafilter `json:"eventDataFilter,omitempty"`
-
-	// References an unique callback event name in the defined workflow events
-	EventRef *string `json:"eventRef,omitempty"`
-
-	// Unique state id
-	Id *string `json:"id,omitempty"`
-
-	// Metadata corresponds to the JSON schema field "metadata".
-	Metadata Metadata_1 `json:"metadata,omitempty"`
-
-	// State name
-	Name *string `json:"name,omitempty"`
-
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
-
-	// States retry definitions
-	Retry []Retry `json:"retry,omitempty"`
-
-	// State start definition
-	Start *Start `json:"start,omitempty"`
-
-	// State data filter definition
-	StateDataFilter *Statedatafilter `json:"stateDataFilter,omitempty"`
-
-	// Time period to wait for incoming events (ISO 8601 format)
-	Timeout *string `json:"timeout,omitempty"`
-
-	// Next transition of the workflow after all the actions have been performed
-	Transition *Transition `json:"transition,omitempty"`
-
-	// State type
-	Type *string `json:"type,omitempty"`
-}
-
-// Permits transitions to other states based on data conditions
-type Databasedswitch struct {
-	// Defines conditions evaluated against state data
-	DataConditions []DatabasedswitchDataConditionsElem `json:"dataConditions,omitempty"`
-
-	// URI to JSON Schema that state data input adheres to
-	DataInputSchema *string `json:"dataInputSchema,omitempty"`
-
-	// URI to JSON Schema that state data output adheres to
-	DataOutputSchema *string `json:"dataOutputSchema,omitempty"`
-
-	// Default transition of the workflow if there is no matching data conditions. Can
-	// include a transition or end definition
-	Default *Defaultdef `json:"default,omitempty"`
-
-	// Unique State id
-	Id *string `json:"id,omitempty"`
-
-	// Metadata corresponds to the JSON schema field "metadata".
-	Metadata Metadata_1 `json:"metadata,omitempty"`
-
-	// State name
-	Name *string `json:"name,omitempty"`
-
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
-
-	// State start definition
-	Start *Start `json:"start,omitempty"`
-
-	// StateDataFilter corresponds to the JSON schema field "stateDataFilter".
-	StateDataFilter *Statedatafilter `json:"stateDataFilter,omitempty"`
-
-	// State type
-	Type *string `json:"type,omitempty"`
-}
-
-type DatabasedswitchDataConditionsElem interface{}
-
-type Datacondition interface{}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Functionref) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["refName"]; !ok || v == nil {
-		return fmt.Errorf("field refName: required")
-	}
-	type Plain Functionref
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Functionref(plain)
-	return nil
-}
-
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Enddeventcondition) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
@@ -209,24 +59,157 @@ func (j *ParallelstateCompletionType) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Transitioneventcondition) UnmarshalJSON(b []byte) error {
+func (j *Parallelstate) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["eventRef"]; !ok || v == nil {
-		return fmt.Errorf("field eventRef: required")
-	}
-	if v, ok := raw["transition"]; !ok || v == nil {
-		return fmt.Errorf("field transition: required")
-	}
-	type Plain Transitioneventcondition
+	type Plain Parallelstate
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Transitioneventcondition(plain)
+	if v, ok := raw["completionType"]; !ok || v == nil {
+		plain.CompletionType = "and"
+	}
+	*j = Parallelstate(plain)
 	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Eventref) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["resultEventRef"]; !ok || v == nil {
+		return fmt.Errorf("field resultEventRef: required")
+	}
+	if v, ok := raw["triggerEventRef"]; !ok || v == nil {
+		return fmt.Errorf("field triggerEventRef: required")
+	}
+	type Plain Eventref
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Eventref(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Operationstate) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	type Plain Operationstate
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if v, ok := raw["actionMode"]; !ok || v == nil {
+		plain.ActionMode = "sequential"
+	}
+	*j = Operationstate(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *OperationstateActionMode) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_OperationstateActionMode {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OperationstateActionMode, v)
+	}
+	*j = OperationstateActionMode(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Functionref) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["refName"]; !ok || v == nil {
+		return fmt.Errorf("field refName: required")
+	}
+	type Plain Functionref
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Functionref(plain)
+	return nil
+}
+
+type Action struct {
+	// ActionDataFilter corresponds to the JSON schema field "actionDataFilter".
+	ActionDataFilter *Actiondatafilter `json:"actionDataFilter,omitempty"`
+
+	// References a 'trigger' and 'result' reusable event definitions
+	EventRef *Eventref `json:"eventRef,omitempty"`
+
+	// References a reusable function definition
+	FunctionRef *Functionref `json:"functionRef,omitempty"`
+
+	// Unique action definition name
+	Name *string `json:"name,omitempty"`
+
+	// Time period to wait for function execution to complete
+	Timeout *string `json:"timeout,omitempty"`
+}
+
+// Branch Definition
+type Branch struct {
+	// Actions to be executed in this branch
+	Actions []Action `json:"actions,omitempty"`
+
+	// Branch name
+	Name *string `json:"name,omitempty"`
+
+	// Unique Id of a workflow to be executed in this branch
+	WorkflowId *string `json:"workflowId,omitempty"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ScheduleDirectInvoke) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_ScheduleDirectInvoke {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ScheduleDirectInvoke, v)
+	}
+	*j = ScheduleDirectInvoke(v)
+	return nil
+}
+
+type Actiondatafilter struct {
+	// JsonPath definition that selects parts of the states data input to be the
+	// action data
+	DataInputPath *string `json:"dataInputPath,omitempty"`
+
+	// JsonPath definition that selects parts of the actions data result, to be merged
+	// with the states data
+	DataResultsPath *string `json:"dataResultsPath,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -246,24 +229,6 @@ func (j *EndKind) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_EndKind, v)
 	}
 	*j = EndKind(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Operationstate) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	type Plain Operationstate
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["actionMode"]; !ok || v == nil {
-		plain.ActionMode = "sequential"
-	}
-	*j = Operationstate(plain)
 	return nil
 }
 
@@ -330,81 +295,20 @@ func (j *Transitiondatacondition) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *OneventsActionMode) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_OneventsActionMode {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OneventsActionMode, v)
-	}
-	*j = OneventsActionMode(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Produceeventdef) UnmarshalJSON(b []byte) error {
+func (j *Eventstate) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["eventRef"]; !ok || v == nil {
-		return fmt.Errorf("field eventRef: required")
-	}
-	type Plain Produceeventdef
+	type Plain Eventstate
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Produceeventdef(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *OperationstateActionMode) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
+	if v, ok := raw["exclusive"]; !ok || v == nil {
+		plain.Exclusive = true
 	}
-	var ok bool
-	for _, expected := range enumValues_OperationstateActionMode {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OperationstateActionMode, v)
-	}
-	*j = OperationstateActionMode(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Eventref) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["resultEventRef"]; !ok || v == nil {
-		return fmt.Errorf("field resultEventRef: required")
-	}
-	if v, ok := raw["triggerEventRef"]; !ok || v == nil {
-		return fmt.Errorf("field triggerEventRef: required")
-	}
-	type Plain Eventref
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Eventref(plain)
+	*j = Eventstate(plain)
 	return nil
 }
 
@@ -433,77 +337,40 @@ func (j *Onevents) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Parallelstate) UnmarshalJSON(b []byte) error {
+func (j *Produceeventdef) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	type Plain Parallelstate
+	if v, ok := raw["eventRef"]; !ok || v == nil {
+		return fmt.Errorf("field eventRef: required")
+	}
+	type Plain Produceeventdef
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	if v, ok := raw["completionType"]; !ok || v == nil {
-		plain.CompletionType = "and"
-	}
-	*j = Parallelstate(plain)
+	*j = Produceeventdef(plain)
 	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Transition) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
+func (j *OneventsActionMode) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
-	if v, ok := raw["nextState"]; !ok || v == nil {
-		return fmt.Errorf("field nextState: required")
+	var ok bool
+	for _, expected := range enumValues_OneventsActionMode {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
 	}
-	type Plain Transition
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OneventsActionMode, v)
 	}
-	*j = Transition(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Eventstate) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	type Plain Eventstate
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["exclusive"]; !ok || v == nil {
-		plain.Exclusive = true
-	}
-	*j = Eventstate(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Error) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["expression"]; !ok || v == nil {
-		return fmt.Errorf("field expression: required")
-	}
-	if v, ok := raw["transition"]; !ok || v == nil {
-		return fmt.Errorf("field transition: required")
-	}
-	type Plain Error
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Error(plain)
+	*j = OneventsActionMode(v)
 	return nil
 }
 
@@ -526,42 +393,133 @@ func (j *Subflowstate) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Retry) UnmarshalJSON(b []byte) error {
+func (j *Transitioneventcondition) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["expression"]; !ok || v == nil {
-		return fmt.Errorf("field expression: required")
+	if v, ok := raw["eventRef"]; !ok || v == nil {
+		return fmt.Errorf("field eventRef: required")
 	}
-	type Plain Retry
+	if v, ok := raw["transition"]; !ok || v == nil {
+		return fmt.Errorf("field transition: required")
+	}
+	type Plain Transitioneventcondition
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Retry(plain)
+	*j = Transitioneventcondition(plain)
 	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ScheduleDirectInvoke) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
+func (j *Transition) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	var ok bool
-	for _, expected := range enumValues_ScheduleDirectInvoke {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
+	if v, ok := raw["nextState"]; !ok || v == nil {
+		return fmt.Errorf("field nextState: required")
 	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ScheduleDirectInvoke, v)
+	type Plain Transition
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
 	}
-	*j = ScheduleDirectInvoke(v)
+	*j = Transition(plain)
 	return nil
 }
+
+// This state performs an action, then waits for the callback event that denotes
+// completion of the action
+type Callbackstate struct {
+	// Defines the action to be executed
+	Action *Action `json:"action,omitempty"`
+
+	// URI to JSON Schema that state data input adheres to
+	DataInputSchema *string `json:"dataInputSchema,omitempty"`
+
+	// URI to JSON Schema that state data output adheres to
+	DataOutputSchema *string `json:"dataOutputSchema,omitempty"`
+
+	// State end definition
+	End *End `json:"end,omitempty"`
+
+	// Callback event data filter definition
+	EventDataFilter *Eventdatafilter `json:"eventDataFilter,omitempty"`
+
+	// References an unique callback event name in the defined workflow events
+	EventRef *string `json:"eventRef,omitempty"`
+
+	// Unique state id
+	Id *string `json:"id,omitempty"`
+
+	// Metadata corresponds to the JSON schema field "metadata".
+	Metadata Metadata_1 `json:"metadata,omitempty"`
+
+	// State name
+	Name *string `json:"name,omitempty"`
+
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
+
+	// State start definition
+	Start *Start `json:"start,omitempty"`
+
+	// State data filter definition
+	StateDataFilter *Statedatafilter `json:"stateDataFilter,omitempty"`
+
+	// Time period to wait for incoming events (ISO 8601 format)
+	Timeout *string `json:"timeout,omitempty"`
+
+	// Next transition of the workflow after all the actions have been performed
+	Transition *Transition `json:"transition,omitempty"`
+
+	// State type
+	Type *string `json:"type,omitempty"`
+}
+
+// Permits transitions to other states based on data conditions
+type Databasedswitch struct {
+	// Defines conditions evaluated against state data
+	DataConditions []DatabasedswitchDataConditionsElem `json:"dataConditions,omitempty"`
+
+	// URI to JSON Schema that state data input adheres to
+	DataInputSchema *string `json:"dataInputSchema,omitempty"`
+
+	// URI to JSON Schema that state data output adheres to
+	DataOutputSchema *string `json:"dataOutputSchema,omitempty"`
+
+	// Default transition of the workflow if there is no matching data conditions. Can
+	// include a transition or end definition
+	Default *Defaultdef `json:"default,omitempty"`
+
+	// Unique State id
+	Id *string `json:"id,omitempty"`
+
+	// Metadata corresponds to the JSON schema field "metadata".
+	Metadata Metadata_1 `json:"metadata,omitempty"`
+
+	// State name
+	Name *string `json:"name,omitempty"`
+
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
+
+	// State start definition
+	Start *Start `json:"start,omitempty"`
+
+	// StateDataFilter corresponds to the JSON schema field "stateDataFilter".
+	StateDataFilter *Statedatafilter `json:"stateDataFilter,omitempty"`
+
+	// State type
+	Type *string `json:"type,omitempty"`
+}
+
+type DatabasedswitchDataConditionsElem interface{}
+
+type Datacondition interface{}
 
 // Default definition. Can be either a transition or end definition
 type Defaultdef struct {
@@ -592,8 +550,8 @@ type Delaystate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// OnError Definition
-	OnError []Error `json:"onError,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -651,15 +609,23 @@ type Enddeventcondition struct {
 }
 
 type Error struct {
-	// ErrorDataFilter corresponds to the JSON schema field "errorDataFilter".
-	ErrorDataFilter *Errordatafilter `json:"errorDataFilter,omitempty"`
+	// Error code. Can be used in addition to the name to help runtimes resolve to
+	// technical errors/exceptions. Should not be defined if error is set to '*'
+	Code *string `json:"code,omitempty"`
 
-	// JsonPath expression. Evaluated against error data. Is true if returns non empty
-	// result
-	Expression string `json:"expression"`
+	// End workflow execution in case of this error. If retryRef is defined, this ends
+	// workflow only if retries were unsuccessful.
+	End *End `json:"end,omitempty"`
 
-	// Next transition of the workflow when expression is matched
-	Transition Transition `json:"transition"`
+	// Domain-specific error name, or '*' to indicate all possible errors
+	Error *string `json:"error,omitempty"`
+
+	// References a unique name of a retry definition.
+	RetryRef *string `json:"retryRef,omitempty"`
+
+	// Transition to next state to handle the error. If retryRef is defined, this
+	// transition is taken only if retries were unsuccessful.
+	Transition *Transition `json:"transition,omitempty"`
 }
 
 type Errordatafilter struct {
@@ -696,8 +662,8 @@ type Eventbasedswitch struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -766,14 +732,11 @@ type Eventstate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// Define what events trigger one or more actions to be performed
 	OnEvents []Onevents `json:"onEvents,omitempty"`
-
-	// Retry Definition
-	Retry []Retry `json:"retry,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -825,15 +788,12 @@ type Foreachstate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// JsonPath expression specifying an array element of the states data to add the
 	// results of each iteration
 	OutputCollection *string `json:"outputCollection,omitempty"`
-
-	// Retry Definition
-	Retry []Retry `json:"retry,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -950,11 +910,8 @@ type Operationstate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
-
-	// Retry Definition
-	Retry []Retry `json:"retry,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -1003,11 +960,8 @@ type Parallelstate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
-
-	// Retry Definition
-	Retry []Retry `json:"retry,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`
@@ -1044,23 +998,6 @@ type Produceeventdef struct {
 
 // Add additional event extension context attributes
 type ProduceeventdefContextAttributes map[string]interface{}
-
-// Retry Definition
-type Retry struct {
-	// JsonPath expression. Evaluated against state data. Is true if returns non empty
-	// data
-	Expression string `json:"expression"`
-
-	// Interval value for retry (ISO 8601 repeatable format)
-	Interval *string `json:"interval,omitempty"`
-
-	// Maximum number of retry attempts. Value of 0 means no retries are performed
-	MaxAttempts interface{} `json:"maxAttempts,omitempty"`
-
-	// Multiplier value by which interval increases during each attempt (ISO 8601 time
-	// format)
-	Multiplier *string `json:"multiplier,omitempty"`
-}
 
 // Start state schedule definition
 type Schedule struct {
@@ -1130,8 +1067,8 @@ type Subflowstate struct {
 	// State name
 	Name *string `json:"name,omitempty"`
 
-	// States error handling definitions
-	OnError []Error `json:"onError,omitempty"`
+	// States error handling and retries definitions
+	OnErrors []Error `json:"onErrors,omitempty"`
 
 	// State start definition
 	Start *Start `json:"start,omitempty"`

@@ -1,0 +1,90 @@
+{
+  "id": "provisionorders",
+  "version": "1.0",
+  "name": "Provision Orders",
+  "description": "Provision Orders and handle errors thrown",
+  "functions": [
+    {
+      "name": "provisionOrderFunction",
+      "operation": "http://myapis.org/provisioningapi.json#doProvision"
+    }
+  ],
+  "states": [
+    {
+      "name": "ProvisionOrder",
+      "type": "operation",
+      "start": {
+        "kind": "default"
+      },
+      "actionMode": "sequential",
+      "actions": [
+        {
+          "functionRef": {
+            "refName": "provisionOrderFunction",
+            "parameters": {
+              "order": "{{ $.order }}"
+            }
+          }
+        }
+      ],
+      "stateDataFilter": {
+        "dataOutputPath": "{{ $.exceptions }}"
+      },
+      "transition": {
+        "nextState": "ApplyOrder"
+      },
+      "onErrors": [
+        {
+          "error": "Missing order id",
+          "transition": {
+            "nextState": "MissingId"
+          }
+        },
+        {
+          "error": "Missing order item",
+          "transition": {
+            "nextState": "MissingItem"
+          }
+        },
+        {
+          "error": "Missing order quantity",
+          "transition": {
+            "nextState": "MissingQuantity"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MissingId",
+      "type": "subflow",
+      "workflowId": "handleMissingIdExceptionWorkflow",
+      "end": {
+        "kind": "default"
+      }
+    },
+    {
+      "name": "MissingItem",
+      "type": "subflow",
+      "workflowId": "handleMissingItemExceptionWorkflow",
+      "end": {
+        "kind": "default"
+      }
+    },
+    {
+      "name": "MissingQuantity",
+      "type": "subflow",
+      "workflowId": "handleMissingQuantityExceptionWorkflow",
+      "end": {
+        "kind": "default"
+      }
+    },
+    {
+      "name": "ApplyOrder",
+      "type": "subflow",
+      "workflowId": "applyOrderWorkflowId",
+      "end": {
+        "kind": "default"
+      }
+    }
+  ]
+}

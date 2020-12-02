@@ -62,6 +62,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
@@ -69,6 +70,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
@@ -76,6 +78,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Operationstate{}, w.States[0])

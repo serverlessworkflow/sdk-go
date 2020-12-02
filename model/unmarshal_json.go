@@ -15,9 +15,35 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"path/filepath"
+	"strings"
 )
+
+func getBytesFromFile(s string) (b []byte, err error) {
+
+	if resp, err := http.Get(s); err == nil {
+		defer resp.Body.Close()
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		return buf.Bytes(), nil
+	}
+	if strings.HasPrefix(s, "file://") {
+		s = strings.TrimPrefix(s, "file:/")
+	} else {
+		if s, err = filepath.Abs(s); err != nil {
+			return nil, err
+		}
+	}
+	if b, err = ioutil.ReadFile(s); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
@@ -48,6 +74,40 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		w.States[i] = state
+	}
+	if _, ok := workflowMap["events"]; ok {
+		if err := json.Unmarshal(workflowMap["events"], &w.Events); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["events"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Eventdef)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Events = m["events"]
+		}
+	}
+	if _, ok := workflowMap["functions"]; ok {
+		if err := json.Unmarshal(workflowMap["functions"], &w.Functions); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["functions"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Function)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Functions = m["functions"]
+		}
 	}
 	return nil
 }

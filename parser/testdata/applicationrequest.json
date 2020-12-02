@@ -10,6 +10,13 @@
         "operation": "http://myapis.org/applicationapi.json#emailRejection"
       }
     ],
+    "retries": [
+      {
+        "name": "TimeoutRetryStrategy",
+        "delay": "PT1M",
+        "maxAttempts": "5"
+      }
+    ],
     "states":[
       {
         "name":"CheckApplication",

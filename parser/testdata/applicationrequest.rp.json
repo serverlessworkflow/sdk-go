@@ -5,6 +5,7 @@
     "name": "Applicant Request Decision Workflow",
     "description": "Determine if applicant request is valid",
     "functions": "testdata/applicationrequestfunctions.json",
+    "retries" : "testdata/applicationrequestretries.json",
     "states":[
       {
         "name":"CheckApplication",

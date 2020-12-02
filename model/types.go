@@ -50,6 +50,7 @@ type Workflow struct {
 	States    []State    `json:"states"`
 	Events    []Eventdef `json:"events,omitempty"`
 	Functions []Function `json:"functions,omitempty"`
+	Retries   []Retrydef `json:"retries,omitempty"`
 }
 
 // State definition for a Workflow state

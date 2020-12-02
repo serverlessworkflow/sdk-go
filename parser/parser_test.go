@@ -62,17 +62,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
-<<<<<<< HEAD
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
-=======
-		},
-		"./testdata/applicationrequest.ap.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Databasedswitch)
-			assert.NotNil(t, eventState)
-			assert.NotEmpty(t, eventState.DataConditions)
-			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
->>>>>>> added a few additional tests for parsing events and functions through nested files
 		},
 		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
@@ -80,10 +70,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
-<<<<<<< HEAD
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
-=======
->>>>>>> added a few additional tests for parsing events and functions through nested files
 		},
 		"./testdata/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
@@ -91,10 +78,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
-<<<<<<< HEAD
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
-=======
->>>>>>> added a few additional tests for parsing events and functions through nested files
 		},
 		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Operationstate{}, w.States[0])
@@ -116,7 +100,6 @@ func TestFromFile(t *testing.T) {
 		},
 	}
 	for file, f := range files {
-		fmt.Println(file)
 		workflow, err := FromFile(file)
 		assert.NoError(t, err)
 		assert.NotNil(t, workflow)

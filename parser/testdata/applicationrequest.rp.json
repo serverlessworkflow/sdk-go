@@ -4,7 +4,7 @@
     "version": "1.0",
     "name": "Applicant Request Decision Workflow",
     "description": "Determine if applicant request is valid",
-    "functions": "features/applicationrequestfunctions.json",
+    "functions": "testdata/applicationrequestfunctions.json",
     "states":[
       {
         "name":"CheckApplication",

@@ -3,7 +3,7 @@
   "version": "1.0",
   "name": "Event Based Greeting Workflow",
   "description": "Event Based Greeting",
-  "events": "features/eventbasedgreetingevents.json",
+  "events": "testdata/eventbasedgreetingevents.json",
   "functions": [
     {
       "name": "greetingFunction",

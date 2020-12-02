@@ -1,0 +1,9 @@
+{
+  "events": [
+    {
+      "name": "GreetingEvent",
+      "type": "greetingEventType",
+      "source": "greetingEventSource"
+    }
+  ]
+}

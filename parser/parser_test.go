@@ -15,7 +15,6 @@
 package parser
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/serverlessworkflow/sdk-go/model"
@@ -64,13 +63,6 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
 		},
-		"./testdata/applicationrequest.ap.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Databasedswitch)
-			assert.NotNil(t, eventState)
-			assert.NotEmpty(t, eventState.DataConditions)
-			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
-		},
 		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
 			eventState := w.States[0].(*model.Databasedswitch)
@@ -105,7 +97,6 @@ func TestFromFile(t *testing.T) {
 		},
 	}
 	for file, f := range files {
-		fmt.Println(file)
 		workflow, err := FromFile(file)
 		assert.NoError(t, err)
 		assert.NotNil(t, workflow)

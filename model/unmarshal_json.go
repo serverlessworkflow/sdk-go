@@ -113,6 +113,23 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			w.Functions = m["functions"]
 		}
 	}
+	if _, ok := workflowMap["retries"]; ok {
+		if err := json.Unmarshal(workflowMap["retries"], &w.Retries); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["retries"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Retrydef)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Retries = m["retries"]
+		}
+	}
 	return nil
 }
 

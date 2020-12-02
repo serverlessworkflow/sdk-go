@@ -24,6 +24,8 @@ import (
 	"strings"
 )
 
+const prefix = "file:/"
+
 func getBytesFromFile(s string) (b []byte, err error) {
 
 	if resp, err := http.Get(s); err == nil {
@@ -34,8 +36,8 @@ func getBytesFromFile(s string) (b []byte, err error) {
 		}
 		return buf.Bytes(), nil
 	}
-	if strings.HasPrefix(s, "file://") {
-		s = strings.TrimPrefix(s, "file:/")
+	if strings.HasPrefix(s, prefix) {
+		s = strings.TrimPrefix(s, prefix)
 	} else {
 		if s, err = filepath.Abs(s); err != nil {
 			return nil, err

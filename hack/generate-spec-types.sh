@@ -46,13 +46,19 @@ sed -i 's/$id/id/g' "${targetdir}/schema/retries.json"
   --schema-output=https://serverlessworkflow.org/core/functions.json=zz_generated.types_functions.go \
   --schema-package=https://serverlessworkflow.org/core/workflow.json=github.com/serverlessworkflow/sdk-go/model \
 <<<<<<< HEAD
+<<<<<<< HEAD
   --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
   "${targetdir}"/schema/common.json "${targetdir}"/schema/events.json "${targetdir}"/schema/functions.json "${targetdir}"/schema/workflow.json
 =======
+=======
+>>>>>>> configured the generator and added the new generated file for the retries
    --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
   --schema-package=https://serverlessworkflow.org/core/retries.json=github.com/serverlessworkflow/sdk-go/model \
    --schema-output=https://serverlessworkflow.org/core/retries.json=zz_generated.types_retries.go \
   "${targetdir}"/schema/common.json "${targetdir}"/schema/events.json "${targetdir}"/schema/functions.json "${targetdir}"/schema/workflow.json "${targetdir}"/schema/retries.json
+<<<<<<< HEAD
+>>>>>>> configured the generator and added the new generated file for the retries
+=======
 >>>>>>> configured the generator and added the new generated file for the retries
 
 sed -i '/type Workflow/d' zz_generated.types_workflow.go

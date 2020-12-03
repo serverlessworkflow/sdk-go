@@ -1,6 +1,5 @@
 #!/bin/bash
 # Copyright 2020 The Serverless Workflow Specification Authors
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,8 +20,12 @@ declare package="model"
 declare targetdir="/tmp/serverlessworkflow"
 
 if [ ! -d "${targetdir}" ]; then
+<<<<<<< HEAD
 	git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
 
+=======
+  git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
+>>>>>>> reverted back to main branch
 fi
 
 # remove once we have https://github.com/atombender/go-jsonschema/pull/16

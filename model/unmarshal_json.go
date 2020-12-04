@@ -15,9 +15,39 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"path/filepath"
+	"strings"
 )
+
+const prefix = "file:/"
+
+func getBytesFromFile(s string) (b []byte, err error) {
+
+	if resp, err := http.Get(s); err == nil {
+		defer resp.Body.Close()
+		buf := new(bytes.Buffer)
+		if _, err = buf.ReadFrom(resp.Body); err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
+	}
+	if strings.HasPrefix(s, prefix) {
+		s = strings.TrimPrefix(s, prefix)
+	} else {
+		if s, err = filepath.Abs(s); err != nil {
+			return nil, err
+		}
+	}
+	if b, err = ioutil.ReadFile(s); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
@@ -48,6 +78,57 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		w.States[i] = state
+	}
+	if _, ok := workflowMap["events"]; ok {
+		if err := json.Unmarshal(workflowMap["events"], &w.Events); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["events"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Eventdef)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Events = m["events"]
+		}
+	}
+	if _, ok := workflowMap["functions"]; ok {
+		if err := json.Unmarshal(workflowMap["functions"], &w.Functions); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["functions"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Function)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Functions = m["functions"]
+		}
+	}
+	if _, ok := workflowMap["retries"]; ok {
+		if err := json.Unmarshal(workflowMap["retries"], &w.Retries); err != nil {
+			var s string
+			if err := json.Unmarshal(workflowMap["retries"], &s); err != nil {
+				return err
+			}
+			var nestedData []byte
+			if nestedData, err = getBytesFromFile(s); err != nil {
+				return err
+			}
+			m := make(map[string][]Retrydef)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Retries = m["retries"]
+		}
 	}
 	return nil
 }

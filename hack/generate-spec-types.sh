@@ -1,6 +1,5 @@
 #!/bin/bash
 # Copyright 2020 The Serverless Workflow Specification Authors
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,7 +20,8 @@ declare package="model"
 declare targetdir="/tmp/serverlessworkflow"
 
 if [ ! -d "${targetdir}" ]; then
-  git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
+	git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
+
 fi
 
 # remove once we have https://github.com/atombender/go-jsonschema/pull/16
@@ -33,6 +33,9 @@ sed -i 's/$id/id/g' "${targetdir}/schema/events.json"
 sed -i 's/$id/id/g' "${targetdir}/schema/functions.json"
 # shellcheck disable=SC2016
 sed -i 's/$id/id/g' "${targetdir}/schema/workflow.json"
+# shellcheck disable=SC2016
+sed -i 's/$id/id/g' "${targetdir}/schema/retries.json"
+
 
 ./bin/gojsonschema -v \
   --schema-package=https://serverlessworkflow.org/core/common.json=github.com/serverlessworkflow/sdk-go/model \
@@ -42,8 +45,10 @@ sed -i 's/$id/id/g' "${targetdir}/schema/workflow.json"
   --schema-package=https://serverlessworkflow.org/core/functions.json=github.com/serverlessworkflow/sdk-go/model \
   --schema-output=https://serverlessworkflow.org/core/functions.json=zz_generated.types_functions.go \
   --schema-package=https://serverlessworkflow.org/core/workflow.json=github.com/serverlessworkflow/sdk-go/model \
-  --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
-  "${targetdir}"/schema/common.json "${targetdir}"/schema/events.json "${targetdir}"/schema/functions.json "${targetdir}"/schema/workflow.json
+   --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
+  --schema-package=https://serverlessworkflow.org/core/retries.json=github.com/serverlessworkflow/sdk-go/model \
+   --schema-output=https://serverlessworkflow.org/core/retries.json=zz_generated.types_retries.go \
+  "${targetdir}"/schema/common.json "${targetdir}"/schema/events.json "${targetdir}"/schema/functions.json "${targetdir}"/schema/workflow.json "${targetdir}"/schema/retries.json
 
 sed -i '/type Workflow/d' zz_generated.types_workflow.go
 

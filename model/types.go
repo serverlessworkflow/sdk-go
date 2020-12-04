@@ -34,22 +34,23 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 // WorkflowCommon describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type WorkflowCommon struct {
-	ID               string     `json:"id"`
-	Name             string     `json:"name"`
-	Description      string     `json:"description,omitempty"`
-	Version          string     `json:"version"`
-	SchemaVersion    string     `json:"schemaVersion"`
-	DataInputSchema  string     `json:"dataInputSchema,omitempty"`
-	DataOutputSchema string     `json:"dataOutputSchema,omitempty"`
-	Metadata         Metadata   `json:"metadata,omitempty"`
-	Events           []Eventdef `json:"events,omitempty"`
-	Functions        []Function `json:"functions,omitempty"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	Description      string   `json:"description,omitempty"`
+	Version          string   `json:"version"`
+	SchemaVersion    string   `json:"schemaVersion"`
+	DataInputSchema  string   `json:"dataInputSchema,omitempty"`
+	DataOutputSchema string   `json:"dataOutputSchema,omitempty"`
+	Metadata         Metadata `json:"metadata,omitempty"`
 }
 
 // Workflow base definition
 type Workflow struct {
 	WorkflowCommon
-	States []State `json:"states"`
+	States    []State    `json:"states"`
+	Events    []Eventdef `json:"events,omitempty"`
+	Functions []Function `json:"functions,omitempty"`
+	Retries   []Retrydef `json:"retries,omitempty"`
 }
 
 // State definition for a Workflow state

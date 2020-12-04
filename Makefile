@@ -3,8 +3,11 @@ gen-types:
 	./hack/generate-spec-types.sh
 
 addheaders:
+<<<<<<< HEAD
 	@command -v addlicense > /dev/null || go install -modfile=tools.mod -v github.com/google/addlicense
 	@addlicense -c "The Serverless Workflow Specification Authors" -l apache .
+=======
+>>>>>>> changed the path of addlicense binary and also clean the go package installation
 
 fmt:
 	@go vet ./...

@@ -15,9 +15,10 @@
 package parser
 
 import (
+	"testing"
+
 	"github.com/serverlessworkflow/sdk-go/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestFromFile(t *testing.T) {
@@ -33,6 +34,15 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, w.States[0].(*model.Operationstate).Actions[0].FunctionRef)
 		},
 		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "GreetingEvent", *w.Events[0].Name)
+			assert.IsType(t, &model.Eventstate{}, w.States[0])
+			eventState := w.States[0].(*model.Eventstate)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.OnEvents)
+			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+		},
+		"./testdata/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "GreetingEvent", *w.Events[0].Name)
 			assert.IsType(t, &model.Eventstate{}, w.States[0])
 			eventState := w.States[0].(*model.Eventstate)
 			assert.NotNil(t, eventState)
@@ -45,6 +55,30 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.EventConditions)
 			assert.IsType(t, &model.Transitioneventcondition{}, eventState.EventConditions[0])
+		},
+		"./testdata/applicationrequest.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
+			eventState := w.States[0].(*model.Databasedswitch)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.DataConditions)
+			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+		},
+		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
+			eventState := w.States[0].(*model.Databasedswitch)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.DataConditions)
+			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+		},
+		"./testdata/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
+			eventState := w.States[0].(*model.Databasedswitch)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.DataConditions)
+			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.Operationstate{}, w.States[0])

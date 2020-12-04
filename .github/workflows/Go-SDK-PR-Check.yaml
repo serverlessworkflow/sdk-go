@@ -24,6 +24,7 @@ on:
       - master
 env:
   GO_VERSION: 1.14
+  GOLANGLINT_CI_VERSION: v1.33.0
 jobs:
   basic_checks:
     name: Basic Checks
@@ -43,13 +44,13 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache-
-      - name: Cache bin
+      - name: Cache tools
         uses: actions/cache@v2
         with:
           path: ${{ env.GOPATH }}/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-tools-${{ hashFiles('**/tools.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-bin-
+            ${{ runner.os }}-go-tools-
       - name: Check Headers
         run: |
           make addheaders
@@ -63,10 +64,9 @@ jobs:
       - name: Check lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.33.0
+          version: ${{ env.GOLANGLINT_CI_VERSION }}
       - name: Install cover
-        run: go get golang.org/x/tools/cmd/cover
-      - run: go mod tidy
+        run: go get -modfile=tools.mod golang.org/x/tools/cmd/cover
       - name: Validate codcov yaml file
         run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
       - name: Run Unit Tests

@@ -20,12 +20,8 @@ declare package="model"
 declare targetdir="/tmp/serverlessworkflow"
 
 if [ ! -d "${targetdir}" ]; then
-<<<<<<< HEAD
 	git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
 
-=======
-  git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
->>>>>>> reverted back to main branch
 fi
 
 # remove once we have https://github.com/atombender/go-jsonschema/pull/16

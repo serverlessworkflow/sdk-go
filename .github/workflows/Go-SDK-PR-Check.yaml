@@ -54,12 +54,12 @@ jobs:
       - name: Check Headers
         run: |
           make addheaders
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           make fmt
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
       - name: Check lint
         uses: golangci/golangci-lint-action@v2

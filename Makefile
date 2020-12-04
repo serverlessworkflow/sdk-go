@@ -3,15 +3,16 @@ gen-types:
 	./hack/generate-spec-types.sh
 
 addheaders:
-	@which addlicense > /dev/null || go get -u github.com/google/addlicense
+	@command -v addlicense > /dev/null || go install -modfile=tools.mod -v github.com/google/addlicense
 	@addlicense -c "The Serverless Workflow Specification Authors" -l apache .
 
 fmt:
-	go vet ./...
-	go fmt ./...
+	@go vet ./...
+	@go fmt ./...
 
 lint:
-	go mod tidy
+	@command -v golint > /dev/null || go install -modfile=tools.mod -v golang.org/x/lint/golint
+	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin"
 	make addheaders
 	make fmt
 	./hack/go-lint.sh
@@ -20,4 +21,4 @@ lint:
 coverage="false"
 test:
 	make lint
-	go test ./...
+	@go test ./...

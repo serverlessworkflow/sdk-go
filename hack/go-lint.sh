@@ -18,8 +18,6 @@ if [ -s golint_errors ]  ; then
     code=1
 fi
 rm -f golint_errors
-# The command in or will fetch the latest tag available for golangci-lint and install in $GOPATH/bin/
-command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)/bin"
 golangci-lint run ./... --enable golint --timeout 2m0s
 
 exit ${code:0}

@@ -24,12 +24,11 @@ on:
       - master
 env:
   GO_VERSION: 1.14
+  GOLANGLINT_CI_VERSION: v1.33.0
 jobs:
   basic_checks:
     name: Basic Checks
     runs-on: ubuntu-latest
-    env:
-      GOLANG_LINT_VERSION: v1.27.0
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -45,26 +44,29 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache-
+      - name: Cache tools
+        uses: actions/cache@v2
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-go-tools-${{ hashFiles('**/tools.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tools-
       - name: Check Headers
         run: |
           make addheaders
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           make fmt
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
-      - name: Install golinters
-        run: |
-          go get -u golang.org/x/lint/golint
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
       - name: Check lint
-        run: |
-          make lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: ${{ env.GOLANGLINT_CI_VERSION }}
       - name: Install cover
-        run: go get golang.org/x/tools/cmd/cover
-      - run: go mod tidy
+        run: go get -modfile=tools.mod golang.org/x/tools/cmd/cover
       - name: Validate codcov yaml file
         run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
       - name: Run Unit Tests

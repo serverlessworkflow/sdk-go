@@ -1,12 +1,5 @@
 #!/bin/bash
 # Copyright 2020 The Serverless Workflow Specification Authors
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-git clone git@github.com:serverlessworkflow/specification.git ${targetdir}
->>>>>>> reverted back to main branch
-=======
->>>>>>> reverted back to main branch fix
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -52,6 +45,10 @@ sed -i 's/$id/id/g' "${targetdir}/schema/retries.json"
   --schema-package=https://serverlessworkflow.org/core/functions.json=github.com/serverlessworkflow/sdk-go/model \
   --schema-output=https://serverlessworkflow.org/core/functions.json=zz_generated.types_functions.go \
   --schema-package=https://serverlessworkflow.org/core/workflow.json=github.com/serverlessworkflow/sdk-go/model \
+<<<<<<< HEAD
+=======
+  --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
+>>>>>>> minor change
    --schema-output=https://serverlessworkflow.org/core/workflow.json=zz_generated.types_workflow.go \
   --schema-package=https://serverlessworkflow.org/core/retries.json=github.com/serverlessworkflow/sdk-go/model \
    --schema-output=https://serverlessworkflow.org/core/retries.json=zz_generated.types_retries.go \

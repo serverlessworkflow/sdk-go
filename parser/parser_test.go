@@ -98,17 +98,11 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, w.States, 3)
-			//fmt.Println(switchState)
 			assert.Equal(t, "CheckApplication", switchState.GetName())
 			assert.IsType(t, &model.Transitiondatacondition{}, switchState.DataConditions[0])
 			assert.Equal(t, "StartApplication", switchState.DataConditions[0].(*model.Transitiondatacondition).Transition.NextState)
-			//assert.Equal(t, "StartApplication", switchState.DataConditions[0].)
-			//fmt.Println("Ch.P. 2")
 			assert.Equal(t, "StartApplication", eventState.GetName())
 			assert.Equal(t, "startApplicationWorkflowId", eventState.GetId())
-			// fmt.Println("Ch.P. 3")
-			// assert.Equal(t, "RejectApplication", operationState.GetName())
-			// fmt.Println("Ch.P. 4")
 		},
 		// validates: https://github.com/serverlessworkflow/specification/pull/175/
 		"./testdata/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {

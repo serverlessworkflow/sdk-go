@@ -175,9 +175,6 @@ func (j *Databasedswitch) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	dataBasedSwitch := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &j.Databasedswitchcommon); err != nil {
-		return err
-	}
 	err := json.Unmarshal(data, &dataBasedSwitch)
 	if err != nil {
 		return err

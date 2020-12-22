@@ -171,6 +171,9 @@ func (j *Eventbasedswitch) UnmarshalJSON(data []byte) error {
 // UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type
 func (j *Databasedswitch) UnmarshalJSON(data []byte) error {
 	dataBasedSwitch := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &j.Databasedswitchcommon); err != nil {
+		return err
+	}
 	err := json.Unmarshal(data, &dataBasedSwitch)
 	if err != nil {
 		return err

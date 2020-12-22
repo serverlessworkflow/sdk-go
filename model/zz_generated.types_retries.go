@@ -2,10 +2,8 @@
 
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "fmt"
+import "encoding/json"
 
 type Retrydef struct {
 	// Time delay between retry attempts (ISO 8601 duration format)

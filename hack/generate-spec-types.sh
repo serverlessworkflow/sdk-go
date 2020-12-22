@@ -59,6 +59,10 @@ declare operations=("Delaystate" "Eventstate" "Operationstate" "Parallelstate" "
 for op in "${operations[@]}"; do
   sed "s/{state}/${op}/g" ./hack/state_interface_impl.template >>"./${package}/zz_generated.types_state_impl.go"
 done
+declare switches=("Eventbasedswitch" "Databasedswitch")
+for sw in "${switches[@]}"; do
+  sed -i "/${sw}/s/j\./j\.${sw}common\./g" "./${package}/zz_generated.types_state_impl.go"
+done
 
 go fmt ./...
 

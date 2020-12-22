@@ -2,11 +2,9 @@
 
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-	"reflect"
-)
+import "fmt"
+import "encoding/json"
+import "reflect"
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Injectstate) UnmarshalJSON(b []byte) error {

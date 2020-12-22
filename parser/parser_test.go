@@ -40,6 +40,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+			assert.Equal(t, true, eventState.Exclusive)
 		},
 		"./testdata/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", *w.Events[0].Name)
@@ -86,6 +87,28 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, w.States, 2)
+		},
+		"./testdata/testfromissues.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.Operationstate{}, w.States[2])
+			switchState := w.States[0].(*model.Databasedswitch)
+			eventState := w.States[1].(*model.Subflowstate)
+			operationState := w.States[2].(*model.Operationstate)
+			assert.NotNil(t, eventState)
+			assert.NotNil(t, switchState)
+			assert.NotNil(t, operationState)
+			assert.NotEmpty(t, operationState.Actions)
+			assert.Len(t, w.States, 3)
+			//fmt.Println(switchState)
+			assert.Equal(t, "CheckApplication", switchState.GetName())
+			assert.IsType(t, &model.Transitiondatacondition{}, switchState.DataConditions[0])
+			assert.Equal(t, "StartApplication", switchState.DataConditions[0].(*model.Transitiondatacondition).Transition.NextState)
+			//assert.Equal(t, "StartApplication", switchState.DataConditions[0].)
+			//fmt.Println("Ch.P. 2")
+			assert.Equal(t, "StartApplication", eventState.GetName())
+			assert.Equal(t, "startApplicationWorkflowId", eventState.GetId())
+			// fmt.Println("Ch.P. 3")
+			// assert.Equal(t, "RejectApplication", operationState.GetName())
+			// fmt.Println("Ch.P. 4")
 		},
 		// validates: https://github.com/serverlessworkflow/specification/pull/175/
 		"./testdata/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {

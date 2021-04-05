@@ -21,7 +21,7 @@ on:
       - "LICENSE"
       - "Makefile"
     branches:
-      - master
+      - main
 env:
   GO_VERSION: 1.14
   GOLANGLINT_CI_VERSION: v1.33.0

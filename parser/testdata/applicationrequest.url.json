@@ -4,8 +4,8 @@
     "version": "1.0",
     "name": "Applicant Request Decision Workflow",
     "description": "Determine if applicant request is valid",
-    "functions": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/master/api/src/test/resources/features/applicantrequestfunctions.json",
-    "retries" : "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/master/api/src/test/resources/features/applicantrequestretries.json",
+    "functions": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestfunctions.json",
+    "retries" : "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json",
     "states":[
       {
         "name":"CheckApplication",

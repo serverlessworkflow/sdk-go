@@ -1,6 +1,6 @@
 # Go SDK for Serverless Workflow
 
-Here you will find all the [specification types](https://github.com/serverlessworkflow/specification/blob/master/schema/workflow.json) defined by our Json Schemas, in Go.
+Here you will find all the [specification types](https://github.com/serverlessworkflow/specification/blob/main/schema/workflow.json) defined by our Json Schemas, in Go.
 
 Current status of features implemented in the SDK is listed in the table below:
 

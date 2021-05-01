@@ -12,6 +12,12 @@ Current status of features implemented in the SDK is listed in the table below:
 | Validate workflow definitions (Integrity)   | :no_entry_sign:    |
 | Generate workflow diagram (SVG)             | :no_entry_sign:    |
 
+## Status
+
+| Latest Releases | Conformance to spec version |
+| :---: | :---: |
+| [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases) | [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x) |
+
 ## How to use
 
 Run the following command in the root of your Go's project:

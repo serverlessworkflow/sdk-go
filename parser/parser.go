@@ -17,11 +17,13 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/serverlessworkflow/sdk-go/model"
 	"io/ioutil"
 	"os"
-	"sigs.k8s.io/yaml"
+	"path/filepath"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/model"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -55,7 +57,7 @@ func FromFile(path string) (*model.Workflow, error) {
 	if err := checkFilePath(path); err != nil {
 		return nil, err
 	}
-	fileBytes, err := ioutil.ReadFile(path)
+	fileBytes, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}

@@ -28,6 +28,7 @@ const prefix = "file:/"
 
 func getBytesFromFile(s string) (b []byte, err error) {
 
+	// #nosec
 	if resp, err := http.Get(s); err == nil {
 		defer resp.Body.Close()
 		buf := new(bytes.Buffer)
@@ -43,7 +44,7 @@ func getBytesFromFile(s string) (b []byte, err error) {
 			return nil, err
 		}
 	}
-	if b, err = ioutil.ReadFile(s); err != nil {
+	if b, err = ioutil.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err
 	}
 	return b, nil

@@ -1,9 +1,9 @@
 module github.com/serverlessworkflow/sdk-go
 
-go 1.14
+go 1.15
 
 require (
 	github.com/stretchr/testify v1.6.1
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	k8s.io/apimachinery v0.21.0
 	sigs.k8s.io/yaml v1.2.0
 )

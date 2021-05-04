@@ -15,52 +15,27 @@
 package model
 
 var actionsModelMapping = map[string]func(state map[string]interface{}) State{
-	"delay":     func(map[string]interface{}) State { return &Delaystate{} },
-	"event":     func(map[string]interface{}) State { return &Eventstate{} },
-	"operation": func(map[string]interface{}) State { return &Operationstate{} },
-	"parallel":  func(map[string]interface{}) State { return &Parallelstate{} },
+	"delay":     func(map[string]interface{}) State { return &DelayState{} },
+	"event":     func(map[string]interface{}) State { return &EventState{} },
+	"operation": func(map[string]interface{}) State { return &OperationState{} },
+	"parallel":  func(map[string]interface{}) State { return &ParallelState{} },
 	"switch": func(s map[string]interface{}) State {
 		if _, ok := s["dataConditions"]; ok {
-			return &Databasedswitch{}
+			return &DataBasedSwitchState{}
 		}
-		return &Eventbasedswitch{}
+		return &EventBasedSwitchState{}
 	},
-	"subflow":  func(map[string]interface{}) State { return &Subflowstate{} },
-	"inject":   func(map[string]interface{}) State { return &Injectstate{} },
-	"foreach":  func(map[string]interface{}) State { return &Foreachstate{} },
-	"callback": func(map[string]interface{}) State { return &Callbackstate{} },
-}
-
-// WorkflowCommon describes the partial Workflow definition that does not rely on generic interfaces
-// to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
-type WorkflowCommon struct {
-	ID               string   `json:"id"`
-	Name             string   `json:"name"`
-	Description      string   `json:"description,omitempty"`
-	Version          string   `json:"version"`
-	SchemaVersion    string   `json:"schemaVersion"`
-	DataInputSchema  string   `json:"dataInputSchema,omitempty"`
-	DataOutputSchema string   `json:"dataOutputSchema,omitempty"`
-	Metadata         Metadata `json:"metadata,omitempty"`
+	"subflow":  func(map[string]interface{}) State { return &SubflowState{} },
+	"inject":   func(map[string]interface{}) State { return &InjectState{} },
+	"foreach":  func(map[string]interface{}) State { return &ForEachState{} },
+	"callback": func(map[string]interface{}) State { return &CallbackState{} },
 }
 
 // Workflow base definition
 type Workflow struct {
-	WorkflowCommon
+	BaseWorkflow
 	States    []State    `json:"states"`
-	Events    []Eventdef `json:"events,omitempty"`
+	Events    []Event    `json:"events,omitempty"`
 	Functions []Function `json:"functions,omitempty"`
-	Retries   []Retrydef `json:"retries,omitempty"`
-}
-
-// State definition for a Workflow state
-type State interface {
-	GetId() string
-	GetName() string
-	GetType() string
-	GetStart() Start
-	GetStateDataFilter() Statedatafilter
-	GetDataInputSchema() string
-	GetDataOutputSchema() string
-	GetMetadata() Metadata_1
+	Retries   []Retry    `json:"retries,omitempty"`
 }

@@ -50,7 +50,7 @@ func getBytesFromFile(s string) (b []byte, err error) {
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &w.WorkflowCommon); err != nil {
+	if err := json.Unmarshal(data, &w.BaseWorkflow); err != nil {
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			if nestedData, err = getBytesFromFile(s); err != nil {
 				return err
 			}
-			m := make(map[string][]Eventdef)
+			m := make(map[string][]Event)
 			if err := json.Unmarshal(nestedData, &m); err != nil {
 				return err
 			}
@@ -122,7 +122,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			if nestedData, err = getBytesFromFile(s); err != nil {
 				return err
 			}
-			m := make(map[string][]Retrydef)
+			m := make(map[string][]Retry)
 			if err := json.Unmarshal(nestedData, &m); err != nil {
 				return err
 			}
@@ -133,7 +133,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Eventbasedswitch type
-func (j *Eventbasedswitch) UnmarshalJSON(data []byte) error {
+func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 	eventBasedSwitch := make(map[string]json.RawMessage)
 	err := json.Unmarshal(data, &eventBasedSwitch)
 	if err != nil {
@@ -145,18 +145,18 @@ func (j *Eventbasedswitch) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	j.EventConditions = make([]EventbasedswitchEventConditionsElem, len(rawConditions))
+	j.EventConditions = make([]EventCondition, len(rawConditions))
 	var mapConditions map[string]interface{}
 	for i, rawCondition := range rawConditions {
 		err = json.Unmarshal(rawCondition, &mapConditions)
 		if err != nil {
 			return err
 		}
-		var condition EventbasedswitchEventConditionsElem
+		var condition EventCondition
 		if _, ok := mapConditions["end"]; ok {
-			condition = &Enddeventcondition{}
+			condition = &EndEventCondition{}
 		} else {
-			condition = &Transitioneventcondition{}
+			condition = &TransitionEventCondition{}
 		}
 		err := json.Unmarshal(rawCondition, condition)
 		if err != nil {
@@ -168,7 +168,7 @@ func (j *Eventbasedswitch) UnmarshalJSON(data []byte) error {
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type
-func (j *Databasedswitch) UnmarshalJSON(data []byte) error {
+func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 	dataBasedSwitch := make(map[string]json.RawMessage)
 	err := json.Unmarshal(data, &dataBasedSwitch)
 	if err != nil {
@@ -180,18 +180,18 @@ func (j *Databasedswitch) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	j.DataConditions = make([]DatabasedswitchDataConditionsElem, len(rawConditions))
+	j.DataConditions = make([]DataCondition, len(rawConditions))
 	var mapConditions map[string]interface{}
 	for i, rawCondition := range rawConditions {
 		err = json.Unmarshal(rawCondition, &mapConditions)
 		if err != nil {
 			return err
 		}
-		var condition DatabasedswitchDataConditionsElem
+		var condition DataCondition
 		if _, ok := mapConditions["end"]; ok {
-			condition = &Enddatacondition{}
+			condition = &EndDataCondition{}
 		} else {
-			condition = &Transitiondatacondition{}
+			condition = &TransitionDataCondition{}
 		}
 		err := json.Unmarshal(rawCondition, condition)
 		if err != nil {

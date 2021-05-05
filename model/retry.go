@@ -14,11 +14,14 @@
 
 package model
 
-import "k8s.io/apimachinery/pkg/util/intstr"
+import (
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
 
+// Retry ...
 type Retry struct {
 	// Unique retry strategy name
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 	// Time delay between retry attempts (ISO 8601 duration format)
 	Delay string `json:"delay,omitempty"`
 	// Maximum time delay between retry attempts (ISO 8601 duration format)
@@ -26,9 +29,9 @@ type Retry struct {
 	// Static value by which the delay increases during each attempt (ISO 8601 time format)
 	Increment string `json:"increment,omitempty"`
 	// Numeric value, if specified the delay between retries is multiplied by this value.
-	Multiplier intstr.IntOrString `json:"multiplier,omitempty"`
+	Multiplier intstr.IntOrString `json:"multiplier,omitempty" validate:"omitempty,min=0"`
 	// Maximum number of retry attempts.
-	MaxAttempts intstr.IntOrString `json:"maxAttempts"`
+	MaxAttempts intstr.IntOrString `json:"maxAttempts" validate:"required,min=0"`
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
-	Jitter intstr.IntOrString `json:"jitter,omitempty"`
+	Jitter intstr.IntOrString `json:"jitter,omitempty" validate:"omitempty,min=0,max=1"`
 }

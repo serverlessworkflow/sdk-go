@@ -17,6 +17,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/serverlessworkflow/sdk-go/validator"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -47,6 +48,9 @@ func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
 func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
 	workflow = &model.Workflow{}
 	if err := json.Unmarshal(source, workflow); err != nil {
+		return nil, err
+	}
+	if err := validator.GetValidator().Struct(workflow); err != nil {
 		return nil, err
 	}
 	return workflow, nil

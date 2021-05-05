@@ -3,6 +3,9 @@
   "version": "1.0",
   "name": "Provision Orders",
   "description": "Provision Orders and handle errors thrown",
+  "start": {
+    "stateName": "ProvisionOrder"
+  },
   "functions": [
     {
       "name": "provisionOrderFunction",
@@ -13,9 +16,6 @@
     {
       "name": "ProvisionOrder",
       "type": "operation",
-      "start": {
-        "kind": "default"
-      },
       "actionMode": "sequential",
       "actions": [
         {
@@ -59,7 +59,7 @@
       "type": "subflow",
       "workflowId": "handleMissingIdExceptionWorkflow",
       "end": {
-        "kind": "default"
+        "terminate": true
       }
     },
     {
@@ -67,7 +67,7 @@
       "type": "subflow",
       "workflowId": "handleMissingItemExceptionWorkflow",
       "end": {
-        "kind": "default"
+        "terminate": true
       }
     },
     {
@@ -75,7 +75,7 @@
       "type": "subflow",
       "workflowId": "handleMissingQuantityExceptionWorkflow",
       "end": {
-        "kind": "default"
+        "terminate": true
       }
     },
     {
@@ -83,7 +83,7 @@
       "type": "subflow",
       "workflowId": "applyOrderWorkflowId",
       "end": {
-        "kind": "default"
+        "terminate": true
       }
     }
   ]

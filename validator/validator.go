@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package validator
 
-// Common schema for Serverless Workflow specification
-type Common struct {
-	// Metadata information
-	Metadata Metadata `json:"metadata,omitempty"`
+import "gopkg.in/go-playground/validator.v8"
+
+// TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New(&validator.Config{TagName: "validate"})
 }
 
-// Metadata information
-type Metadata map[string]interface{}
+// GetValidator gets the default validator.Validate reference
+func GetValidator() *validator.Validate {
+	return validate
+}

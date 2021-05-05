@@ -16,14 +16,14 @@ id: greeting
 version: '1.0'
 name: Greeting Workflow
 description: Greet Someone
+start:
+  stateName: Greet
 functions:
   - name: greetingFunction
     operation: file://myapis/greetingapis.json#greeting
 states:
   - name: Greet
     type: operation
-    start:
-      kind: default
     actionMode: sequential
     actions:
       - functionRef:
@@ -35,4 +35,4 @@ states:
     stateDataFilter:
       dataOutputPath: "$.greeting"
     end:
-      kind: default
+      terminate: true

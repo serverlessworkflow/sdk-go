@@ -101,8 +101,8 @@ func TestFromFile(t *testing.T) {
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)
-		assert.NoError(t, err)
-		assert.NotNil(t, workflow)
+		assert.NoError(t, err, "Test File", file)
+		assert.NotNil(t, workflow, "Test File", file)
 		f(t, workflow)
 	}
 }

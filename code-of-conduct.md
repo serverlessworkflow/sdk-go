@@ -49,11 +49,10 @@ when an individual is representing the project or its community.
 Instances of abusive, harassing, or otherwise unacceptable behavior in Kubernetes may be reported by contacting the [Kubernetes Code of Conduct Committee](https://git.k8s.io/community/committee-code-of-conduct) via conduct@kubernetes.io. For other projects, please contact a CNCF project maintainer or our mediator, Mishi Choudhary via mishi@linux.com.
 
 This Code of Conduct is adapted from the Contributor Covenant
-(http://contributor-covenant.org), version 1.2.0, available at
-http://contributor-covenant.org/version/1/2/0/
-
+(<http://contributor-covenant.org>), version 1.2.0, available at
+<http://contributor-covenant.org/version/1/2/0/>
 
 ### CNCF Events Code of Conduct
 
-CNCF events are governed by the Linux Foundation [Code of Conduct](https://events.linuxfoundation.org/code-of-conduct/) available on the event page. 
+CNCF events are governed by the Linux Foundation [Code of Conduct](https://events.linuxfoundation.org/code-of-conduct/) available on the event page.
 This is designed to be compatible with the above policy and also includes more details on responding to incidents.

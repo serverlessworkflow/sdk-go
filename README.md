@@ -9,7 +9,7 @@ Current status of features implemented in the SDK is listed in the table below:
 | Parse workflow JSON and YAML definitions    | :heavy_check_mark: | 
 | Programmatically build workflow definitions | :no_entry_sign:    |
 | Validate workflow definitions (Schema)      | :heavy_check_mark: |
-| Validate workflow definitions (Integrity)   | :no_entry_sign:    |
+| Validate workflow definitions (Integrity)   | :heavy_check_mark:    |
 | Generate workflow diagram (SVG)             | :no_entry_sign:    |
 
 ## Status
@@ -45,13 +45,12 @@ To transform such files into a Go data structure, use:
 package sw
 
 import (
-
-"github.com/serverlessworkflow/sdk-go/model"
-"github.com/serverlessworkflow/sdk-go/parser"
+    "github.com/serverlessworkflow/sdk-go/model"
+    "github.com/serverlessworkflow/sdk-go/parser"
 )
 
 func ParseWorkflow(filePath string) (*model.Workflow, error) {
-	workflow, err := parser.FromFile(filePath)
+    workflow, err := parser.FromFile(filePath)
     if err != nil {
         return nil, err
     } 

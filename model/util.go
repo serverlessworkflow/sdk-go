@@ -37,10 +37,8 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	}
 	if strings.HasPrefix(s, prefix) {
 		s = strings.TrimPrefix(s, prefix)
-	} else {
-		if s, err = filepath.Abs(s); err != nil {
-			return nil, err
-		}
+	} else if s, err = filepath.Abs(s); err != nil {
+		return nil, err
 	}
 	if b, err = ioutil.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err

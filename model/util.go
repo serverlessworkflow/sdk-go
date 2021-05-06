@@ -16,6 +16,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -52,4 +53,21 @@ func requiresNotNilOrEmpty(value interface{}) string {
 		return ""
 	}
 	return value.(string)
+}
+
+func unmarshalString(data []byte) (string, error) {
+	var value string
+	if err := json.Unmarshal(data, &value); err != nil {
+		return "", err
+	}
+	return value, nil
+}
+
+func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {
+	if _, found := data[key]; found {
+		if err := json.Unmarshal(data[key], output); err != nil {
+			return err
+		}
+	}
+	return nil
 }

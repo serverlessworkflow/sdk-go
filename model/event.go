@@ -49,7 +49,7 @@ type Event struct {
 	// Unique event name
 	Name string `json:"name" validate:"required"`
 	// CloudEvent source
-	Source string `json:"source,omitempty" validate:""`
+	Source string `json:"source,omitempty"`
 	// CloudEvent type
 	Type string `json:"type" validate:"required"`
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Default is 'consumed'

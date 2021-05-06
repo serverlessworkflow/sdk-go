@@ -63,6 +63,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, eventState.DataConditions)
 			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+			assert.Equal(t, "CheckApplication", w.Start.StateName)
 		},
 		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
@@ -97,6 +98,11 @@ func TestFromFile(t *testing.T) {
 			assert.Equal(t, "Missing order id", operationState.OnErrors[0].Error)
 			assert.Equal(t, "Missing order item", operationState.OnErrors[1].Error)
 			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].Error)
+		}, "./testdata/checkinbox.cron-test.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "0 0/15 * * * ?", w.Start.Schedule.Cron.Expression)
+			assert.Equal(t, "checkInboxFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
+			assert.Equal(t, "SendTextForHighPriority", w.States[0].GetTransition().NextState)
+			assert.False(t, w.States[1].GetEnd().Terminate)
 		},
 	}
 	for file, f := range files {

@@ -3,9 +3,7 @@
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "start": {
-    "stateName": "CheckApplication"
-  },
+  "start": "CheckApplication",
   "functions": [
     {
       "name": "sendRejectionEmailFunction",

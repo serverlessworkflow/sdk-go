@@ -14,6 +14,8 @@
 
 package model
 
+import "encoding/json"
+
 const (
 	// FunctionTypeREST ...
 	FunctionTypeREST FunctionType = "rest"
@@ -43,4 +45,23 @@ type FunctionRef struct {
 	RefName string `json:"refName" validate:"required"`
 	// Function arguments
 	Arguments map[string]interface{} `json:"arguments,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (f *FunctionRef) UnmarshalJSON(data []byte) error {
+	funcRef := make(map[string]interface{})
+	if err := json.Unmarshal(data, &funcRef); err != nil {
+		f.RefName, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	f.RefName = requiresNotNilOrEmpty("refName")
+	if _, found := funcRef["arguments"]; found {
+		f.Arguments = funcRef["arguments"].(map[string]interface{})
+	}
+
+	return nil
 }

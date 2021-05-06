@@ -179,6 +179,26 @@ type Start struct {
 	Schedule  *Schedule `json:"schedule,omitempty" validate:"omitempty"`
 }
 
+// UnmarshalJSON ...
+func (s *Start) UnmarshalJSON(data []byte) error {
+	startMap := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &startMap); err != nil {
+		s.StateName, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := unmarshalKey("stateName", startMap, &s.StateName); err != nil {
+		return err
+	}
+	if err := unmarshalKey("schedule", startMap, &s.Schedule); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DefaultDef Can be either a transition or end definition
 type DefaultDef struct {
 	Transition Transition `json:"transition,omitempty"`
@@ -194,12 +214,53 @@ type Schedule struct {
 	Timezone string `json:"timezone,omitempty"`
 }
 
+// UnmarshalJSON ...
+func (s *Schedule) UnmarshalJSON(data []byte) error {
+	scheduleMap := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &scheduleMap); err != nil {
+		s.Interval, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := unmarshalKey("interval", scheduleMap, &s.Interval); err != nil {
+		return err
+	}
+	if err := unmarshalKey("cron", scheduleMap, &s.Cron); err != nil {
+		return err
+	}
+	if err := unmarshalKey("timezone", scheduleMap, &s.Timezone); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Cron ...
 type Cron struct {
 	// Repeating interval (cron expression) describing when the workflow instance should be created
-	Expression string `json:"expression" validate:"required,min=1"`
+	Expression string `json:"expression" validate:"required"`
 	// Specific date and time (ISO 8601 format) when the cron expression invocation is no longer valid
 	ValidUntil string `json:"validUntil,omitempty"`
+}
+
+// UnmarshalJSON custom unmarshal function for Cron
+func (c *Cron) UnmarshalJSON(data []byte) error {
+	cron := make(map[string]interface{})
+	if err := json.Unmarshal(data, &cron); err != nil {
+		c.Expression, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	c.Expression = requiresNotNilOrEmpty(cron["expression"])
+	c.ValidUntil = requiresNotNilOrEmpty(cron["validUntil"])
+
+	return nil
 }
 
 // Transition ...
@@ -210,6 +271,30 @@ type Transition struct {
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty" validate:"omitempty,dive"`
 	// If set to true, triggers workflow compensation when before this transition is taken. Default is false
 	Compensate bool `json:"compensate,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (t *Transition) UnmarshalJSON(data []byte) error {
+	transitionMap := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &transitionMap); err != nil {
+		t.NextState, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := unmarshalKey("compensate", transitionMap, &t.Compensate); err != nil {
+		return err
+	}
+	if err := unmarshalKey("produceEvents", transitionMap, &t.ProduceEvents); err != nil {
+		return err
+	}
+	if err := unmarshalKey("nextState", transitionMap, &t.NextState); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Error ...
@@ -259,6 +344,28 @@ type End struct {
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty"`
 	// If set to true, triggers workflow compensation. Default is false
 	Compensate bool `json:"compensate,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (e *End) UnmarshalJSON(data []byte) error {
+	endMap := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &endMap); err != nil {
+		e.Terminate = false
+		e.Compensate = false
+		return nil
+	}
+
+	if err := unmarshalKey("compensate", endMap, &e.Compensate); err != nil {
+		return err
+	}
+	if err := unmarshalKey("terminate", endMap, &e.Terminate); err != nil {
+		return err
+	}
+	if err := unmarshalKey("produceEvents", endMap, &e.ProduceEvents); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ProduceEvent ...

@@ -103,6 +103,12 @@ func TestFromFile(t *testing.T) {
 			assert.Equal(t, "checkInboxFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 			assert.Equal(t, "SendTextForHighPriority", w.States[0].GetTransition().NextState)
 			assert.False(t, w.States[1].GetEnd().Terminate)
+		}, "./testdata/applicationrequest-issue16.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			dataBaseSwitchState := w.States[0].(*model.DataBasedSwitchState)
+			assert.NotNil(t, dataBaseSwitchState)
+			assert.NotEmpty(t, dataBaseSwitchState.DataConditions)
+			assert.Equal(t, "CheckApplication", w.States[0].GetName())
 		},
 	}
 	for file, f := range files {

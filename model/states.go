@@ -251,6 +251,9 @@ type EventBasedSwitchState struct {
 
 // UnmarshalJSON implementation for json Unmarshal function for the Eventbasedswitch type
 func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
+		return err
+	}
 	eventBasedSwitch := make(map[string]json.RawMessage)
 	err := json.Unmarshal(data, &eventBasedSwitch)
 	if err != nil {
@@ -337,6 +340,9 @@ type DataBasedSwitchState struct {
 
 // UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type
 func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
+		return err
+	}
 	dataBasedSwitch := make(map[string]json.RawMessage)
 	err := json.Unmarshal(data, &dataBasedSwitch)
 	if err != nil {

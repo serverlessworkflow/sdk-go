@@ -1,7 +1,3 @@
-.PHONY: gen-types
-gen-types:
-	./hack/generate-spec-types.sh
-
 addheaders:
 	@command -v addlicense > /dev/null || go install -modfile=tools.mod -v github.com/google/addlicense
 	@addlicense -c "The Serverless Workflow Specification Authors" -l apache .

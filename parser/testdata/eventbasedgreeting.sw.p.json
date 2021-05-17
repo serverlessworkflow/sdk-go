@@ -3,6 +3,9 @@
   "version": "1.0",
   "name": "Event Based Greeting Workflow",
   "description": "Event Based Greeting",
+  "start": {
+    "stateName": "Greet"
+  },
   "events": "testdata/eventbasedgreetingevents.json",
   "functions": [
     {
@@ -14,22 +17,19 @@
     {
       "name": "Greet",
       "type": "event",
-      "start": {
-        "kind": "default"
-      },
       "onEvents": [
         {
           "eventRefs": [
             "GreetingEvent"
           ],
           "eventDataFilter": {
-            "dataOutputPath": "{{ $.data.greet }}"
+            "data": "{{ $.data.greet }}"
           },
           "actions": [
             {
               "functionRef": {
                 "refName": "greetingFunction",
-                "parameters": {
+                "arguments": {
                   "name": "{{ $.greet.name }}"
                 }
               }
@@ -38,10 +38,10 @@
         }
       ],
       "stateDataFilter": {
-        "dataOutputPath": "{{ $.payload.greeting }}"
+        "output": "{{ $.payload.greeting }}"
       },
       "end": {
-        "kind": "default"
+        "terminate": true
       }
     }
   ]

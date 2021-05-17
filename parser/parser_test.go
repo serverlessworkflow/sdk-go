@@ -25,84 +25,96 @@ func TestFromFile(t *testing.T) {
 	files := map[string]func(*testing.T, *model.Workflow){
 		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "greeting", w.ID)
-			assert.IsType(t, &model.Operationstate{}, w.States[0])
+			assert.IsType(t, &model.OperationState{}, w.States[0])
 		},
 		"./testdata/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Operationstate{}, w.States[0])
+			assert.IsType(t, &model.OperationState{}, w.States[0])
 			assert.Equal(t, "greeting", w.ID)
-			assert.NotEmpty(t, w.States[0].(*model.Operationstate).Actions)
-			assert.NotNil(t, w.States[0].(*model.Operationstate).Actions[0].FunctionRef)
+			assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)
+			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
 		},
 		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
-			assert.Equal(t, "GreetingEvent", *w.Events[0].Name)
-			assert.IsType(t, &model.Eventstate{}, w.States[0])
-			eventState := w.States[0].(*model.Eventstate)
+			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
+			assert.IsType(t, &model.EventState{}, w.States[0])
+			eventState := w.States[0].(*model.EventState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
 		},
 		"./testdata/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
-			assert.Equal(t, "GreetingEvent", *w.Events[0].Name)
-			assert.IsType(t, &model.Eventstate{}, w.States[0])
-			eventState := w.States[0].(*model.Eventstate)
+			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
+			assert.IsType(t, &model.EventState{}, w.States[0])
+			eventState := w.States[0].(*model.EventState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
 		},
 		"./testdata/eventbasedswitch.sw.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Eventbasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Eventbasedswitch)
+			assert.IsType(t, &model.EventBasedSwitchState{}, w.States[0])
+			eventState := w.States[0].(*model.EventBasedSwitchState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.EventConditions)
-			assert.IsType(t, &model.Transitioneventcondition{}, eventState.EventConditions[0])
+			assert.IsType(t, &model.TransitionEventCondition{}, eventState.EventConditions[0])
 		},
 		"./testdata/applicationrequest.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Databasedswitch)
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
-			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+			assert.Equal(t, "CheckApplication", w.Start.StateName)
 		},
 		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Databasedswitch)
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
-			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Databasedswitch{}, w.States[0])
-			eventState := w.States[0].(*model.Databasedswitch)
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.DataConditions)
-			assert.IsType(t, &model.Transitiondatacondition{}, eventState.DataConditions[0])
+			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
 		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Operationstate{}, w.States[0])
-			operationState := w.States[0].(*model.Operationstate)
+			assert.IsType(t, &model.OperationState{}, w.States[0])
+			operationState := w.States[0].(*model.OperationState)
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, w.States, 2)
 		},
 		// validates: https://github.com/serverlessworkflow/specification/pull/175/
 		"./testdata/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {
-			assert.IsType(t, &model.Operationstate{}, w.States[0])
-			operationState := w.States[0].(*model.Operationstate)
+			assert.IsType(t, &model.OperationState{}, w.States[0])
+			operationState := w.States[0].(*model.OperationState)
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, operationState.OnErrors, 3)
-			assert.Equal(t, "Missing order id", *operationState.OnErrors[0].Error)
-			assert.Equal(t, "Missing order item", *operationState.OnErrors[1].Error)
-			assert.Equal(t, "Missing order quantity", *operationState.OnErrors[2].Error)
+			assert.Equal(t, "Missing order id", operationState.OnErrors[0].Error)
+			assert.Equal(t, "Missing order item", operationState.OnErrors[1].Error)
+			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].Error)
+		}, "./testdata/checkinbox.cron-test.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "0 0/15 * * * ?", w.Start.Schedule.Cron.Expression)
+			assert.Equal(t, "checkInboxFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
+			assert.Equal(t, "SendTextForHighPriority", w.States[0].GetTransition().NextState)
+			assert.False(t, w.States[1].GetEnd().Terminate)
+		}, "./testdata/applicationrequest-issue16.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			dataBaseSwitchState := w.States[0].(*model.DataBasedSwitchState)
+			assert.NotNil(t, dataBaseSwitchState)
+			assert.NotEmpty(t, dataBaseSwitchState.DataConditions)
+			assert.Equal(t, "CheckApplication", w.States[0].GetName())
 		},
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)
-		assert.NoError(t, err)
-		assert.NotNil(t, workflow)
+		assert.NoError(t, err, "Test File", file)
+		assert.NotNil(t, workflow, "Test File", file)
 		f(t, workflow)
 	}
 }

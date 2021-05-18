@@ -17,6 +17,7 @@ Current status of features implemented in the SDK is listed in the table below:
 | Latest Releases | Conformance to spec version |
 | :---: | :---: |
 | [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases) | [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x) |
+| [v2.0.0](https://github.com/serverlessworkflow/sdk-go/releases) | [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x) |
 
 ## How to use
 

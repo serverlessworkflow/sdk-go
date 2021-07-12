@@ -26,12 +26,14 @@ func TestFromFile(t *testing.T) {
 		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "greeting", w.ID)
 			assert.IsType(t, &model.OperationState{}, w.States[0])
+			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
 		"./testdata/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			assert.Equal(t, "greeting", w.ID)
 			assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)
 			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
+			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
 		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)

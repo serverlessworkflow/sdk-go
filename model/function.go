@@ -58,7 +58,7 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	f.RefName = requiresNotNilOrEmpty("refName")
+	f.RefName = requiresNotNilOrEmpty(funcRef["refName"])
 	if _, found := funcRef["arguments"]; found {
 		f.Arguments = funcRef["arguments"].(map[string]interface{})
 	}

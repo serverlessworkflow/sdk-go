@@ -39,7 +39,6 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 		}
 		return &EventBasedSwitchState{}
 	},
-	StateTypeSubflow:  func(map[string]interface{}) State { return &SubflowState{} },
 	StateTypeInject:   func(map[string]interface{}) State { return &InjectState{} },
 	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
 	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
@@ -330,6 +329,8 @@ type Action struct {
 	FunctionRef FunctionRef `json:"functionRef,omitempty"`
 	// References a 'trigger' and 'result' reusable event definitions
 	EventRef EventRef `json:"eventRef,omitempty"`
+	// References a sub-workflow to be executed
+	SubFlowRef SubFlowRef `json:"subFlowRef,omitempty"`
 	// Time period to wait for function execution to complete
 	Timeout string `json:"timeout,omitempty"`
 	// Action data filter
@@ -401,8 +402,6 @@ type Branch struct {
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
 	Actions []Action `json:"actions,omitempty"`
-	// Unique Id of a workflow to be executed in this branch
-	WorkflowID string `json:"workflowId,omitempty"`
 }
 
 // ActionDataFilter ...

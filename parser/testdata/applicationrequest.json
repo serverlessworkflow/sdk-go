@@ -43,8 +43,14 @@
     },
     {
       "name": "StartApplication",
-      "type": "subflow",
-      "workflowId": "startApplicationWorkflowId",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "startApplicationWorkflowId"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }

@@ -45,24 +45,42 @@
     },
     {
       "name": "HandleApprovedVisa",
-      "type": "subflow",
-      "workflowId": "handleApprovedVisaWorkflowID",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleApprovedVisaWorkflowID"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }
     },
     {
       "name": "HandleRejectedVisa",
-      "type": "subflow",
-      "workflowId": "handleRejectedVisaWorkflowID",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleRejectedVisaWorkflowID"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }
     },
     {
       "name": "HandleNoVisaDecision",
-      "type": "subflow",
-      "workflowId": "handleNoVisaDecisionWorkfowId",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleNoVisaDecisionWorkfowId"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }

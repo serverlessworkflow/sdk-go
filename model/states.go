@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -32,8 +33,6 @@ const (
 	StateTypeSwitch = "switch"
 	// StateTypeForEach ...
 	StateTypeForEach = "foreach"
-	// StateTypeSubflow ...
-	StateTypeSubflow = "subflow"
 	// StateTypeInject ...
 	StateTypeInject = "inject"
 	// StateTypeCallback ...
@@ -187,17 +186,6 @@ type ParallelState struct {
 	N intstr.IntOrString `json:"n,omitempty"`
 }
 
-// SubflowState Defines a sub-workflow to be executed
-type SubflowState struct {
-	BaseState
-	// Workflow execution must wait for sub-workflow to finish before continuing
-	WaitForCompletion bool `json:"waitForCompletion,omitempty"`
-	// Sub-workflow unique id
-	WorkflowID string `json:"workflowId" validate:"required"`
-	// SubFlow state repeat exec definition
-	Repeat Repeat `json:"repeat,omitempty"`
-}
-
 // InjectState ...
 type InjectState struct {
 	BaseState
@@ -218,8 +206,6 @@ type ForEachState struct {
 	Max intstr.IntOrString `json:"max,omitempty"`
 	// Actions to be executed for each of the elements of inputCollection
 	Actions []Action `json:"actions,omitempty"`
-	// Unique Id of a workflow to be executed for each of the elements of inputCollection
-	WorkflowID string `json:"workflowId,omitempty"`
 }
 
 // CallbackState ...

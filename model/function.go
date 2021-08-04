@@ -23,6 +23,8 @@ const (
 	FunctionTypeRPC FunctionType = "rpc"
 	// FunctionTypeExpression ...
 	FunctionTypeExpression FunctionType = "expression"
+	// FunctionTypeGraphQL ...
+	FunctionTypeGraphQL FunctionType = "graphql"
 )
 
 // FunctionType ...
@@ -35,7 +37,7 @@ type Function struct {
 	Name string `json:"name" validate:"required"`
 	// If type is `rest`, <path_to_openapi_definition>#<operation_id>. If type is `rpc`, <path_to_grpc_proto_file>#<service_name>#<service_method>. If type is `expression`, defines the workflow expression.
 	Operation string `json:"operation" validate:"required"`
-	// Defines the function type. Is either `rest`, `rpc` or `expression`. Default is `rest`
+	// Defines the function type. Is either `rest`, `rpc`, `expression` or `graphql`. Default is `rest`
 	Type FunctionType `json:"type,omitempty"`
 }
 
@@ -45,6 +47,8 @@ type FunctionRef struct {
 	RefName string `json:"refName" validate:"required"`
 	// Function arguments
 	Arguments map[string]interface{} `json:"arguments,omitempty"`
+	// String containing a valid GraphQL selection set
+	SelectionSet string `json:"selectionSet,omitempty"`
 }
 
 // UnmarshalJSON ...

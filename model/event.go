@@ -15,9 +15,10 @@
 package model
 
 import (
+	"reflect"
+
 	val "github.com/serverlessworkflow/sdk-go/validator"
 	"gopkg.in/go-playground/validator.v8"
-	"reflect"
 )
 
 const (
@@ -77,4 +78,12 @@ type EventRef struct {
 	Data interface{} `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
+}
+
+// SubFlowRef ...
+type SubFlowRef struct {
+	// Sub-workflow unique id
+	WorkflowID string `json:"workflowId" validate:"required"`
+	// Sub-workflow version
+	Version string `json:"version,omitempty"`
 }

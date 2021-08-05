@@ -56,32 +56,56 @@
     },
     {
       "name": "MissingId",
-      "type": "subflow",
-      "workflowId": "handleMissingIdExceptionWorkflow",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleMissingIdExceptionWorkflow"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }
     },
     {
       "name": "MissingItem",
-      "type": "subflow",
-      "workflowId": "handleMissingItemExceptionWorkflow",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleMissingItemExceptionWorkflow"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }
     },
     {
       "name": "MissingQuantity",
-      "type": "subflow",
-      "workflowId": "handleMissingQuantityExceptionWorkflow",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "handleMissingQuantityExceptionWorkflow"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }
     },
     {
       "name": "ApplyOrder",
-      "type": "subflow",
-      "workflowId": "applyOrderWorkflowId",
+      "type": "operation",
+      "actions": [
+        {
+          "subFlowRef": {
+            "workflowId": "applyOrderWorkflowId"
+          }
+        }
+      ],
       "end": {
         "terminate": true
       }

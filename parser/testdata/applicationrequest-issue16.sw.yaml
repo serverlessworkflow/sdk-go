@@ -31,8 +31,10 @@ states:
     default:
       transition: RejectApplication
   - name: StartApplication
-    type: subflow
-    workflowId: startApplicationWorkflowId
+    type: operation
+    actions:
+      - subFlowRef:
+          workflowId: startApplicationWorkflowId
     end: true
   - name: RejectApplication
     type: operation

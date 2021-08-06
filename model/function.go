@@ -66,6 +66,7 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 	if _, found := funcRef["arguments"]; found {
 		f.Arguments = funcRef["arguments"].(map[string]interface{})
 	}
+	f.SelectionSet = requiresNotNilOrEmpty(funcRef["selectionSet"])
 
 	return nil
 }

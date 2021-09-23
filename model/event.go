@@ -17,7 +17,7 @@ package model
 import (
 	"reflect"
 
-	val "github.com/serverlessworkflow/sdk-go/validator"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"gopkg.in/go-playground/validator.v8"
 )
 

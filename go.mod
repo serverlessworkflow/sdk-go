@@ -1,4 +1,4 @@
-module github.com/serverlessworkflow/sdk-go
+module github.com/serverlessworkflow/sdk-go/v2
 
 go 1.15
 

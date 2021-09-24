@@ -4,6 +4,7 @@
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
   "start": "CheckApplication",
+  "specVersion": "0.7",
   "functions": [
     {
       "name": "sendRejectionEmailFunction",

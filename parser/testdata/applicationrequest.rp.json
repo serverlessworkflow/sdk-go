@@ -3,6 +3,7 @@
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
+  "specVersion": "0.7",
   "start": {
     "stateName": "CheckApplication"
   },

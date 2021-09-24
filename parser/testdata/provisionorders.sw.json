@@ -3,6 +3,7 @@
   "version": "1.0",
   "name": "Provision Orders",
   "description": "Provision Orders and handle errors thrown",
+  "specVersion": "0.7",
   "start": {
     "stateName": "ProvisionOrder"
   },

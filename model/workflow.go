@@ -51,16 +51,26 @@ type ActionMode string
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type BaseWorkflow struct {
 	// Workflow unique identifier
-	ID string `json:"id" validate:"required"`
+	ID string `json:"id" validate:"omitempty,min=1"`
+	// Key Domain-specific workflow identifier
+	Key string `json:"key,omitempty" validate:"omitempty,min=1"`
 	// Workflow name
 	Name string `json:"name" validate:"required"`
 	// Workflow description
 	Description string `json:"description,omitempty"`
 	// Workflow version
-	Version string `json:"version" validate:"required"`
+	Version string `json:"version" validate:"omitempty,min=1"`
 	Start   *Start `json:"start" validate:"required"`
+	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important qualities
+	Annotations []string `json:"annotations,omitempty"`
+	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
+	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
-	SchemaVersion string `json:"schemaVersion,omitempty" validate:"omitempty,min=1"`
+	SpecVersion string `json:"specVersion,omitempty" validate:"required"`
+	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your Workflow Expressions.
+	Secrets Secrets `json:"secrets,omitempty"`
+	// Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
+	Constants Constants `json:"constants,omitempty"`
 	// Identifies the expression language used for workflow expressions. Default is 'jq'
 	ExpressionLang string       `json:"expressionLang,omitempty" validate:"omitempty,min=1"`
 	ExecTimeout    *ExecTimeout `json:"execTimeout,omitempty"`
@@ -426,4 +436,73 @@ type Repeat struct {
 	ContinueOnError bool `json:"continueOnError,omitempty"`
 	// List referencing defined consumed workflow events. SubFlow will repeat execution until one of the defined events is consumed, or until the max property count is reached
 	StopOnEvents []string `json:"stopOnEvents,omitempty"`
+}
+
+// DataInputSchema ...
+type DataInputSchema struct {
+	Schema                 string `json:"schema" validate:"required"`
+	FailOnValidationErrors *bool  `json:"failOnValidationErrors" validate:"required"`
+}
+
+// UnmarshalJSON ...
+func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
+	dataInSchema := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &dataInSchema); err != nil {
+		d.Schema, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		d.FailOnValidationErrors = &TRUE
+		return nil
+	}
+	if err := unmarshalKey("schema", dataInSchema, &d.Schema); err != nil {
+		return err
+	}
+	if err := unmarshalKey("failOnValidationErrors", dataInSchema, &d.FailOnValidationErrors); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your Workflow Expressions.
+type Secrets []string
+
+// UnmarshalJSON ...
+func (s *Secrets) UnmarshalJSON(data []byte) error {
+	var secretArray []string
+	if err := json.Unmarshal(data, &secretArray); err != nil {
+		file, err := unmarshalFile(data)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(file, &secretArray); err != nil {
+			return err
+		}
+	}
+	*s = secretArray
+	return nil
+}
+
+// Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
+type Constants struct {
+	// Data represents the generic structure of the constants value
+	Data map[string]json.RawMessage `json:",omitempty"`
+}
+
+// UnmarshalJSON ...
+func (c *Constants) UnmarshalJSON(data []byte) error {
+	constantData := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &constantData); err != nil {
+		// assumes it's a reference to a file
+		file, err := unmarshalFile(data)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(file, &constantData); err != nil {
+			return err
+		}
+	}
+	c.Data = constantData
+	return nil
 }

@@ -16,6 +16,7 @@ id: checkInbox
 name: Check Inbox Workflow
 description: Periodically Check Inbox
 version: '1.0'
+specVersion: "0.7"
 start:
   stateName: CheckInbox
   schedule:

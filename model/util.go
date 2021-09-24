@@ -25,6 +25,11 @@ import (
 
 const prefix = "file:/"
 
+// TRUE used by bool fields that needs a boolean pointer
+var TRUE = true
+// FALSE used by bool fields that needs a boolean pointer
+var FALSE = false
+
 func getBytesFromFile(s string) (b []byte, err error) {
 	// #nosec
 	if resp, err := http.Get(s); err == nil {
@@ -68,4 +73,17 @@ func unmarshalKey(key string, data map[string]json.RawMessage, output interface{
 		}
 	}
 	return nil
+}
+
+// unmarshalFile same as calling unmarshalString following by getBytesFromFile
+func unmarshalFile(data []byte) (b []byte, err error) {
+	filePath, err := unmarshalString(data)
+	if err != nil {
+		return nil, err
+	}
+	file, err := getBytesFromFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }

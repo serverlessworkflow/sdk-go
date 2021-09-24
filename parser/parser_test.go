@@ -127,6 +127,16 @@ func TestFromFile(t *testing.T) {
 			assert.Equal(t, float32(0.0), w.Retries[0].Jitter.FloatVal)
 			assert.Equal(t, float32(1.1), w.Retries[0].Multiplier.FloatVal)
 		},
+		"./testdata/greetings-secret.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Len(t, w.Secrets, 1)
+		},
+		"./testdata/greetings-secret-file.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Len(t, w.Secrets, 3)
+		},
+		"./testdata/greetings-constants-file.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.NotEmpty(t, w.Constants)
+			assert.NotEmpty(t, w.Constants.Data["Translations"])
+		},
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)

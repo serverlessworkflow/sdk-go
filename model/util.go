@@ -27,6 +27,7 @@ const prefix = "file:/"
 
 // TRUE used by bool fields that needs a boolean pointer
 var TRUE = true
+
 // FALSE used by bool fields that needs a boolean pointer
 var FALSE = false
 

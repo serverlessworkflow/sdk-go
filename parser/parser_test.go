@@ -117,6 +117,16 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, dataBaseSwitchState.DataConditions)
 			assert.Equal(t, "CheckApplication", w.States[0].GetName())
 		},
+		// validates: https://github.com/serverlessworkflow/sdk-go/issues/36
+		"./testdata/patientonboarding.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.EventState{}, w.States[0])
+			eventState := w.States[0].(*model.EventState)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, w.Retries)
+			assert.Len(t, w.Retries, 1)
+			assert.Equal(t, float32(0.0), w.Retries[0].Jitter.FloatVal)
+			assert.Equal(t, float32(1.1), w.Retries[0].Multiplier.FloatVal)
+		},
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)

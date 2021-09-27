@@ -26,6 +26,8 @@ const (
 	ActionModeSequential ActionMode = "sequential"
 	// ActionModeParallel ...
 	ActionModeParallel ActionMode = "parallel"
+	// UnlimitedTimeout description for unlimited timeouts
+	UnlimitedTimeout = "unlimited"
 )
 
 var actionsModelMapping = map[string]func(state map[string]interface{}) State{
@@ -70,13 +72,18 @@ type BaseWorkflow struct {
 	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your Workflow Expressions.
 	Secrets Secrets `json:"secrets,omitempty"`
 	// Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
-	Constants Constants `json:"constants,omitempty"`
+	Constants *Constants `json:"constants,omitempty"`
 	// Identifies the expression language used for workflow expressions. Default is 'jq'
-	ExpressionLang string       `json:"expressionLang,omitempty" validate:"omitempty,min=1"`
-	ExecTimeout    *ExecTimeout `json:"execTimeout,omitempty"`
+	ExpressionLang string `json:"expressionLang,omitempty" validate:"omitempty,min=1"`
+	// Timeouts definition for Workflow, State, Action, Branch, and Event consumption.
+	Timeouts *Timeouts `json:"timeouts,omitempty"`
+	// Errors declarations for this Workflow definition
+	Errors []Error `json:"errors,omitempty"`
 	// If 'true', workflow instances is not terminated when there are no active execution paths. Instance can be terminated via 'terminate end definition' or reaching defined 'execTimeout'
 	KeepActive bool     `json:"keepActive,omitempty"`
 	Metadata   Metadata `json:"metadata,omitempty"`
+	// AutoRetries If set to true, actions should automatically be retried on unchecked errors. Default is false
+	AutoRetries bool `json:"autoRetries,omitempty"`
 }
 
 // Workflow base definition
@@ -169,17 +176,146 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			w.Retries = m["retries"]
 		}
 	}
+	if _, ok := workflowMap["errors"]; ok {
+		if err := json.Unmarshal(workflowMap["errors"], &w.Errors); err != nil {
+			nestedData, err := unmarshalFile(workflowMap["errors"])
+			if err != nil {
+				return err
+			}
+			m := make(map[string][]Error)
+			if err := json.Unmarshal(nestedData, &m); err != nil {
+				return err
+			}
+			w.Errors = m["errors"]
+		}
+	}
+	w.setDefaults()
 	return nil
 }
 
-// ExecTimeout ...
-type ExecTimeout struct {
-	// Timeout duration (ISO 8601 duration format)
-	Duration string `json:"duration" validate:"required"`
+func (w *Workflow) setDefaults() {
+	if len(w.ExpressionLang) == 0 {
+		w.ExpressionLang = DefaultExpressionLang
+	}
+}
+
+// Timeouts ...
+type Timeouts struct {
+	// WorkflowExecTimeout Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
+	WorkflowExecTimeout *WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
+	// StateExecTimeout Total state execution timeout (including retries) (ISO 8601 duration format)
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
+	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
+	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
+	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
+	// EventTimeout Timeout duration to wait for consuming defined events (ISO 8601 duration format)
+	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,min=1"`
+}
+
+// UnmarshalJSON ...
+func (t *Timeouts) UnmarshalJSON(data []byte) error {
+	timeout := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &timeout); err != nil {
+		// assumes it's a reference to a file
+		file, err := unmarshalFile(data)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(file, &t); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := unmarshalKey("workflowExecTimeout", timeout, &t.WorkflowExecTimeout); err != nil {
+		return err
+	}
+	if err := unmarshalKey("stateExecTimeout", timeout, &t.StateExecTimeout); err != nil {
+		return err
+	}
+	if err := unmarshalKey("actionExecTimeout", timeout, &t.ActionExecTimeout); err != nil {
+		return err
+	}
+	if err := unmarshalKey("branchExecTimeout", timeout, &t.ActionExecTimeout); err != nil {
+		return err
+	}
+	if err := unmarshalKey("eventTimeout", timeout, &t.ActionExecTimeout); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WorkflowExecTimeout ...
+type WorkflowExecTimeout struct {
+	// Duration Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
+	Duration string `json:"duration,omitempty" validate:"omitempty,min=1"`
 	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is abrupted.
 	Interrupt bool `json:"interrupt,omitempty"`
 	// Name of a workflow state to be executed before workflow instance is terminated
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
+}
+
+// UnmarshalJSON ...
+func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
+	execTimeout := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &execTimeout); err != nil {
+		w.Duration, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+	} else {
+		if err := unmarshalKey("duration", execTimeout, &w.Duration); err != nil {
+			return err
+		}
+		if err := unmarshalKey("interrupt", execTimeout, &w.Interrupt); err != nil {
+			return err
+		}
+		if err := unmarshalKey("runBefore", execTimeout, &w.RunBefore); err != nil {
+			return err
+		}
+	}
+	if len(w.Duration) == 0 {
+		w.Duration = UnlimitedTimeout
+	}
+	return nil
+}
+
+// StateExecTimeout ...
+type StateExecTimeout struct {
+	// Single state execution timeout, not including retries (ISO 8601 duration format)
+	Single string `json:"single,omitempty" validate:"omitempty,min=1"`
+	// Total state execution timeout, including retries (ISO 8601 duration format)
+	Total string `json:"total" validate:"required"`
+}
+
+// UnmarshalJSON ...
+func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
+	stateTimeout := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &stateTimeout); err != nil {
+		s.Total, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := unmarshalKey("total", stateTimeout, &s.Total); err != nil {
+		return err
+	}
+	if err := unmarshalKey("single", stateTimeout, &s.Single); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Error declaration for workflow definitions
+type Error struct {
+	// Name Domain-specific error name
+	Name string `json:"name" validate:"required"`
+	// Code OnError code. Can be used in addition to the name to help runtimes resolve to technical errors/exceptions. Should not be defined if error is set to '*'
+	Code string `json:"code,omitempty" validate:"omitempty,min=1"`
+	// OnError description
+	Description string `json:"description,omitempty"`
 }
 
 // Start definition
@@ -306,14 +442,12 @@ func (t *Transition) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Error ...
-type Error struct {
-	// Domain-specific error name, or '*' to indicate all possible errors
-	Error string `json:"error" validate:"required,min=1"`
-	// Error code. Can be used in addition to the name to help runtimes resolve to technical errors/exceptions. Should not be defined if error is set to '*'
-	Code string `json:"code,omitempty" validate:"omitempty,min=1"`
-	// References a unique name of a retry definition.
-	RetryRef string `json:"retryRef,omitempty" validate:"omitempty,min=1"`
+// OnError ...
+type OnError struct {
+	// ErrorRef Reference to a unique workflow error definition. Used of errorRefs is not used
+	ErrorRef string `json:"errorRef,omitempty"`
+	// ErrorRefs References one or more workflow error definitions. Used if errorRef is not used
+	ErrorRefs []string `json:"errorRefs,omitempty"`
 	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if retries were unsuccessful.
 	Transition Transition `json:"transition,omitempty"`
 	// End workflow execution in case of this error. If retryRef is defined, this ends workflow only if retries were unsuccessful.
@@ -418,7 +552,7 @@ type Branch struct {
 type ActionDataFilter struct {
 	// Workflow expression that selects state data that the state action can use
 	FromStateData string `json:"fromStateData,omitempty"`
-	// Workflow expression that filters the actions data results
+	// Workflow expression that filters the actions' data results
 	Results string `json:"results,omitempty"`
 	// Workflow expression that selects a state data element to which the action results should be added/merged into. If not specified, denote, the top-level state data element
 	ToStateData string `json:"toStateData,omitempty"`

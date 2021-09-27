@@ -25,6 +25,10 @@ const (
 	FunctionTypeExpression FunctionType = "expression"
 	// FunctionTypeGraphQL ...
 	FunctionTypeGraphQL FunctionType = "graphql"
+	// FunctionTypeAsyncAPI ...
+	FunctionTypeAsyncAPI FunctionType = "asyncapi"
+	// FunctionTypeOData ...
+	FunctionTypeOData FunctionType = "odata"
 )
 
 // FunctionType ...
@@ -39,6 +43,8 @@ type Function struct {
 	Operation string `json:"operation" validate:"required"`
 	// Defines the function type. Is either `rest`, `rpc`, `expression` or `graphql`. Default is `rest`
 	Type FunctionType `json:"type,omitempty"`
+	// References an auth definition name to be used to access to resource defined in the operation parameter
+	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`
 }
 
 // FunctionRef ...

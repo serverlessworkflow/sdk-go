@@ -1,0 +1,6 @@
+{
+  "workflowExecTimeout": {
+    "duration": "PT1H",
+    "runBefore": "GenerateReport"
+  }
+}

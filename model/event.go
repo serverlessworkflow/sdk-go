@@ -15,6 +15,7 @@
 package model
 
 import (
+	"encoding/json"
 	"reflect"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -55,6 +56,8 @@ type Event struct {
 	Type string `json:"type" validate:"required"`
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Default is 'consumed'
 	Kind EventKind `json:"kind,omitempty"`
+	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload and context attributes should be accessible"
+	DataOnly bool `json:"dataOnly,omitempty"`
 	// CloudEvent correlation definitions
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
@@ -86,4 +89,24 @@ type SubFlowRef struct {
 	WorkflowID string `json:"workflowId" validate:"required"`
 	// Sub-workflow version
 	Version string `json:"version,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (s *SubFlowRef) UnmarshalJSON(data []byte) error {
+	subflowRef := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &subflowRef); err != nil {
+		s.WorkflowID, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := unmarshalKey("version", subflowRef, &s.Version); err != nil {
+		return err
+	}
+	if err := unmarshalKey("workflowId", subflowRef, &s.WorkflowID); err != nil {
+		return err
+	}
+
+	return nil
 }

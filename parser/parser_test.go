@@ -102,9 +102,12 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, operationState.OnErrors, 3)
-			assert.Equal(t, "Missing order id", operationState.OnErrors[0].Error)
-			assert.Equal(t, "Missing order item", operationState.OnErrors[1].Error)
-			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].Error)
+			assert.Equal(t, "Missing order id", operationState.OnErrors[0].ErrorRef)
+			assert.Equal(t, "MissingId", operationState.OnErrors[0].Transition.NextState)
+			assert.Equal(t, "Missing order item", operationState.OnErrors[1].ErrorRef)
+			assert.Equal(t, "MissingItem", operationState.OnErrors[1].Transition.NextState)
+			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].ErrorRef)
+			assert.Equal(t, "MissingQuantity", operationState.OnErrors[2].Transition.NextState)
 		}, "./testdata/checkinbox.cron-test.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "0 0/15 * * * ?", w.Start.Schedule.Cron.Expression)
 			assert.Equal(t, "checkInboxFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
@@ -136,6 +139,16 @@ func TestFromFile(t *testing.T) {
 		"./testdata/greetings-constants-file.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.NotEmpty(t, w.Constants)
 			assert.NotEmpty(t, w.Constants.Data["Translations"])
+		},
+		"./testdata/roomreadings.timeouts.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.NotNil(t, w.Timeouts)
+			assert.Equal(t, "PT1H", w.Timeouts.WorkflowExecTimeout.Duration)
+			assert.Equal(t, "GenerateReport", w.Timeouts.WorkflowExecTimeout.RunBefore)
+		},
+		"./testdata/roomreadings.timeouts.file.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.NotNil(t, w.Timeouts)
+			assert.Equal(t, "PT1H", w.Timeouts.WorkflowExecTimeout.Duration)
+			assert.Equal(t, "GenerateReport", w.Timeouts.WorkflowExecTimeout.RunBefore)
 		},
 	}
 	for file, f := range files {

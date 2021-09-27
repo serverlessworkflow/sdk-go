@@ -38,7 +38,7 @@ const (
 	// StateTypeCallback ...
 	StateTypeCallback = "callback"
 
-	// CompletionTypeAnd ..
+	// CompletionTypeAnd ...
 	CompletionTypeAnd = "and"
 	// CompletionTypeXor ...
 	CompletionTypeXor = "xor"
@@ -57,7 +57,7 @@ type State interface {
 	GetID() string
 	GetName() string
 	GetType() StateType
-	GetOnErrors() []Error
+	GetOnErrors() []OnError
 	GetTransition() *Transition
 	GetStateDataFilter() *StateDataFilter
 	GetCompensatedBy() string
@@ -75,7 +75,7 @@ type BaseState struct {
 	// State type
 	Type StateType `json:"type" validate:"required"`
 	// States error handling and retries definitions
-	OnErrors []Error `json:"onErrors,omitempty"  validate:"omitempty,dive"`
+	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
 	// Next transition of the workflow after the time delay
 	Transition *Transition `json:"transition,omitempty"`
 	// State data filter
@@ -90,7 +90,7 @@ type BaseState struct {
 }
 
 // GetOnErrors ...
-func (s *BaseState) GetOnErrors() []Error { return s.OnErrors }
+func (s *BaseState) GetOnErrors() []OnError { return s.OnErrors }
 
 // GetCompensatedBy ...
 func (s *BaseState) GetCompensatedBy() string { return s.CompensatedBy }

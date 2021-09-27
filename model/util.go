@@ -76,7 +76,9 @@ func unmarshalKey(key string, data map[string]json.RawMessage, output interface{
 	return nil
 }
 
-// unmarshalFile same as calling unmarshalString following by getBytesFromFile
+// unmarshalFile same as calling unmarshalString following by getBytesFromFile.
+// Assumes that the value inside `data` is a path to a known location.
+// Returns the content of the file or a not nil error reference.
 func unmarshalFile(data []byte) (b []byte, err error) {
 	filePath, err := unmarshalString(data)
 	if err != nil {

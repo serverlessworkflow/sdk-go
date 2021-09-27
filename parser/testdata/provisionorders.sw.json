@@ -1,57 +1,58 @@
 {
   "id": "provisionorders",
   "version": "1.0",
+  "specVersion": "0.7",
   "name": "Provision Orders",
   "description": "Provision Orders and handle errors thrown",
-  "specVersion": "0.7",
-  "start": {
-    "stateName": "ProvisionOrder"
-  },
+  "start": "ProvisionOrder",
   "functions": [
     {
       "name": "provisionOrderFunction",
       "operation": "http://myapis.org/provisioningapi.json#doProvision"
     }
   ],
-  "states": [
+  "errors": [
     {
-      "name": "ProvisionOrder",
-      "type": "operation",
-      "actionMode": "sequential",
-      "actions": [
+      "name": "Missing order id"
+    },
+    {
+      "name": "Missing order item"
+    },
+    {
+      "name": "Missing order quantity"
+    }
+  ],
+  "states":[
+    {
+      "name":"ProvisionOrder",
+      "type":"operation",
+      "actionMode":"sequential",
+      "actions":[
         {
           "functionRef": {
             "refName": "provisionOrderFunction",
-            "parameters": {
-              "order": "{{ $.order }}"
+            "arguments": {
+              "order": "${ .order }"
             }
           }
         }
       ],
       "stateDataFilter": {
-        "dataOutputPath": "{{ $.exceptions }}"
+        "output": "${ .exceptions }"
       },
-      "transition": {
-        "nextState": "ApplyOrder"
-      },
+      "transition": "ApplyOrder",
       "onErrors": [
         {
-          "error": "Missing order id",
-          "transition": {
-            "nextState": "MissingId"
-          }
+          "errorRef": "Missing order id",
+          "transition": "MissingId"
         },
         {
-          "error": "Missing order item",
-          "transition": {
-            "nextState": "MissingItem"
-          }
+          "errorRef": "Missing order item",
+          "transition": "MissingItem"
         },
         {
-          "error": "Missing order quantity",
-          "transition": {
-            "nextState": "MissingQuantity"
-          }
+          "errorRef": "Missing order quantity",
+          "transition": "MissingQuantity"
         }
       ]
     },
@@ -60,56 +61,40 @@
       "type": "operation",
       "actions": [
         {
-          "subFlowRef": {
-            "workflowId": "handleMissingIdExceptionWorkflow"
-          }
+          "subFlowRef": "handleMissingIdExceptionWorkflow"
         }
       ],
-      "end": {
-        "terminate": true
-      }
+      "end": true
     },
     {
       "name": "MissingItem",
       "type": "operation",
       "actions": [
         {
-          "subFlowRef": {
-            "workflowId": "handleMissingItemExceptionWorkflow"
-          }
+          "subFlowRef": "handleMissingItemExceptionWorkflow"
         }
       ],
-      "end": {
-        "terminate": true
-      }
+      "end": true
     },
     {
       "name": "MissingQuantity",
       "type": "operation",
       "actions": [
         {
-          "subFlowRef": {
-            "workflowId": "handleMissingQuantityExceptionWorkflow"
-          }
+          "subFlowRef": "handleMissingQuantityExceptionWorkflow"
         }
       ],
-      "end": {
-        "terminate": true
-      }
+      "end": true
     },
     {
       "name": "ApplyOrder",
       "type": "operation",
       "actions": [
         {
-          "subFlowRef": {
-            "workflowId": "applyOrderWorkflowId"
-          }
+          "subFlowRef": "applyOrderWorkflowId"
         }
       ],
-      "end": {
-        "terminate": true
-      }
+      "end": true
     }
   ]
 }

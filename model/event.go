@@ -15,7 +15,6 @@
 package model
 
 import (
-	"encoding/json"
 	"reflect"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -81,32 +80,4 @@ type EventRef struct {
 	Data interface{} `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
-}
-
-// SubFlowRef ...
-type SubFlowRef struct {
-	// Sub-workflow unique id
-	WorkflowID string `json:"workflowId" validate:"required"`
-	// Sub-workflow version
-	Version string `json:"version,omitempty"`
-}
-
-// UnmarshalJSON ...
-func (s *SubFlowRef) UnmarshalJSON(data []byte) error {
-	subflowRef := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &subflowRef); err != nil {
-		s.WorkflowID, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("version", subflowRef, &s.Version); err != nil {
-		return err
-	}
-	if err := unmarshalKey("workflowId", subflowRef, &s.WorkflowID); err != nil {
-		return err
-	}
-
-	return nil
 }

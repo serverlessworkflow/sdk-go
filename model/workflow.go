@@ -44,6 +44,7 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 	StateTypeInject:   func(map[string]interface{}) State { return &InjectState{} },
 	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
 	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
+	StateTypeSleep:    func(map[string]interface{}) State { return &SleepState{} },
 }
 
 // ActionMode ...
@@ -80,10 +81,15 @@ type BaseWorkflow struct {
 	// Errors declarations for this Workflow definition
 	Errors []Error `json:"errors,omitempty"`
 	// If 'true', workflow instances is not terminated when there are no active execution paths. Instance can be terminated via 'terminate end definition' or reaching defined 'execTimeout'
-	KeepActive bool     `json:"keepActive,omitempty"`
-	Metadata   Metadata `json:"metadata,omitempty"`
+	KeepActive bool `json:"keepActive,omitempty"`
+	// Metadata custom information shared with the runtime
+	Metadata Metadata `json:"metadata,omitempty"`
 	// AutoRetries If set to true, actions should automatically be retried on unchecked errors. Default is false
 	AutoRetries bool `json:"autoRetries,omitempty"`
+	// Auth definitions can be used to define authentication information that should be applied to resources defined in the operation
+	// property of function definitions. It is not used as authentication information for the function invocation,
+	// but just to access the resource containing the function invocation information.
+	Auth *Auth `json:"auth,omitempty"`
 }
 
 // Workflow base definition
@@ -197,6 +203,34 @@ func (w *Workflow) setDefaults() {
 	if len(w.ExpressionLang) == 0 {
 		w.ExpressionLang = DefaultExpressionLang
 	}
+}
+
+// WorkflowRef holds a reference for a workflow definition
+type WorkflowRef struct {
+	// Sub-workflow unique id
+	WorkflowID string `json:"workflowId" validate:"required"`
+	// Sub-workflow version
+	Version string `json:"version,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
+	subflowRef := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &subflowRef); err != nil {
+		s.WorkflowID, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := unmarshalKey("version", subflowRef, &s.Version); err != nil {
+		return err
+	}
+	if err := unmarshalKey("workflowId", subflowRef, &s.WorkflowID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Timeouts ...
@@ -344,8 +378,8 @@ func (s *Start) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// DefaultDef Can be either a transition or end definition
-type DefaultDef struct {
+// DefaultCondition Can be either a transition or end definition
+type DefaultCondition struct {
 	Transition Transition `json:"transition,omitempty"`
 	End        End        `json:"end,omitempty"`
 }
@@ -474,9 +508,15 @@ type Action struct {
 	// References a 'trigger' and 'result' reusable event definitions
 	EventRef EventRef `json:"eventRef,omitempty"`
 	// References a sub-workflow to be executed
-	SubFlowRef SubFlowRef `json:"subFlowRef,omitempty"`
-	// Time period to wait for function execution to complete
-	Timeout string `json:"timeout,omitempty"`
+	SubFlowRef WorkflowRef `json:"subFlowRef,omitempty"`
+	// Sleep Defines time period workflow execution should sleep before / after function execution
+	Sleep Sleep `json:"sleep,omitempty"`
+	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
+	RetryRef string `json:"retryRef,omitempty"`
+	// List of unique references to defined workflow errors for which the action should not be retried. Used only when `autoRetries` is set to `true`
+	NonRetryableErrors []string `json:"nonRetryableErrors,omitempty" validate:"omitempty,min=1"`
+	// List of unique references to defined workflow errors for which the action should be retried. Used only when `autoRetries` is set to `false`
+	RetryableErrors []string `json:"retryableErrors,omitempty" validate:"omitempty,min=1"`
 	// Action data filter
 	ActionDataFilter ActionDataFilter `json:"actionDataFilter,omitempty"`
 }
@@ -488,7 +528,8 @@ type End struct {
 	// Defines events that should be produced
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty"`
 	// If set to true, triggers workflow compensation. Default is false
-	Compensate bool `json:"compensate,omitempty"`
+	Compensate bool       `json:"compensate,omitempty"`
+	ContinueAs ContinueAs `json:"continueAs,omitempty"`
 }
 
 // UnmarshalJSON ...
@@ -509,8 +550,21 @@ func (e *End) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("produceEvents", endMap, &e.ProduceEvents); err != nil {
 		return err
 	}
+	if err := unmarshalKey("continueAs", endMap, &e.ContinueAs); err != nil {
+		return err
+	}
 
 	return nil
+}
+
+// ContinueAs ...
+type ContinueAs struct {
+	WorkflowRef
+	// TODO: add object or string data type
+	// If string type, an expression which selects parts of the states data output to become the workflow data input of continued execution. If object type, a custom object to become the workflow data input of the continued execution
+	Data interface{} `json:"data,omitempty"`
+	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
+	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }
 
 // ProduceEvent ...
@@ -545,7 +599,17 @@ type Branch struct {
 	// Branch name
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
-	Actions []Action `json:"actions,omitempty"`
+	Actions []Action `json:"actions" validate:"required,min=1"`
+	// Timeouts State specific timeouts
+	Timeouts BranchTimeouts `json:"timeouts,omitempty"`
+}
+
+// BranchTimeouts ...
+type BranchTimeouts struct {
+	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
+	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
+	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
+	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
 // ActionDataFilter ...
@@ -556,20 +620,6 @@ type ActionDataFilter struct {
 	Results string `json:"results,omitempty"`
 	// Workflow expression that selects a state data element to which the action results should be added/merged into. If not specified, denote, the top-level state data element
 	ToStateData string `json:"toStateData,omitempty"`
-}
-
-// Repeat ...
-type Repeat struct {
-	// Expression evaluated against SubFlow state data. SubFlow will repeat execution as long as this expression is true or until the max property count is reached
-	Expression string `json:"expression,omitempty"`
-	// If true, the expression is evaluated before each repeat execution, if false the expression is evaluated after each repeat execution
-	CheckBefore bool `json:"checkBefore,omitempty"`
-	// Sets the maximum amount of repeat executions
-	Max int `json:"max,omitempty"`
-	// If true, repeats executions in a case unhandled errors propagate from the sub-workflow to this state
-	ContinueOnError bool `json:"continueOnError,omitempty"`
-	// List referencing defined consumed workflow events. SubFlow will repeat execution until one of the defined events is consumed, or until the max property count is reached
-	StopOnEvents []string `json:"stopOnEvents,omitempty"`
 }
 
 // DataInputSchema ...
@@ -639,4 +689,12 @@ func (c *Constants) UnmarshalJSON(data []byte) error {
 	}
 	c.Data = constantData
 	return nil
+}
+
+// Sleep ...
+type Sleep struct {
+	// Before Amount of time (ISO 8601 duration format) to sleep before function/subflow invocation. Does not apply if 'eventRef' is defined.
+	Before string `json:"before,omitempty"`
+	// After Amount of time (ISO 8601 duration format) to sleep after function/subflow invocation. Does not apply if 'eventRef' is defined.
+	After string `json:"after,omitempty"`
 }

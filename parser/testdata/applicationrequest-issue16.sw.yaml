@@ -29,7 +29,7 @@ states:
         transition: StartApplication
       - condition: "{{ $.applicants[?(@.age < 18)] }}"
         transition: RejectApplication
-    default:
+    defaultCondition:
       transition: RejectApplication
   - name: StartApplication
     type: operation

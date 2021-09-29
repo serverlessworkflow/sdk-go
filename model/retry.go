@@ -15,7 +15,7 @@
 package model
 
 import (
-	"github.com/serverlessworkflow/sdk-go/util/floatstr"
+	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 

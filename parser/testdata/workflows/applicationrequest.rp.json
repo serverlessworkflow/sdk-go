@@ -3,20 +3,12 @@
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
-  "functions": [
-    {
-      "name": "sendRejectionEmailFunction",
-      "operation": "http://myapis.org/applicationapi.json#emailRejection"
-    }
-  ],
-  "retries": [
-    {
-      "name": "TimeoutRetryStrategy",
-      "delay": "PT1M",
-      "maxAttempts": "5"
-    }
-  ],
+  "specVersion": "0.7",
+  "start": {
+    "stateName": "CheckApplication"
+  },
+  "functions": "testdata/applicationrequestfunctions.json",
+  "retries": "testdata/applicationrequestretries.json",
   "states": [
     {
       "name": "CheckApplication",
@@ -35,7 +27,7 @@
           }
         }
       ],
-      "default": {
+      "defaultCondition": {
         "transition": {
           "nextState": "RejectApplication"
         }
@@ -63,7 +55,7 @@
         {
           "functionRef": {
             "refName": "sendRejectionEmailFunction",
-            "parameters": {
+            "arguments": {
               "applicant": "{{ $.applicant }}"
             }
           }

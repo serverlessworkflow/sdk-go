@@ -3,16 +3,11 @@
   "version": "1.0",
   "name": "Event Based Greeting Workflow",
   "description": "Event Based Greeting",
+  "specVersion": "0.7",
   "start": {
     "stateName": "Greet"
   },
-  "events": [
-    {
-      "name": "GreetingEvent",
-      "type": "greetingEventType",
-      "source": "greetingEventSource"
-    }
-  ],
+  "events": "testdata/eventbasedgreetingevents.json",
   "functions": [
     {
       "name": "greetingFunction",

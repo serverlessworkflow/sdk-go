@@ -3,11 +3,21 @@
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "functions": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestfunctions.json",
-  "retries": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json",
-  "start": {
-    "stateName": "CheckApplication"
-  },
+  "start": "CheckApplication",
+  "specVersion": "0.7",
+  "functions": [
+    {
+      "name": "sendRejectionEmailFunction",
+      "operation": "http://myapis.org/applicationapi.json#emailRejection"
+    }
+  ],
+  "retries": [
+    {
+      "name": "TimeoutRetryStrategy",
+      "delay": "PT1M",
+      "maxAttempts": "5"
+    }
+  ],
   "states": [
     {
       "name": "CheckApplication",

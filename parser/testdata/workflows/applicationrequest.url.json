@@ -3,11 +3,12 @@
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
+  "specVersion": "0.7",
+  "functions": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestfunctions.json",
+  "retries": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json",
   "start": {
     "stateName": "CheckApplication"
   },
-  "functions": "testdata/applicationrequestfunctions.json",
-  "retries": "testdata/applicationrequestretries.json",
   "states": [
     {
       "name": "CheckApplication",
@@ -54,7 +55,7 @@
         {
           "functionRef": {
             "refName": "sendRejectionEmailFunction",
-            "arguments": {
+            "parameters": {
               "applicant": "{{ $.applicant }}"
             }
           }

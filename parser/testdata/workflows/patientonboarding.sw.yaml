@@ -16,6 +16,7 @@ id: patientonboarding
 name: Patient Onboarding Workflow
 version: '1.0'
 start: Onboard
+specVersion: "0.7"
 states:
   - name: Onboard
     type: event

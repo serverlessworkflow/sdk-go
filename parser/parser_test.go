@@ -15,27 +15,44 @@
 package parser
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBasicValidation(t *testing.T) {
+	rootPath := "./testdata/workflows"
+	files, err := ioutil.ReadDir(rootPath)
+	assert.NoError(t, err)
+	for _, file := range files {
+		if !file.IsDir() {
+			workflow, err := FromFile(filepath.Join(rootPath, file.Name()))
+			assert.NoError(t, err)
+			assert.NotEmpty(t, workflow.Name)
+			assert.NotEmpty(t, workflow.ID)
+			assert.NotEmpty(t, workflow.States)
+		}
+	}
+}
+
 func TestFromFile(t *testing.T) {
 	files := map[string]func(*testing.T, *model.Workflow){
-		"./testdata/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/greetings.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "greeting", w.ID)
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
-		"./testdata/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/greetings.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			assert.Equal(t, "greeting", w.ID)
 			assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)
 			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
 			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
-		"./testdata/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
 			assert.IsType(t, &model.EventState{}, w.States[0])
 			eventState := w.States[0].(*model.EventState)
@@ -43,7 +60,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
 		},
-		"./testdata/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
 			assert.IsType(t, &model.EventState{}, w.States[0])
 			eventState := w.States[0].(*model.EventState)
@@ -51,14 +68,15 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
 		},
-		"./testdata/eventbasedswitch.sw.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/eventbasedswitch.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.EventBasedSwitchState{}, w.States[0])
 			eventState := w.States[0].(*model.EventBasedSwitchState)
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.EventConditions)
+			assert.NotEmpty(t, eventState.Name)
 			assert.IsType(t, &model.TransitionEventCondition{}, eventState.EventConditions[0])
 		},
-		"./testdata/applicationrequest.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/applicationrequest.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
@@ -72,7 +90,7 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 		},
-		"./testdata/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
@@ -80,7 +98,7 @@ func TestFromFile(t *testing.T) {
 			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
-		"./testdata/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/applicationrequest.url.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 			eventState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, eventState)
@@ -88,7 +106,7 @@ func TestFromFile(t *testing.T) {
 			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
 			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 		},
-		"./testdata/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/checkinbox.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			operationState := w.States[0].(*model.OperationState)
 			assert.NotNil(t, operationState)
@@ -96,21 +114,24 @@ func TestFromFile(t *testing.T) {
 			assert.Len(t, w.States, 2)
 		},
 		// validates: https://github.com/serverlessworkflow/specification/pull/175/
-		"./testdata/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/provisionorders.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			operationState := w.States[0].(*model.OperationState)
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Len(t, operationState.OnErrors, 3)
-			assert.Equal(t, "Missing order id", operationState.OnErrors[0].Error)
-			assert.Equal(t, "Missing order item", operationState.OnErrors[1].Error)
-			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].Error)
-		}, "./testdata/checkinbox.cron-test.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "Missing order id", operationState.OnErrors[0].ErrorRef)
+			assert.Equal(t, "MissingId", operationState.OnErrors[0].Transition.NextState)
+			assert.Equal(t, "Missing order item", operationState.OnErrors[1].ErrorRef)
+			assert.Equal(t, "MissingItem", operationState.OnErrors[1].Transition.NextState)
+			assert.Equal(t, "Missing order quantity", operationState.OnErrors[2].ErrorRef)
+			assert.Equal(t, "MissingQuantity", operationState.OnErrors[2].Transition.NextState)
+		}, "./testdata/workflows/checkinbox.cron-test.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "0 0/15 * * * ?", w.Start.Schedule.Cron.Expression)
 			assert.Equal(t, "checkInboxFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 			assert.Equal(t, "SendTextForHighPriority", w.States[0].GetTransition().NextState)
 			assert.False(t, w.States[1].GetEnd().Terminate)
-		}, "./testdata/applicationrequest-issue16.sw.yaml": func(t *testing.T, w *model.Workflow) {
+		}, "./testdata/workflows/applicationrequest-issue16.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 			dataBaseSwitchState := w.States[0].(*model.DataBasedSwitchState)
 			assert.NotNil(t, dataBaseSwitchState)
@@ -118,7 +139,7 @@ func TestFromFile(t *testing.T) {
 			assert.Equal(t, "CheckApplication", w.States[0].GetName())
 		},
 		// validates: https://github.com/serverlessworkflow/sdk-go/issues/36
-		"./testdata/patientonboarding.sw.yaml": func(t *testing.T, w *model.Workflow) {
+		"./testdata/workflows/patientonboarding.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.EventState{}, w.States[0])
 			eventState := w.States[0].(*model.EventState)
 			assert.NotNil(t, eventState)
@@ -126,6 +147,31 @@ func TestFromFile(t *testing.T) {
 			assert.Len(t, w.Retries, 1)
 			assert.Equal(t, float32(0.0), w.Retries[0].Jitter.FloatVal)
 			assert.Equal(t, float32(1.1), w.Retries[0].Multiplier.FloatVal)
+		},
+		"./testdata/workflows/greetings-secret.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Len(t, w.Secrets, 1)
+		},
+		"./testdata/workflows/greetings-secret-file.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.Len(t, w.Secrets, 3)
+		},
+		"./testdata/workflows/greetings-constants-file.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.NotEmpty(t, w.Constants)
+			assert.NotEmpty(t, w.Constants.Data["Translations"])
+		},
+		"./testdata/workflows/roomreadings.timeouts.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.NotNil(t, w.Timeouts)
+			assert.Equal(t, "PT1H", w.Timeouts.WorkflowExecTimeout.Duration)
+			assert.Equal(t, "GenerateReport", w.Timeouts.WorkflowExecTimeout.RunBefore)
+		},
+		"./testdata/workflows/roomreadings.timeouts.file.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.NotNil(t, w.Timeouts)
+			assert.Equal(t, "PT1H", w.Timeouts.WorkflowExecTimeout.Duration)
+			assert.Equal(t, "GenerateReport", w.Timeouts.WorkflowExecTimeout.RunBefore)
+		},
+		"./testdata/workflows/purchaseorderworkflow.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.NotNil(t, w.Timeouts)
+			assert.Equal(t, "PT30D", w.Timeouts.WorkflowExecTimeout.Duration)
+			assert.Equal(t, "CancelOrder", w.Timeouts.WorkflowExecTimeout.RunBefore)
 		},
 	}
 	for file, f := range files {

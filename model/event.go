@@ -55,6 +55,8 @@ type Event struct {
 	Type string `json:"type" validate:"required"`
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Default is 'consumed'
 	Kind EventKind `json:"kind,omitempty"`
+	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload and context attributes should be accessible"
+	DataOnly bool `json:"dataOnly,omitempty"`
 	// CloudEvent correlation definitions
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
@@ -78,12 +80,4 @@ type EventRef struct {
 	Data interface{} `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
-}
-
-// SubFlowRef ...
-type SubFlowRef struct {
-	// Sub-workflow unique id
-	WorkflowID string `json:"workflowId" validate:"required"`
-	// Sub-workflow version
-	Version string `json:"version,omitempty"`
 }

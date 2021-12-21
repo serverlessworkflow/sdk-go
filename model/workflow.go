@@ -483,9 +483,9 @@ type OnError struct {
 	// ErrorRefs References one or more workflow error definitions. Used if errorRef is not used
 	ErrorRefs []string `json:"errorRefs,omitempty"`
 	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if retries were unsuccessful.
-	Transition Transition `json:"transition,omitempty"`
+	Transition *Transition `json:"transition,omitempty"`
 	// End workflow execution in case of this error. If retryRef is defined, this ends workflow only if retries were unsuccessful.
-	End End `json:"end,omitempty"`
+	End *End `json:"end,omitempty"`
 }
 
 // OnEvents ...

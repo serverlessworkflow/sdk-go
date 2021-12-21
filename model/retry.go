@@ -30,7 +30,7 @@ type Retry struct {
 	// Static value by which the delay increases during each attempt (ISO 8601 time format)
 	Increment string `json:"increment,omitempty"`
 	// Numeric value, if specified the delay between retries is multiplied by this value.
-	Multiplier floatstr.Float32OrString `json:"multiplier,omitempty" validate:"omitempty,min=0"`
+	Multiplier *floatstr.Float32OrString `json:"multiplier,omitempty" validate:"omitempty,min=1"`
 	// Maximum number of retry attempts.
 	MaxAttempts intstr.IntOrString `json:"maxAttempts" validate:"required"`
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)

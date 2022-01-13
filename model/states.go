@@ -138,7 +138,7 @@ type DelayState struct {
 type EventState struct {
 	BaseState
 	// If true consuming one of the defined events causes its associated actions to be performed. If false all of the defined events must be consumed in order for actions to be performed
-	Exclusive *bool `json:"exclusive,omitempty"`
+	Exclusive bool `json:"exclusive,omitempty"`
 	// Define the events to be consumed and optional actions to be performed
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
@@ -156,10 +156,13 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if eventStateMap["exclusive"] == nil {
-		e.Exclusive = &TRUE
-	} else {
-		e.Exclusive = eventStateMap["exclusive"].(*bool)
+	e.Exclusive = true
+
+	if eventStateMap["exclusive"] != nil {
+		exclusiveVal, ok := eventStateMap["exclusive"].(bool)
+		if ok {
+			e.Exclusive = exclusiveVal
+		}
 	}
 
 	eventStateRaw := make(map[string]json.RawMessage)

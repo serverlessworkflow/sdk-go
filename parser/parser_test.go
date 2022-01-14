@@ -59,6 +59,29 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, eventState)
 			assert.NotEmpty(t, eventState.OnEvents)
 			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+			assert.Equal(t, true, eventState.Exclusive)
+		},
+		"./testdata/workflows/eventbasedgreetingexclusive.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
+			assert.Equal(t, "GreetingEvent2", w.Events[1].Name)
+			assert.IsType(t, &model.EventState{}, w.States[0])
+			eventState := w.States[0].(*model.EventState)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.OnEvents)
+			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+			assert.Equal(t, "GreetingEvent2", eventState.OnEvents[1].EventRefs[0])
+			assert.Equal(t, true, eventState.Exclusive)
+		},
+		"./testdata/workflows/eventbasedgreetingnonexclusive.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
+			assert.Equal(t, "GreetingEvent2", w.Events[1].Name)
+			assert.IsType(t, &model.EventState{}, w.States[0])
+			eventState := w.States[0].(*model.EventState)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.OnEvents)
+			assert.Equal(t, "GreetingEvent", eventState.OnEvents[0].EventRefs[0])
+			assert.Equal(t, "GreetingEvent2", eventState.OnEvents[0].EventRefs[1])
+			assert.Equal(t, false, eventState.Exclusive)
 		},
 		"./testdata/workflows/eventbasedgreeting.sw.p.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)

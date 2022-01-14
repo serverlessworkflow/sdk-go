@@ -1,0 +1,62 @@
+{
+  "id": "eventbasedgreetingnonexclusive",
+  "version": "1.0",
+  "name": "Event Based Greeting Workflow",
+  "description": "Event Based Greeting",
+  "specVersion": "0.7",
+  "start": {
+    "stateName": "Greet"
+  },
+  "events": [
+    {
+      "name": "GreetingEvent",
+      "type": "greetingEventType",
+      "source": "greetingEventSource"
+    },
+    {
+      "name": "GreetingEvent2",
+      "type": "greetingEventType2",
+      "source": "greetingEventSource2"
+    }    
+  ],
+  "functions": [
+    {
+      "name": "greetingFunction",
+      "operation": "file://myapis/greetingapis.json#greeting"
+    }
+  ],
+  "states": [
+    {
+      "name": "Greet",
+      "type": "event",
+      "exclusive": false,
+      "onEvents": [
+        {
+          "eventRefs": [
+            "GreetingEvent",
+            "GreetingEvent2"
+          ],
+          "eventDataFilter": {
+            "data": "{{ $.data.greet }}"
+          },
+          "actions": [
+            {
+              "functionRef": {
+                "refName": "greetingFunction",
+                "arguments": {
+                  "name": "{{ $.greet.name }}"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "stateDataFilter": {
+        "output": "{{ $.payload.greeting }}"
+      },
+      "end": {
+        "terminate": true
+      }
+    }
+  ]
+}

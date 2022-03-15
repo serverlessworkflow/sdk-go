@@ -112,6 +112,11 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, operationState)
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
+			assert.NotNil(t, w.Auth)
+			assert.Equal(t, "testAuth", w.Auth.Name)
+			assert.Equal(t, model.AuthTypeBearer, w.Auth.Scheme)
+			bearerProperties := w.Auth.Properties.(*model.BearerAuthProperties).Token
+			assert.Equal(t, "test_token", bearerProperties)
 		},
 		"./testdata/workflows/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])

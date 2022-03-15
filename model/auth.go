@@ -93,6 +93,8 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("properties", auth, authProperties); err != nil {
 		return err
 	}
+
+	a.Properties = authProperties
 	return nil
 }
 

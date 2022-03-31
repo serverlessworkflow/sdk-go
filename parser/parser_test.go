@@ -37,6 +37,17 @@ func TestBasicValidation(t *testing.T) {
 		}
 	}
 }
+func TestCustomValidators(t *testing.T) {
+	rootPath := "./testdata/workflows/witherrors"
+	files, err := ioutil.ReadDir(rootPath)
+	assert.NoError(t, err)
+	for _, file := range files {
+		if !file.IsDir() {
+			_, err := FromFile(filepath.Join(rootPath, file.Name()))
+			assert.Error(t, err)
+		}
+	}
+}
 
 func TestFromFile(t *testing.T) {
 	files := map[string]func(*testing.T, *model.Workflow){
@@ -113,10 +124,39 @@ func TestFromFile(t *testing.T) {
 			assert.NotEmpty(t, operationState.Actions)
 			assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 			assert.NotNil(t, w.Auth)
-			assert.Equal(t, "testAuth", w.Auth.Name)
-			assert.Equal(t, model.AuthTypeBearer, w.Auth.Scheme)
-			bearerProperties := w.Auth.Properties.(*model.BearerAuthProperties).Token
+			assert.NotNil(t, w.Auth.Defs)
+			assert.Equal(t, len(w.Auth.Defs), 1)
+			assert.Equal(t, "testAuth", w.Auth.Defs[0].Name)
+			assert.Equal(t, model.AuthTypeBearer, w.Auth.Defs[0].Scheme)
+			bearerProperties := w.Auth.Defs[0].Properties.(*model.BearerAuthProperties).Token
 			assert.Equal(t, "test_token", bearerProperties)
+		},
+		"./testdata/workflows/applicationrequest.multiauth.json": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			eventState := w.States[0].(*model.DataBasedSwitchState)
+			assert.NotNil(t, eventState)
+			assert.NotEmpty(t, eventState.DataConditions)
+			assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
+			assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+			assert.Equal(t, "CheckApplication", w.Start.StateName)
+			assert.IsType(t, &model.OperationState{}, w.States[1])
+			operationState := w.States[1].(*model.OperationState)
+			assert.NotNil(t, operationState)
+			assert.NotEmpty(t, operationState.Actions)
+			assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
+			assert.NotNil(t, w.Auth)
+			assert.NotNil(t, w.Auth.Defs)
+			assert.Equal(t, len(w.Auth.Defs), 2)
+			assert.Equal(t, "testAuth", w.Auth.Defs[0].Name)
+			assert.Equal(t, model.AuthTypeBearer, w.Auth.Defs[0].Scheme)
+			bearerProperties := w.Auth.Defs[0].Properties.(*model.BearerAuthProperties).Token
+			assert.Equal(t, "test_token", bearerProperties)
+			assert.Equal(t, "testAuth2", w.Auth.Defs[1].Name)
+			assert.Equal(t, model.AuthTypeBasic, w.Auth.Defs[1].Scheme)
+			basicProperties := w.Auth.Defs[1].Properties.(*model.BasicAuthProperties)
+			assert.Equal(t, "test_user", basicProperties.Username)
+			assert.Equal(t, "test_pwd", basicProperties.Password)
+
 		},
 		"./testdata/workflows/applicationrequest.rp.json": func(t *testing.T, w *model.Workflow) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])

@@ -24,7 +24,7 @@ on:
       - main
 env:
   GO_VERSION: 1.14
-  GOLANGLINT_CI_VERSION: v1.43.0
+  GOLANGLINT_CI_VERSION: v1.45.2
 jobs:
   basic_checks:
     name: Basic Checks

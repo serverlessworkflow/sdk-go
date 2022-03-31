@@ -89,7 +89,7 @@ type BaseWorkflow struct {
 	// Auth definitions can be used to define authentication information that should be applied to resources defined in the operation
 	// property of function definitions. It is not used as authentication information for the function invocation,
 	// but just to access the resource containing the function invocation information.
-	Auth *Auth `json:"auth,omitempty"`
+	Auth AuthDefinitions `json:"auth,omitempty"`
 }
 
 // Workflow base definition

@@ -17,7 +17,34 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"gopkg.in/go-playground/validator.v8"
+	"reflect"
 )
+
+func init() {
+	val.GetValidator().RegisterStructValidation(AuthDefinitionsStructLevelValidation, AuthDefinitions{})
+}
+
+// AuthDefinitionsStructLevelValidation custom validator for unique name of the auth methods
+func AuthDefinitionsStructLevelValidation(v *validator.Validate, structLevel *validator.StructLevel) {
+	authDefs := structLevel.CurrentStruct.Interface().(AuthDefinitions)
+	dict := map[string]bool{}
+	if authDefs.Defs != nil && len(authDefs.Defs) > 1 {
+		for _, a := range authDefs.Defs {
+			if !dict[a.Name] {
+				dict[a.Name] = true
+			} else {
+				structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique")
+			}
+		}
+	}
+}
+
+// AuthDefinitions used to define authentication information applied to resources defined in the operation property of function definitions
+type AuthDefinitions struct {
+	Defs []Auth
+}
 
 // AuthType ...
 type AuthType string
@@ -60,7 +87,43 @@ type Auth struct {
 	Properties AuthProperties `json:"properties" validate:"required"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
+func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+	// See if we can guess based on the first character
+	switch b[0] {
+	case '{':
+		return a.unmarshalSingle(b)
+	case '[':
+		return a.unmarshalMany(b)
+	}
+	return nil
+}
+
+func (a *AuthDefinitions) unmarshalSingle(data []byte) error {
+	var auth Auth
+	err := json.Unmarshal(data, &auth)
+	if err != nil {
+		return err
+	}
+	a.Defs = []Auth{auth}
+	return nil
+}
+
+func (a *AuthDefinitions) unmarshalMany(data []byte) error {
+	var auths []Auth
+	err := json.Unmarshal(data, &auths)
+	if err != nil {
+		return err
+	}
+
+	a.Defs = auths
+	return nil
+}
+
+// UnmarshalJSON Auth definition
 func (a *Auth) UnmarshalJSON(data []byte) error {
 	auth := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &auth); err != nil {

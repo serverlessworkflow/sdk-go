@@ -130,7 +130,6 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		w.States[i] = state
-
 		mapState = map[string]interface{}{}
 	}
 	if _, ok := workflowMap["events"]; ok {

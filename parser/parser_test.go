@@ -63,6 +63,12 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
 			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
+		"./testdata/workflows/eventbaseddataandswitch.sw.json": func(t *testing.T, w *model.Workflow) {
+			assert.Equal(t, "Start", w.States[0].GetName())
+			assert.Equal(t, "CheckVisaStatus", w.States[1].GetName())
+			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
+			assert.IsType(t, &model.EventBasedSwitchState{}, w.States[1])
+		},
 		"./testdata/workflows/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
 			assert.IsType(t, &model.EventState{}, w.States[0])

@@ -61,3 +61,7 @@ func ParseWorkflow(filePath string) (*model.Workflow, error) {
 ```
 
 The `Workflow` structure then can be used in your application. 
+
+## Slack Channel
+
+Join us at [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf), channel `#serverless-workflow-sdk` and say hello 🙋.

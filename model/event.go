@@ -17,8 +17,8 @@ package model
 import (
 	"reflect"
 
+	validator "github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"gopkg.in/go-playground/validator.v8"
 )
 
 const (
@@ -33,11 +33,11 @@ func init() {
 }
 
 // EventStructLevelValidation custom validator for event kind consumed
-func EventStructLevelValidation(v *validator.Validate, structLevel *validator.StructLevel) {
-	event := structLevel.CurrentStruct.Interface().(Event)
+func EventStructLevelValidation(structLevel validator.StructLevel) {
+	event := structLevel.Current().Interface().(Event)
 
 	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
-		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed")
+		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
 	}
 }
 

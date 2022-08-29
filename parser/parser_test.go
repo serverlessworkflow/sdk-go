@@ -15,7 +15,7 @@
 package parser
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -25,7 +25,7 @@ import (
 
 func TestBasicValidation(t *testing.T) {
 	rootPath := "./testdata/workflows"
-	files, err := ioutil.ReadDir(rootPath)
+	files, err := os.ReadDir(rootPath)
 	assert.NoError(t, err)
 	for _, file := range files {
 		if !file.IsDir() {
@@ -37,9 +37,10 @@ func TestBasicValidation(t *testing.T) {
 		}
 	}
 }
+
 func TestCustomValidators(t *testing.T) {
 	rootPath := "./testdata/workflows/witherrors"
-	files, err := ioutil.ReadDir(rootPath)
+	files, err := os.ReadDir(rootPath)
 	assert.NoError(t, err)
 	for _, file := range files {
 		if !file.IsDir() {

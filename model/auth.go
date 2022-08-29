@@ -17,9 +17,10 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"gopkg.in/go-playground/validator.v8"
 	"reflect"
+
+	validator "github.com/go-playground/validator/v10"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
@@ -27,15 +28,15 @@ func init() {
 }
 
 // AuthDefinitionsStructLevelValidation custom validator for unique name of the auth methods
-func AuthDefinitionsStructLevelValidation(v *validator.Validate, structLevel *validator.StructLevel) {
-	authDefs := structLevel.CurrentStruct.Interface().(AuthDefinitions)
+func AuthDefinitionsStructLevelValidation(structLevel validator.StructLevel) {
+	authDefs := structLevel.Current().Interface().(AuthDefinitions)
 	dict := map[string]bool{}
 	if authDefs.Defs != nil && len(authDefs.Defs) > 1 {
 		for _, a := range authDefs.Defs {
 			if !dict[a.Name] {
 				dict[a.Name] = true
 			} else {
-				structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique")
+				structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
 			}
 		}
 	}

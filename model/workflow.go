@@ -117,7 +117,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	}
 
 	w.States = make([]State, len(rawStates))
-	var mapState map[string]interface{}
+	mapState := map[string]interface{}{}
 	for i, rawState := range rawStates {
 		if err := json.Unmarshal(rawState, &mapState); err != nil {
 			return err
@@ -130,6 +130,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		w.States[i] = state
+		mapState = map[string]interface{}{}
 	}
 	if _, ok := workflowMap["events"]; ok {
 		if err := json.Unmarshal(workflowMap["events"], &w.Events); err != nil {

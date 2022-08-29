@@ -14,14 +14,16 @@
 
 package validator
 
-import "gopkg.in/go-playground/validator.v8"
+import (
+	validator "github.com/go-playground/validator/v10"
+)
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
 
 var validate *validator.Validate
 
 func init() {
-	validate = validator.New(&validator.Config{TagName: "validate"})
+	validate = validator.New()
 }
 
 // GetValidator gets the default validator.Validate reference

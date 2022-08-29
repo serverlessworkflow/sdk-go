@@ -13,11 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-golint ./... | tee -a golint_errors
-if [ -s golint_errors ]  ; then
-    code=1
-fi
-rm -f golint_errors
-golangci-lint run ./... --enable golint --timeout 2m0s
-
-exit ${code:0}
+golangci-lint run ./... --timeout 2m0s

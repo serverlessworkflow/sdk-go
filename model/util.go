@@ -17,8 +17,8 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -46,7 +46,7 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	} else if s, err = filepath.Abs(s); err != nil {
 		return nil, err
 	}
-	if b, err = ioutil.ReadFile(filepath.Clean(s)); err != nil {
+	if b, err = os.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err
 	}
 	return b, nil

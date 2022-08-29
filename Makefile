@@ -7,7 +7,6 @@ fmt:
 	@go fmt ./...
 
 lint:
-	@command -v golint > /dev/null || go install -modfile=tools.mod -v golang.org/x/lint/golint
 	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin"
 	make addheaders
 	make fmt

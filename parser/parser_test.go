@@ -30,10 +30,11 @@ func TestBasicValidation(t *testing.T) {
 	for _, file := range files {
 		if !file.IsDir() {
 			workflow, err := FromFile(filepath.Join(rootPath, file.Name()))
-			assert.NoError(t, err)
-			assert.NotEmpty(t, workflow.Name)
-			assert.NotEmpty(t, workflow.ID)
-			assert.NotEmpty(t, workflow.States)
+			if assert.NoError(t, err) {
+				assert.NotEmpty(t, workflow.Name)
+				assert.NotEmpty(t, workflow.ID)
+				assert.NotEmpty(t, workflow.States)
+			}
 		}
 	}
 }
@@ -251,8 +252,9 @@ func TestFromFile(t *testing.T) {
 	}
 	for file, f := range files {
 		workflow, err := FromFile(file)
-		assert.NoError(t, err, "Test File", file)
-		assert.NotNil(t, workflow, "Test File", file)
-		f(t, workflow)
+		if assert.NoError(t, err, "Test File %s", file) {
+			assert.NotNil(t, workflow, "Test File %s", file)
+			f(t, workflow)
+		}
 	}
 }

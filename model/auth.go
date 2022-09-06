@@ -31,13 +31,12 @@ func init() {
 func AuthDefinitionsStructLevelValidation(structLevel validator.StructLevel) {
 	authDefs := structLevel.Current().Interface().(AuthDefinitions)
 	dict := map[string]bool{}
-	if authDefs.Defs != nil && len(authDefs.Defs) > 1 {
-		for _, a := range authDefs.Defs {
-			if !dict[a.Name] {
-				dict[a.Name] = true
-			} else {
-				structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
-			}
+
+	for _, a := range authDefs.Defs {
+		if !dict[a.Name] {
+			dict[a.Name] = true
+		} else {
+			structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
 		}
 	}
 }

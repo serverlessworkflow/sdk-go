@@ -92,24 +92,25 @@ func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
 	if len(b) == 0 {
 		return fmt.Errorf("no bytes to unmarshal")
 	}
+
 	// See if we can guess based on the first character
 	switch b[0] {
-	case '{':
-		return a.unmarshalSingle(b)
+	case '"':
+		return a.unmarshalFile(b)
 	case '[':
 		return a.unmarshalMany(b)
 	}
-	return nil
+
+	return fmt.Errorf("auth value '%s' not support, it must be an array or string", string(b))
 }
 
-func (a *AuthDefinitions) unmarshalSingle(data []byte) error {
-	var auth Auth
-	err := json.Unmarshal(data, &auth)
+func (a *AuthDefinitions) unmarshalFile(data []byte) error {
+	b, err := unmarshalFile(data)
 	if err != nil {
 		return err
 	}
-	a.Defs = []Auth{auth}
-	return nil
+
+	return a.unmarshalMany(b)
 }
 
 func (a *AuthDefinitions) unmarshalMany(data []byte) error {

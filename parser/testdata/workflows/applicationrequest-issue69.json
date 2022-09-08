@@ -5,13 +5,7 @@
   "description": "Determine if applicant request is valid",
   "start": "CheckApplication",
   "specVersion": "0.7",
-  "auth": [{
-    "name": "testAuth",
-    "scheme": "bearer",
-    "properties": {
-      "token": "test_token"
-    }
-  }],
+  "auth": "./testdata/workflows/urifiles/auth.json",
   "functions": [
     {
       "name": "sendRejectionEmailFunction",

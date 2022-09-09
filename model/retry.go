@@ -15,9 +15,21 @@
 package model
 
 import (
-	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+	"reflect"
+
+	"github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
+
+func init() {
+	val.GetValidator().RegisterStructValidation(
+		RetryStructLevelValidation,
+		Retry{},
+	)
+}
 
 // Retry ...
 type Retry struct {
@@ -35,4 +47,37 @@ type Retry struct {
 	MaxAttempts intstr.IntOrString `json:"maxAttempts" validate:"required"`
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
 	Jitter floatstr.Float32OrString `json:"jitter,omitempty" validate:"omitempty,min=0,max=1"`
+}
+
+// RetryStructLevelValidation custom validator for Retry Struct
+func RetryStructLevelValidation(structLevel validator.StructLevel) {
+	retryObj := structLevel.Current().Interface().(Retry)
+
+	if retryObj.Delay != "" {
+		err := validateISO8601TimeDuration(retryObj.Delay)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(retryObj.Delay), "Delay", "delay", "reqiso8601duration", "")
+		}
+	}
+
+	if retryObj.MaxDelay != "" {
+		err := validateISO8601TimeDuration(retryObj.MaxDelay)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(retryObj.MaxDelay), "MaxDelay", "maxDelay", "reqiso8601duration", "")
+		}
+	}
+
+	if retryObj.Increment != "" {
+		err := validateISO8601TimeDuration(retryObj.Increment)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(retryObj.Increment), "Increment", "increment", "reqiso8601duration", "")
+		}
+	}
+
+	if retryObj.Jitter.Type == floatstr.String && retryObj.Jitter.StrVal != "" {
+		err := validateISO8601TimeDuration(retryObj.Jitter.StrVal)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(retryObj.Jitter.StrVal), "Jitter", "jitter", "reqiso8601duration", "")
+		}
+	}
 }

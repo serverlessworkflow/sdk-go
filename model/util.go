@@ -21,6 +21,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/senseyeio/duration"
 )
 
 const prefix = "file:/"
@@ -89,4 +91,9 @@ func unmarshalFile(data []byte) (b []byte, err error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+func validateISO8601TimeDuration(s string) error {
+	_, err := duration.ParseISO8601(s)
+	return err
 }

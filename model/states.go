@@ -127,13 +127,6 @@ func (s *BaseState) GetStateDataFilter() *StateDataFilter { return s.StateDataFi
 // GetMetadata ...
 func (s *BaseState) GetMetadata() *Metadata { return s.Metadata }
 
-// DelayState Causes the workflow execution to delay for a specified duration
-type DelayState struct {
-	BaseState
-	// Amount of time (ISO 8601 format) to delay
-	TimeDelay string `json:"timeDelay" validate:"required"`
-}
-
 // EventState This state is used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
 type EventState struct {
 	BaseState

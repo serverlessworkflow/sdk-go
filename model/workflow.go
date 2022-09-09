@@ -98,7 +98,7 @@ type Workflow struct {
 	States    []State    `json:"states" validate:"required,min=1"`
 	Events    []Event    `json:"events,omitempty"`
 	Functions []Function `json:"functions,omitempty"`
-	Retries   []Retry    `json:"retries,omitempty"`
+	Retries   []Retry    `json:"retries,omitempty" validate:"dive"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type

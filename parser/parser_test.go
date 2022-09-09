@@ -46,7 +46,7 @@ func TestCustomValidators(t *testing.T) {
 	for _, file := range files {
 		if !file.IsDir() {
 			_, err := FromFile(filepath.Join(rootPath, file.Name()))
-			assert.Error(t, err)
+			assert.Error(t, err, "Test File %s", file.Name())
 		}
 	}
 }

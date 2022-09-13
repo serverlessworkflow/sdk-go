@@ -30,14 +30,14 @@
             "GreetingEvent"
           ],
           "eventDataFilter": {
-            "data": "{{ $.data.greet }}"
+            "data": "${ .data | .greet }"
           },
           "actions": [
             {
               "functionRef": {
                 "refName": "greetingFunction",
                 "arguments": {
-                  "name": "{{ $.greet.name }}"
+                  "name": "${ .greet | .name }"
                 }
               }
             }
@@ -45,7 +45,7 @@
         }
       ],
       "stateDataFilter": {
-        "output": "{{ $.payload.greeting }}"
+        "output": "${ .payload | .greeting }"
       },
       "end": {
         "terminate": true

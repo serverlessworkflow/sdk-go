@@ -25,7 +25,7 @@
       "type": "switch",
       "dataConditions": [
         {
-          "condition": "${  true }",
+          "condition": "${ true }",
           "transition": "CheckVisaStatus"
         }
       ]

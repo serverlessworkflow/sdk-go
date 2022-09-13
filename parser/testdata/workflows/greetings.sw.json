@@ -22,11 +22,11 @@
           "functionRef": {
             "refName": "greetingFunction",
             "parameters": {
-              "name": "{{ $.person.name }}"
+              "name": "${ .person | .name }"
             }
           },
           "actionDataFilter": {
-            "dataResultsPath": "{{ $.greeting }}"
+            "dataResultsPath": "${ .greeting }"
           }
         }
       ],

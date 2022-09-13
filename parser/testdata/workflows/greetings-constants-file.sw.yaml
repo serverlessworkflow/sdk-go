@@ -31,10 +31,10 @@ states:
       - functionRef:
           refName: greetingFunction
           parameters:
-            name: "${ $SECRETS.SECRET1 }"
+            name: "${ SECRETS | .SECRET1 }"
         actionDataFilter:
-          dataResultsPath: "$.payload.greeting"
+          dataResultsPath: "${ .payload | .greeting }"
     stateDataFilter:
-      dataOutputPath: "$.greeting"
+      dataOutputPath: "${ .greeting }"
     end:
       terminate: true

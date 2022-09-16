@@ -135,7 +135,7 @@ type EventState struct {
 	// Define the events to be consumed and optional actions to be performed
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeout EventStateTimeout `json:"timeouts,omitempty"`
+	Timeout *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
 // UnmarshalJSON ...
@@ -187,7 +187,7 @@ type OperationState struct {
 	// Actions to be performed
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeouts OperationStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
 }
 
 // OperationStateTimeout ...
@@ -206,7 +206,7 @@ type ParallelState struct {
 	// Used when completionType is set to 'atLeast' to specify the minimum number of branches that must complete before the state will transition."
 	NumCompleted intstr.IntOrString `json:"numCompleted,omitempty"`
 	// State specific timeouts
-	Timeouts ParallelStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
 }
 
 // ParallelStateTimeout ...
@@ -221,7 +221,7 @@ type InjectState struct {
 	// JSON object which can be set as states data input and can be manipulated via filters
 	Data map[string]interface{} `json:"data" validate:"required,min=1"`
 	// State specific timeouts
-	Timeouts InjectStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
 }
 
 // InjectStateTimeout ...
@@ -243,7 +243,7 @@ type ForEachState struct {
 	// Actions to be executed for each of the elements of inputCollection
 	Actions []Action `json:"actions,omitempty"`
 	// State specific timeout
-	Timeouts ForEachStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
 	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
@@ -280,7 +280,7 @@ type SleepState struct {
 	// Duration (ISO 8601 duration format) to sleep
 	Duration string `json:"duration" validate:"required"`
 	// Timeouts State specific timeouts
-	Timeouts SleepStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
 }
 
 // SleepStateTimeout ...
@@ -301,7 +301,7 @@ type EventBasedSwitchState struct {
 	// Defines conditions evaluated against events
 	EventConditions []EventCondition `json:"eventConditions" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeouts EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Eventbasedswitch type
@@ -395,8 +395,8 @@ type EndEventCondition struct {
 // DataBasedSwitchState Permits transitions to other states based on data conditions
 type DataBasedSwitchState struct {
 	BaseSwitchState
-	DataConditions []DataCondition             `json:"dataConditions" validate:"required,min=1,dive"`
-	Timeouts       DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
+	DataConditions []DataCondition              `json:"dataConditions" validate:"required,min=1,dive"`
+	Timeouts       *DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type

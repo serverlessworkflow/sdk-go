@@ -95,7 +95,7 @@ type BaseWorkflow struct {
 // Workflow base definition
 type Workflow struct {
 	BaseWorkflow
-	States    []State    `json:"states" validate:"required,min=1"`
+	States    []State    `json:"states" validate:"required,min=1,dive"`
 	Events    []Event    `json:"events,omitempty"`
 	Functions []Function `json:"functions,omitempty"`
 	Retries   []Retry    `json:"retries,omitempty" validate:"dive"`
@@ -381,8 +381,8 @@ func (s *Start) UnmarshalJSON(data []byte) error {
 
 // DefaultCondition Can be either a transition or end definition
 type DefaultCondition struct {
-	Transition Transition `json:"transition,omitempty"`
-	End        End        `json:"end,omitempty"`
+	Transition *Transition `json:"transition,omitempty"`
+	End        *End        `json:"end,omitempty"`
 }
 
 // Schedule ...
@@ -504,12 +504,12 @@ type OnEvents struct {
 // Action ...
 type Action struct {
 	// Unique action definition name
-	Name        string      `json:"name,omitempty"`
-	FunctionRef FunctionRef `json:"functionRef,omitempty"`
+	Name        string       `json:"name,omitempty"`
+	FunctionRef *FunctionRef `json:"functionRef,omitempty"`
 	// References a 'trigger' and 'result' reusable event definitions
-	EventRef EventRef `json:"eventRef,omitempty"`
+	EventRef *EventRef `json:"eventRef,omitempty"`
 	// References a sub-workflow to be executed
-	SubFlowRef WorkflowRef `json:"subFlowRef,omitempty"`
+	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
 	// Sleep Defines time period workflow execution should sleep before / after function execution
 	Sleep Sleep `json:"sleep,omitempty"`
 	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
@@ -529,8 +529,8 @@ type End struct {
 	// Defines events that should be produced
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty"`
 	// If set to true, triggers workflow compensation. Default is false
-	Compensate bool       `json:"compensate,omitempty"`
-	ContinueAs ContinueAs `json:"continueAs,omitempty"`
+	Compensate bool        `json:"compensate,omitempty"`
+	ContinueAs *ContinueAs `json:"continueAs,omitempty"`
 }
 
 // UnmarshalJSON ...

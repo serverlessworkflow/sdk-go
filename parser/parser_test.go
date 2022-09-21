@@ -68,6 +68,7 @@ func TestFromFile(t *testing.T) {
 		},
 		"./testdata/workflows/greetings-v08-spec.sw.yaml": func(t *testing.T, w *model.Workflow) {
 			assert.Empty(t, w.Name)
+			assert.Empty(t, w.Start)
 			assert.IsType(t, &model.OperationState{}, w.States[0])
 			assert.Equal(t, "custom.greeting", w.ID)
 			assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)

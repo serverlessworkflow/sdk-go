@@ -63,7 +63,7 @@ type BaseWorkflow struct {
 	Description string `json:"description,omitempty"`
 	// Workflow version
 	Version string `json:"version" validate:"omitempty,min=1"`
-	Start   *Start `json:"start" validate:"required"`
+	Start   *Start `json:"start" validate:"omitempty"`
 	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important qualities
 	Annotations []string `json:"annotations,omitempty"`
 	// DataInputSchema URI of the JSON Schema used to validate the workflow data input

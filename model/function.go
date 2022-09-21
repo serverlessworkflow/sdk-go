@@ -29,6 +29,8 @@ const (
 	FunctionTypeAsyncAPI FunctionType = "asyncapi"
 	// FunctionTypeOData ...
 	FunctionTypeOData FunctionType = "odata"
+	// FunctionTypeCustom ...
+	FunctionTypeCustom FunctionType = "custom"
 )
 
 // FunctionType ...
@@ -39,9 +41,10 @@ type Function struct {
 	Common
 	// Unique function name
 	Name string `json:"name" validate:"required"`
-	// If type is `rest`, <path_to_openapi_definition>#<operation_id>. If type is `rpc`, <path_to_grpc_proto_file>#<service_name>#<service_method>. If type is `expression`, defines the workflow expression.
+	// If type is `rest`, <path_to_openapi_definition>#<operation_id>. If type is `rpc`, <path_to_grpc_proto_file>#<service_name>#<service_method>.
+	// If type is `expression`, defines the workflow expression. If the type is `custom`, <path_to_custom_script>#<custom_service_method>.
 	Operation string `json:"operation" validate:"required"`
-	// Defines the function type. Is either `rest`, `rpc`, `expression` or `graphql`. Default is `rest`
+	// Defines the function type. Is either `rest`, `rpc`, `expression`, `graphql`, `asyncapi`, `odata` or `custom`. Default is `rest`
 	Type FunctionType `json:"type,omitempty"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter
 	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`

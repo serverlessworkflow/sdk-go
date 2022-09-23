@@ -316,33 +316,6 @@ func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// StateExecTimeout ...
-type StateExecTimeout struct {
-	// Single state execution timeout, not including retries (ISO 8601 duration format)
-	Single string `json:"single,omitempty" validate:"omitempty,min=1"`
-	// Total state execution timeout, including retries (ISO 8601 duration format)
-	Total string `json:"total" validate:"required"`
-}
-
-// UnmarshalJSON ...
-func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
-	stateTimeout := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &stateTimeout); err != nil {
-		s.Total, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("total", stateTimeout, &s.Total); err != nil {
-		return err
-	}
-	if err := unmarshalKey("single", stateTimeout, &s.Single); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Error declaration for workflow definitions
 type Error struct {
 	// Name Domain-specific error name

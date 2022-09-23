@@ -90,6 +90,7 @@ type Auth struct {
 // UnmarshalJSON implements json.Unmarshaler
 func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
 	if len(b) == 0 {
+		// TODO: Normalize error messages
 		return fmt.Errorf("no bytes to unmarshal")
 	}
 

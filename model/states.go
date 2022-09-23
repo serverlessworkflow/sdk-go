@@ -77,7 +77,7 @@ type State interface {
 // BaseState ...
 type BaseState struct {
 	// Unique State id
-	ID string `json:"id,omitempty" validate:"omitempty,min=1"`
+	ID string `json:"id,omitempty"`
 	// State name
 	Name string `json:"name" validate:"required"`
 	// State type
@@ -89,7 +89,7 @@ type BaseState struct {
 	// State data filter
 	StateDataFilter *StateDataFilter `json:"stateDataFilter,omitempty"`
 	// Unique Name of a workflow state which is responsible for compensation of this state
-	CompensatedBy string `json:"compensatedBy,omitempty" validate:"omitempty,min=1"`
+	CompensatedBy string `json:"compensatedBy,omitempty"`
 	// If true, this state is used to compensate another state. Default is false
 	UsedForCompensation bool `json:"usedForCompensation,omitempty"`
 	// State end definition
@@ -272,20 +272,6 @@ type CallbackStateTimeout struct {
 	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
 	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
 	EventTimeout      string           `json:"eventTimeout,omitempty"`
-}
-
-// SleepState ...
-type SleepState struct {
-	BaseState
-	// Duration (ISO 8601 duration format) to sleep
-	Duration string `json:"duration" validate:"required"`
-	// Timeouts State specific timeouts
-	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
-}
-
-// SleepStateTimeout ...
-type SleepStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
 // BaseSwitchState ...

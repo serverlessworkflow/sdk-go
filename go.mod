@@ -6,7 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/senseyeio/duration v0.0.0-20180430131211-7c2a214ada46
 	github.com/stretchr/testify v1.7.0
-	k8s.io/apimachinery v0.25.0
+	k8s.io/apimachinery v0.25.1
 	sigs.k8s.io/yaml v1.3.0
 )
 

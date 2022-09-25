@@ -49,7 +49,7 @@ func TestSleepStateStructLevelValidation(t *testing.T) {
 				},
 				Duration: "T10S",
 			},
-			err: `Key: 'SleepState.Duration' Error:Field validation for 'Duration' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'SleepState.Duration' Error:Field validation for 'Duration' failed on the 'iso8601duration' tag`,
 		},
 	}
 

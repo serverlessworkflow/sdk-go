@@ -12,19 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package validator
 
-// SleepState suspends workflow execution for a given time duration.
-type SleepState struct {
-	BaseState
-
-	// Duration (ISO 8601 duration format) to sleep
-	Duration string `json:"duration" validate:"required,iso8601duration"`
-	// Timeouts State specific timeouts
-	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
-}
-
-// SleepStateTimeout defines timeout settings for sleep state
-type SleepStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
-}
+const (
+	// TagISO8601Duration is the validate tag for iso8601 time duration format
+	TagISO8601Duration = "iso8601duration"
+)

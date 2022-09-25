@@ -16,21 +16,16 @@ package model
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
-
-	validator "github.com/go-playground/validator/v10"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 // StateExecTimeout defines workflow state execution timeout
 type StateExecTimeout struct {
 	// Single state execution timeout, not including retries (ISO 8601 duration format)
-	Single string `json:"single,omitempty"`
+	Single string `json:"single,omitempty" validate:"omitempty,iso8601duration"`
 	// Total state execution timeout, including retries (ISO 8601 duration format)
-	Total string `json:"total" validate:"required"`
+	Total string `json:"total" validate:"required,iso8601duration"`
 }
 
 // just define another type to unmarshal object, so the UnmarshalJSON will not called recursively
@@ -63,29 +58,4 @@ func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
 	}
 
 	return fmt.Errorf("stateExecTimeout value '%s' not support, it must be an object or string", string(data))
-}
-
-// StateExecTimeoutStructLevelValidation custom validator for StateExecTimeout
-func StateExecTimeoutStructLevelValidation(_ context.Context, structLevel validator.StructLevel) {
-	timeoutObj := structLevel.Current().Interface().(StateExecTimeout)
-
-	// TODO: use Custom Validation Functions tags for iso8601duration
-	err := validateISO8601TimeDuration(timeoutObj.Total)
-	if err != nil {
-		structLevel.ReportError(reflect.ValueOf(timeoutObj.Total), "Total", "total", "reqiso8601duration", "")
-	}
-
-	if timeoutObj.Single != "" {
-		err = validateISO8601TimeDuration(timeoutObj.Single)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(timeoutObj.Single), "Single", "single", "reqiso8601duration", "")
-		}
-	}
-}
-
-func init() {
-	val.GetValidator().RegisterStructValidationCtx(
-		StateExecTimeoutStructLevelValidation,
-		StateExecTimeout{},
-	)
 }

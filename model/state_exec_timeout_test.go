@@ -142,7 +142,7 @@ func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 				Single: "PT10S",
 				Total:  "",
 			},
-			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'required' tag\nKey: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'required' tag`,
 		},
 		{
 			desp: "invalid total duration",
@@ -150,7 +150,7 @@ func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 				Single: "PT10S",
 				Total:  "T10S",
 			},
-			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'iso8601duration' tag`,
 		},
 		{
 			desp: "invalid single duration",
@@ -158,7 +158,7 @@ func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 				Single: "T10S",
 				Total:  "PT10S",
 			},
-			err: `Key: 'StateExecTimeout.Single' Error:Field validation for 'Single' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'StateExecTimeout.Single' Error:Field validation for 'Single' failed on the 'iso8601duration' tag`,
 		},
 	}
 	for _, tc := range testCases {

@@ -15,7 +15,10 @@
 package validator
 
 import (
+	"context"
+
 	validator "github.com/go-playground/validator/v10"
+	"github.com/senseyeio/duration"
 )
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
@@ -24,9 +27,25 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
+
+	err := validate.RegisterValidationCtx("iso8601duration", validateISO8601TimeDurationFunc)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // GetValidator gets the default validator.Validate reference
 func GetValidator() *validator.Validate {
 	return validate
+}
+
+// ValidateISO8601TimeDuration validate the string is iso8601 duration format
+func ValidateISO8601TimeDuration(s string) error {
+	_, err := duration.ParseISO8601(s)
+	return err
+}
+
+func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel) bool {
+	err := ValidateISO8601TimeDuration(fl.Field().String())
+	return err == nil
 }

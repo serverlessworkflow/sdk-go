@@ -12,60 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package validator
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-func TestDelayStateStructLevelValidation(t *testing.T) {
+func TestValidateISO8601TimeDuration(t *testing.T) {
 	type testCase struct {
-		desp          string
-		delayStateObj DelayState
-		err           string
+		desp string
+		s    string
+		err  string
 	}
 	testCases := []testCase{
 		{
-			desp: "normal",
-			delayStateObj: DelayState{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "delay",
-				},
-				TimeDelay: "PT5S",
-			},
-			err: ``,
+			desp: "normal_all_designator",
+			s:    "P3Y6M4DT12H30M5S",
+			err:  ``,
 		},
 		{
-			desp: "missing required timeDelay",
-			delayStateObj: DelayState{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "delay",
-				},
-				TimeDelay: "",
-			},
-			err: `Key: 'DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'required' tag`,
+			desp: "normal_second_designator",
+			s:    "PT5S",
+			err:  ``,
 		},
 		{
-			desp: "invalid timeDelay duration",
-			delayStateObj: DelayState{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "delay",
-				},
-				TimeDelay: "P5S",
-			},
-			err: `Key: 'DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'iso8601duration' tag`,
+			desp: "empty value",
+			s:    "",
+			err:  `could not parse duration string`,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.delayStateObj)
+			err := ValidateISO8601TimeDuration(tc.s)
 
 			if tc.err != "" {
 				assert.Error(t, err)

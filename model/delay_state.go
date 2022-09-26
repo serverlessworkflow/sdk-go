@@ -15,8 +15,6 @@
 package model
 
 import (
-	"reflect"
-
 	"github.com/go-playground/validator/v10"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -33,15 +31,10 @@ func init() {
 type DelayState struct {
 	BaseState
 	// Amount of time (ISO 8601 format) to delay
-	TimeDelay string `json:"timeDelay" validate:"required"`
+	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
 }
 
 // DelayStateStructLevelValidation custom validator for DelayState Struct
 func DelayStateStructLevelValidation(structLevel validator.StructLevel) {
-	delayStateObj := structLevel.Current().Interface().(DelayState)
-
-	err := validateISO8601TimeDuration(delayStateObj.TimeDelay)
-	if err != nil {
-		structLevel.ReportError(reflect.ValueOf(delayStateObj.TimeDelay), "TimeDelay", "timeDelay", "reqiso8601duration", "")
-	}
+	// TODO
 }

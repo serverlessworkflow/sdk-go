@@ -42,6 +42,13 @@ func TestRetryStructLevelValidation(t *testing.T) {
 			err: ``,
 		},
 		{
+			desp: "normal with all optinal",
+			retryObj: Retry{
+				Name: "1",
+			},
+			err: ``,
+		},
+		{
 			desp: "missing required name",
 			retryObj: Retry{
 				Name:      "",
@@ -61,7 +68,7 @@ func TestRetryStructLevelValidation(t *testing.T) {
 				Increment: "PT5S",
 				Jitter:    floatstr.FromString("PT5S"),
 			},
-			err: `Key: 'Retry.Delay' Error:Field validation for 'Delay' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'Retry.Delay' Error:Field validation for 'Delay' failed on the 'iso8601duration' tag`,
 		},
 		{
 			desp: "invdalid max delay duration",
@@ -72,7 +79,7 @@ func TestRetryStructLevelValidation(t *testing.T) {
 				Increment: "PT5S",
 				Jitter:    floatstr.FromString("PT5S"),
 			},
-			err: `Key: 'Retry.MaxDelay' Error:Field validation for 'MaxDelay' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'Retry.MaxDelay' Error:Field validation for 'MaxDelay' failed on the 'iso8601duration' tag`,
 		},
 		{
 			desp: "invalid increment duration",
@@ -83,7 +90,7 @@ func TestRetryStructLevelValidation(t *testing.T) {
 				Increment: "P5S",
 				Jitter:    floatstr.FromString("PT5S"),
 			},
-			err: `Key: 'Retry.Increment' Error:Field validation for 'Increment' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'Retry.Increment' Error:Field validation for 'Increment' failed on the 'iso8601duration' tag`,
 		},
 		{
 			desp: "invalid jitter duration",
@@ -94,7 +101,7 @@ func TestRetryStructLevelValidation(t *testing.T) {
 				Increment: "PT5S",
 				Jitter:    floatstr.FromString("P5S"),
 			},
-			err: `Key: 'Retry.Jitter' Error:Field validation for 'Jitter' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'Retry.Jitter' Error:Field validation for 'Jitter' failed on the 'iso8601duration' tag`,
 		},
 	}
 

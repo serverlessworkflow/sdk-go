@@ -560,14 +560,6 @@ type StateDataFilter struct {
 	Output string `json:"output,omitempty"`
 }
 
-// EventDataFilter ...
-type EventDataFilter struct {
-	// Workflow expression that filters of the event data (payload)
-	Data string `json:"data,omitempty"`
-	// Workflow expression that selects a state data element to which the event payload should be added/merged into. If not specified, denotes, the top-level state data element.
-	ToStateData string `json:"toStateData,omitempty"`
-}
-
 // Branch Definition
 type Branch struct {
 	// Branch name

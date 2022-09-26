@@ -9,7 +9,7 @@ Current status of features implemented in the SDK is listed in the table below:
 | Parse workflow JSON and YAML definitions    | :heavy_check_mark: | 
 | Programmatically build workflow definitions | :no_entry_sign:    |
 | Validate workflow definitions (Schema)      | :heavy_check_mark: |
-| Validate workflow definitions (Integrity)   | :heavy_check_mark:    |
+| Validate workflow definitions (Integrity)   | :heavy_check_mark: |
 | Generate workflow diagram (SVG)             | :no_entry_sign:    |
 
 ## Status

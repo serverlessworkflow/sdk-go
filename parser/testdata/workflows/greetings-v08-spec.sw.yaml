@@ -35,6 +35,10 @@ states:
             name: "${ .greet | .name }"
         actionDataFilter:
           dataResultsPath: "${ .payload | .greeting }"
+      - eventRef:
+          triggerEventRef: example
+          resultEventRef: example
+          resultEventTimeout: PT1H
     stateDataFilter:
       dataOutputPath: "${ .greeting }"
     transition: SendTextForHighPriority

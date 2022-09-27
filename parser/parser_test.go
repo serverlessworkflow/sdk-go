@@ -65,6 +65,17 @@ func TestFromFile(t *testing.T) {
 			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
 			assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 		},
+		"./testdata/workflows/greetings-custom-function.sw.yaml": func(t *testing.T, w *model.Workflow) {
+			assert.IsType(t, &model.OperationState{}, w.States[0])
+			assert.Equal(t, "custom.greeting", w.ID)
+			assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)
+			assert.NotEmpty(t, w.Functions[0])
+			assert.Equal(t, "greetingCustomFunction", w.Functions[0].Name)
+			assert.Equal(t, model.FunctionTypeCustom, w.Functions[0].Type)
+			assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
+			assert.Equal(t, "greetingCustomFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
+			assert.Equal(t, "greetingCustomFunction", w.States[0].(*model.OperationState).Actions[0].Name)
+		},
 		"./testdata/workflows/eventbaseddataandswitch.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "Start", w.States[0].GetName())
 			assert.Equal(t, "CheckVisaStatus", w.States[1].GetName())

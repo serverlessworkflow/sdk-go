@@ -30,7 +30,8 @@
             "GreetingEvent"
           ],
           "eventDataFilter": {
-            "data": "${ .data | .greet }"
+            "data": "${ .data | .greet }",
+            "useData": false
           },
           "actions": [
             {

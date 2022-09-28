@@ -206,34 +206,6 @@ func (w *Workflow) setDefaults() {
 	}
 }
 
-// WorkflowRef holds a reference for a workflow definition
-type WorkflowRef struct {
-	// Sub-workflow unique id
-	WorkflowID string `json:"workflowId" validate:"required"`
-	// Sub-workflow version
-	Version string `json:"version,omitempty"`
-}
-
-// UnmarshalJSON ...
-func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
-	subflowRef := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &subflowRef); err != nil {
-		s.WorkflowID, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("version", subflowRef, &s.Version); err != nil {
-		return err
-	}
-	if err := unmarshalKey("workflowId", subflowRef, &s.WorkflowID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Timeouts ...
 type Timeouts struct {
 	// WorkflowExecTimeout Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
@@ -474,27 +446,6 @@ type OnEvents struct {
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
-// Action ...
-type Action struct {
-	// Unique action definition name
-	Name        string       `json:"name,omitempty"`
-	FunctionRef *FunctionRef `json:"functionRef,omitempty"`
-	// References a 'trigger' and 'result' reusable event definitions
-	EventRef *EventRef `json:"eventRef,omitempty"`
-	// References a sub-workflow to be executed
-	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
-	// Sleep Defines time period workflow execution should sleep before / after function execution
-	Sleep Sleep `json:"sleep,omitempty"`
-	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
-	RetryRef string `json:"retryRef,omitempty"`
-	// List of unique references to defined workflow errors for which the action should not be retried. Used only when `autoRetries` is set to `true`
-	NonRetryableErrors []string `json:"nonRetryableErrors,omitempty" validate:"omitempty,min=1"`
-	// List of unique references to defined workflow errors for which the action should be retried. Used only when `autoRetries` is set to `false`
-	RetryableErrors []string `json:"retryableErrors,omitempty" validate:"omitempty,min=1"`
-	// Action data filter
-	ActionDataFilter ActionDataFilter `json:"actionDataFilter,omitempty"`
-}
-
 // End definition
 type End struct {
 	// If true, completes all execution flows in the given workflow instance
@@ -578,16 +529,6 @@ type BranchTimeouts struct {
 	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
-// ActionDataFilter ...
-type ActionDataFilter struct {
-	// Workflow expression that selects state data that the state action can use
-	FromStateData string `json:"fromStateData,omitempty"`
-	// Workflow expression that filters the actions' data results
-	Results string `json:"results,omitempty"`
-	// Workflow expression that selects a state data element to which the action results should be added/merged into. If not specified, denote, the top-level state data element
-	ToStateData string `json:"toStateData,omitempty"`
-}
-
 // DataInputSchema ...
 type DataInputSchema struct {
 	Schema                 string `json:"schema" validate:"required"`
@@ -655,12 +596,4 @@ func (c *Constants) UnmarshalJSON(data []byte) error {
 	}
 	c.Data = constantData
 	return nil
-}
-
-// Sleep ...
-type Sleep struct {
-	// Before Amount of time (ISO 8601 duration format) to sleep before function/subflow invocation. Does not apply if 'eventRef' is defined.
-	Before string `json:"before,omitempty"`
-	// After Amount of time (ISO 8601 duration format) to sleep after function/subflow invocation. Does not apply if 'eventRef' is defined.
-	After string `json:"after,omitempty"`
 }

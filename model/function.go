@@ -14,8 +14,6 @@
 
 package model
 
-import "encoding/json"
-
 const (
 	// FunctionTypeREST a combination of the function/service OpenAPI definition document URI and the particular service
 	// operation that needs to be invoked, separated by a '#'.
@@ -54,34 +52,4 @@ type Function struct {
 	Type FunctionType `json:"type,omitempty"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter
 	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`
-}
-
-// FunctionRef ...
-type FunctionRef struct {
-	// Name of the referenced function
-	RefName string `json:"refName" validate:"required"`
-	// Function arguments
-	Arguments map[string]interface{} `json:"arguments,omitempty"`
-	// String containing a valid GraphQL selection set
-	SelectionSet string `json:"selectionSet,omitempty"`
-}
-
-// UnmarshalJSON ...
-func (f *FunctionRef) UnmarshalJSON(data []byte) error {
-	funcRef := make(map[string]interface{})
-	if err := json.Unmarshal(data, &funcRef); err != nil {
-		f.RefName, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	f.RefName = requiresNotNilOrEmpty(funcRef["refName"])
-	if _, found := funcRef["arguments"]; found {
-		f.Arguments = funcRef["arguments"].(map[string]interface{})
-	}
-	f.SelectionSet = requiresNotNilOrEmpty(funcRef["selectionSet"])
-
-	return nil
 }

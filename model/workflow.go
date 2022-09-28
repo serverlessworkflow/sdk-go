@@ -58,7 +58,7 @@ type BaseWorkflow struct {
 	// Key Domain-specific workflow identifier
 	Key string `json:"key,omitempty" validate:"omitempty,min=1"`
 	// Workflow name
-	Name string `json:"name" validate:"omitempty"`
+	Name string `json:"name,omitempty"`
 	// Workflow description
 	Description string `json:"description,omitempty"`
 	// Workflow version

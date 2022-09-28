@@ -32,7 +32,7 @@ states:
           parameters:
             name: "${ .greet | .name }"
         actionDataFilter:
-          dataResultsPath: "${ .payload | .greeting }"
+          toStateData: "${ .payload | .greeting }"
     stateDataFilter:
       dataOutputPath: "${ .greeting }"
     end:

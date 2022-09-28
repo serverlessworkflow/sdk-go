@@ -34,7 +34,7 @@
               }
             },
             "actionDataFilter": {
-              "dataResultsPath": "${ .greeting }"
+              "toStateData": "${ .greeting }"
             }
           }
         ],

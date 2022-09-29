@@ -82,6 +82,10 @@ func TestFromFile(t *testing.T) {
 			assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 			assert.IsType(t, &model.EventBasedSwitchState{}, w.States[1])
 		},
+		"./testdata/workflows/conditionbasedstate.yaml": func(t *testing.T, w *model.Workflow) {
+			operationState := w.States[0].(*model.OperationState)
+			assert.Equal(t, "${ .applicants | .age < 18 }", operationState.Actions[0].Condition)
+		},
 		"./testdata/workflows/eventbasedgreeting.sw.json": func(t *testing.T, w *model.Workflow) {
 			assert.Equal(t, "GreetingEvent", w.Events[0].Name)
 			assert.IsType(t, &model.EventState{}, w.States[0])

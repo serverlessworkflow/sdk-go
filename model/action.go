@@ -37,6 +37,8 @@ type Action struct {
 	RetryableErrors []string `json:"retryableErrors,omitempty" validate:"omitempty,min=1"`
 	// Action data filter
 	ActionDataFilter ActionDataFilter `json:"actionDataFilter,omitempty"`
+	// Workflow expression evaluated against state data. Must evaluate to true or false
+	Condition string `json:"condition,omitempty"`
 }
 
 // FunctionRef ...

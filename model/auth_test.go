@@ -15,6 +15,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,4 +92,32 @@ func TestAuthDefinitionsStructLevelValidation(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
+	a1JSON := `{
+	"name": "a1",
+	"scheme": "bearer",
+	"properties": {
+		"token": "token1"
+	}
+}`
+	a2JSON := `{
+	"name": "a2",
+	"scheme": "bearer",
+	"properties": {
+		"token": "token2"
+	}
+}`
+
+	var a1 Auth
+	err := json.Unmarshal([]byte(a1JSON), &a1)
+	assert.NoError(t, err)
+
+	var a2 Auth
+	err = json.Unmarshal([]byte(a2JSON), &a2)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "token1", a1.Properties.(*BearerAuthProperties).Token)
+	assert.Equal(t, "token2", a2.Properties.(*BearerAuthProperties).Token)
 }

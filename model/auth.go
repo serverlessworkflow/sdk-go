@@ -70,11 +70,16 @@ const (
 	GrantTypeTokenExchange GrantType = "tokenExchange"
 )
 
-// authTypesMapping map to support JSON unmarshalling when guessing the auth scheme
-var authTypesMapping = map[AuthType]AuthProperties{
-	AuthTypeBasic:  &BasicAuthProperties{},
-	AuthTypeBearer: &BearerAuthProperties{},
-	AuthTypeOAuth2: &OAuth2AuthProperties{},
+func getAuthProperties(authType AuthType) (AuthProperties, bool) {
+	switch authType {
+	case AuthTypeBasic:
+		return &BasicAuthProperties{}, true
+	case AuthTypeBearer:
+		return &BearerAuthProperties{}, true
+	case AuthTypeOAuth2:
+		return &OAuth2AuthProperties{}, true
+	}
+	return nil, false
 }
 
 // Auth ...
@@ -150,11 +155,12 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	if len(a.Scheme) == 0 {
 		a.Scheme = AuthTypeBasic
 	}
-	if _, ok := authTypesMapping[a.Scheme]; !ok {
-		return fmt.Errorf("authentication scheme %s not supported", authTypesMapping["type"])
+	authProperties, ok := getAuthProperties(a.Scheme)
+	if !ok {
+		return fmt.Errorf("authentication scheme %s not supported", a.Scheme)
 	}
+
 	// we take the type we want to unmarshal based on the scheme
-	authProperties := authTypesMapping[a.Scheme]
 	if err := unmarshalKey("properties", auth, authProperties); err != nil {
 		return err
 	}

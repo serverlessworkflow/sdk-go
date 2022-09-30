@@ -237,7 +237,7 @@ type ForEachState struct {
 	// Workflow expression specifying an array element of the states data to add the results of each iteration
 	OutputCollection string `json:"outputCollection,omitempty"`
 	// Name of the iteration parameter that can be referenced in actions/workflow. For each parallel iteration, this param should contain an unique element of the inputCollection array
-	IterationParam string `json:"iterationParam" validate:"omitempty"`
+	IterationParam string `json:"iterationParam,omitempty"`
 	// Specifies how upper bound on how many iterations may run in parallel
 	BatchSize intstr.IntOrString `json:"batchSize,omitempty"`
 	// Actions to be executed for each of the elements of inputCollection

@@ -20,6 +20,8 @@ functions:
   - name: greetingCustomFunction
     operation: /path/to/my/script/greeting.ts#CustomGreeting
     type: custom
+  - name: sendTextFunction
+    operation: http://myapis.org/inboxapi.json#sendText
 
 states:
   - name: Greet
@@ -35,5 +37,13 @@ states:
           dataResultsPath: "${ .payload | .greeting }"
     stateDataFilter:
       dataOutputPath: "${ .greeting }"
-    end:
-      terminate: true
+    transition: SendTextForHighPriority
+  - name: SendTextForHighPriority
+    type: foreach
+    inputCollection: "${ .messages }"
+    actions:
+      - functionRef:
+          refName: sendTextFunction
+          arguments:
+            message: "${ .singlemessage }"
+    end: true

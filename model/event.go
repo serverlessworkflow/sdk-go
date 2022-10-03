@@ -15,10 +15,10 @@
 package model
 
 import (
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"reflect"
 
 	validator "github.com/go-playground/validator/v10"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 const (
@@ -30,14 +30,26 @@ const (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(EventStructLevelValidation, Event{})
+	val.GetValidator().RegisterStructValidation(EventRefStructLevelValidation, EventRef{})
 }
 
 // EventStructLevelValidation custom validator for event kind consumed
 func EventStructLevelValidation(structLevel validator.StructLevel) {
 	event := structLevel.Current().Interface().(Event)
-
 	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
 		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
+	}
+}
+
+// EventRefStructLevelValidation custom validator for event kind consumed
+func EventRefStructLevelValidation(structLevel validator.StructLevel) {
+	eventRef := structLevel.Current().Interface().(EventRef)
+
+	if len(eventRef.ResultEventTimeout) > 0 {
+		err := val.ValidateISO8601TimeDuration(eventRef.ResultEventTimeout)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "reqiso8601duration", "")
+		}
 	}
 }
 
@@ -75,9 +87,15 @@ type EventRef struct {
 	TriggerEventRef string `json:"triggerEventRef" validate:"required"`
 	// Reference to the unique name of a 'consumed' event definition
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
+	// Maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it will be set to the 'actionExecTimeout'
+	ResultEventTimeout string `json:"resultEventTimeout,omitempty"`
 	// TODO: create StringOrMap structure
-	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'. If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.
+	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
+	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.
 	Data interface{} `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
 }
+
+// InvokeKind ...
+type InvokeKind string

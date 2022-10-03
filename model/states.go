@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 

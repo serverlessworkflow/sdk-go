@@ -17,6 +17,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-playground/validator/v10"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"reflect"
 )
 
 // InvokeKind defines how the target is invoked.
@@ -56,6 +59,20 @@ var actionsModelMapping = map[string]func(state map[string]interface{}) State{
 	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
 	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
 	StateTypeSleep:    func(map[string]interface{}) State { return &SleepState{} },
+}
+
+func init() {
+	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
+}
+
+func continueAsStructLevelValidation(structLevel validator.StructLevel) {
+	continueAs := structLevel.Current().Interface().(ContinueAs)
+	if len(continueAs.WorkflowExecTimeout.Duration) > 0 {
+		if err := val.ValidateISO8601TimeDuration(continueAs.WorkflowExecTimeout.Duration); err != nil {
+			structLevel.ReportError(reflect.ValueOf(continueAs.WorkflowExecTimeout.Duration),
+				"workflowExecTimeout", "duration", "iso8601duration", "")
+		}
+	}
 }
 
 // ActionMode ...
@@ -493,14 +510,53 @@ func (e *End) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ContinueAs ...
+// ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
 type ContinueAs struct {
 	WorkflowRef
 	// TODO: add object or string data type
-	// If string type, an expression which selects parts of the states data output to become the workflow data input of continued execution. If object type, a custom object to become the workflow data input of the continued execution
+	// If string type, an expression which selects parts of the states data output to become the workflow data input of
+	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
 	Data interface{} `json:"data,omitempty"`
 	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
+}
+
+type continueAsForUnmarshal ContinueAs
+
+func (c *ContinueAs) UnmarshalJSON(data []byte) error {
+	continueAs := make(map[string]json.RawMessage)
+	if err := json.Unmarshal(data, &continueAs); err != nil {
+		c.WorkflowID, err = unmarshalString(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := unmarshalKey("data", continueAs, &c.Data); err != nil {
+		return err
+	}
+	if err := unmarshalKey("workflowExecTimeout", continueAs, &c.WorkflowExecTimeout); err != nil {
+		return err
+	}
+
+	v := continueAsForUnmarshal{
+		WorkflowRef: WorkflowRef{
+			Invoke:           "sync",
+			OnParentComplete: "terminate",
+		},
+		Data:                c.Data,
+		WorkflowExecTimeout: c.WorkflowExecTimeout,
+	}
+
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	*c = ContinueAs(v)
+	return nil
+
 }
 
 // ProduceEvent ...

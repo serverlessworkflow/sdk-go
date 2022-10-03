@@ -48,7 +48,7 @@ func TestEventRefStructLevelValidation(t *testing.T) {
 				ResultEventTimeout: "10hs",
 				Invoke:             InvokeKindSync,
 			},
-			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'reqiso8601duration' tag`,
+			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
 		},
 	}
 

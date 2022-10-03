@@ -88,7 +88,7 @@ type EventRef struct {
 	// Reference to the unique name of a 'consumed' event definition
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
 	// Maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it will be set to the 'actionExecTimeout'
-	ResultEventTimeout string `json:"resultEventTimeout,omitempty" validate:"omitempty,min=1"`
+	ResultEventTimeout string `json:"resultEventTimeout,omitempty"`
 	// TODO: create StringOrMap structure
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
 	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.

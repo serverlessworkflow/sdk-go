@@ -15,6 +15,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,4 +92,71 @@ func TestAuthDefinitionsStructLevelValidation(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
+	t.Run("BearerAuthProperties", func(t *testing.T) {
+		a1JSON := `{
+		"name": "a1",
+		"scheme": "bearer",
+		"properties": {
+			"token": "token1"
+		}
+	}`
+		a2JSON := `{
+		"name": "a2",
+		"scheme": "bearer",
+		"properties": {
+			"token": "token2"
+		}
+	}`
+
+		var a1 Auth
+		err := json.Unmarshal([]byte(a1JSON), &a1)
+		assert.NoError(t, err)
+
+		var a2 Auth
+		err = json.Unmarshal([]byte(a2JSON), &a2)
+		assert.NoError(t, err)
+
+		a1Properties := a1.Properties.(*BearerAuthProperties)
+		a2Properties := a2.Properties.(*BearerAuthProperties)
+
+		assert.Equal(t, "token1", a1Properties.Token)
+		assert.Equal(t, "token2", a2Properties.Token)
+		assert.NotEqual(t, a1Properties, a2Properties)
+	})
+
+	t.Run("OAuth2AuthProperties", func(t *testing.T) {
+		a1JSON := `{
+	"name": "a1",
+	"scheme": "oauth2",
+	"properties": {
+		"clientSecret": "secret1"
+	}
+}`
+
+		a2JSON := `{
+	"name": "a2",
+	"scheme": "oauth2",
+	"properties": {
+		"clientSecret": "secret2"
+	}
+}`
+
+		var a1 Auth
+		err := json.Unmarshal([]byte(a1JSON), &a1)
+		assert.NoError(t, err)
+
+		var a2 Auth
+		err = json.Unmarshal([]byte(a2JSON), &a2)
+		assert.NoError(t, err)
+
+		a1Properties := a1.Properties.(*OAuth2AuthProperties)
+		a2Properties := a2.Properties.(*OAuth2AuthProperties)
+
+		assert.Equal(t, "secret1", a1Properties.ClientSecret)
+		assert.Equal(t, "secret2", a2Properties.ClientSecret)
+		assert.NotEqual(t, a1Properties, a2Properties)
+	})
 }

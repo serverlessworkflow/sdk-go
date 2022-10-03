@@ -19,8 +19,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/serverlessworkflow/sdk-go/v2/model"
 )
 
 func TestBasicValidation(t *testing.T) {
@@ -62,6 +63,14 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "greeting", w.ID)
 				assert.IsType(t, &model.OperationState{}, w.States[0])
 				assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
+			},
+		}, {
+			"./testdata/workflows/actiondata-defaultvalue.yaml",
+			func(t *testing.T, w *model.Workflow) {
+				assert.Equal(t, "greeting", w.ID)
+				assert.IsType(t, &model.OperationState{}, w.States[0].(*model.OperationState))
+				assert.Equal(t, true, w.States[0].(*model.OperationState).Actions[0].ActionDataFilter.UseResults)
+				assert.Equal(t, "greeting", w.States[0].(*model.OperationState).Actions[0].Name)
 			},
 		}, {
 			"./testdata/workflows/greetings.sw.yaml",

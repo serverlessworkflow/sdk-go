@@ -41,6 +41,21 @@ type Action struct {
 	Condition string `json:"condition,omitempty"`
 }
 
+type actionForUnmarshal Action
+
+// UnmarshalJSON ...
+func (a *Action) UnmarshalJSON(data []byte) error {
+	v := actionForUnmarshal{
+		ActionDataFilter: ActionDataFilter{UseResults: true},
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	*a = Action(v)
+	return nil
+}
+
 // FunctionRef ...
 type FunctionRef struct {
 	// Name of the referenced function

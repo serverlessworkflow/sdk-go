@@ -335,8 +335,8 @@ func TestFromFile(t *testing.T) {
 		t.Run(
 			file.name, func(t *testing.T) {
 				workflow, err := FromFile(file.name)
-				if assert.NoError(t, err, "Test File %s", file) {
-					assert.NotNil(t, workflow, "Test File %s", file)
+				if assert.NoError(t, err, "Test File %s", file.name) {
+					assert.NotNil(t, workflow, "Test File %s", file.name)
 					file.f(t, workflow)
 				}
 			},

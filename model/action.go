@@ -15,15 +15,20 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
-// Action ...
+// Action specify invocations of services or other workflows during workflow execution.
 type Action struct {
-	// Unique action definition name
-	Name        string       `json:"name,omitempty"`
+	// ID defines Unique action identifier
+	ID string `json:"id,omitempty"`
+	// Name defines Unique action definition name
+	Name string `json:"name,omitempty"`
+	// FunctionRef references a reusable function definition
 	FunctionRef *FunctionRef `json:"functionRef,omitempty"`
-	// References a 'trigger' and 'result' reusable event definitions
+	// EventRef references a 'trigger' and 'result' reusable event definitions
 	EventRef *EventRef `json:"eventRef,omitempty"`
 	// References a sub-workflow to be executed
 	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
@@ -43,7 +48,7 @@ type Action struct {
 
 type actionForUnmarshal Action
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
 	v := actionForUnmarshal{
 		ActionDataFilter: ActionDataFilter{UseResults: true},
@@ -56,34 +61,54 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// FunctionRef ...
+// FunctionRef defines the reference to a reusable function definition
 type FunctionRef struct {
 	// Name of the referenced function
 	RefName string `json:"refName" validate:"required"`
 	// Function arguments
+	// TODO: validate it as required if function type is graphql
 	Arguments map[string]interface{} `json:"arguments,omitempty"`
 	// String containing a valid GraphQL selection set
+	// TODO: validate it as required if function type is graphql
 	SelectionSet string `json:"selectionSet,omitempty"`
+
+	// Invoke specifies if the subflow should be invoked sync or async.
+	// Defaults to sync.
+	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
-// UnmarshalJSON ...
+type functionRefForUnmarshal FunctionRef
+
+// UnmarshalJSON implements json.Unmarshaler
 func (f *FunctionRef) UnmarshalJSON(data []byte) error {
-	funcRef := make(map[string]interface{})
-	if err := json.Unmarshal(data, &funcRef); err != nil {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	var err error
+	switch data[0] {
+	case '"':
 		f.RefName, err = unmarshalString(data)
 		if err != nil {
 			return err
 		}
+		f.Invoke = "sync"
+		return nil
+	case '{':
+		v := functionRefForUnmarshal{
+			Invoke: "sync",
+		}
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			// TODO: replace the error message with correct type's name
+			return err
+		}
+		*f = FunctionRef(v)
 		return nil
 	}
 
-	f.RefName = requiresNotNilOrEmpty(funcRef["refName"])
-	if _, found := funcRef["arguments"]; found {
-		f.Arguments = funcRef["arguments"].(map[string]interface{})
-	}
-	f.SelectionSet = requiresNotNilOrEmpty(funcRef["selectionSet"])
-
-	return nil
+	return fmt.Errorf("functionRef value '%s' not support, it must be an object or string", string(data))
 }
 
 // WorkflowRef holds a reference for a workflow definition
@@ -92,32 +117,55 @@ type WorkflowRef struct {
 	WorkflowID string `json:"workflowId" validate:"required"`
 	// Sub-workflow version
 	Version string `json:"version,omitempty"`
+
+	// Invoke specifies if the subflow should be invoked sync or async.
+	// Defaults to sync.
+	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+
+	// OnParantComplete specifies how subflow execution should behave when parent workflow completes if invoke is 'async'。
+	// Defaults to terminate.
+	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
 }
 
-// UnmarshalJSON ...
+type workflowRefForUnmarshal WorkflowRef
+
+// UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
-	subflowRef := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &subflowRef); err != nil {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	var err error
+	switch data[0] {
+	case '"':
 		s.WorkflowID, err = unmarshalString(data)
 		if err != nil {
 			return err
 		}
+		s.Invoke, s.OnParentComplete = "sync", "terminate"
+		return nil
+	case '{':
+		v := workflowRefForUnmarshal{
+			Invoke:           "sync",
+			OnParentComplete: "terminate",
+		}
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			// TODO: replace the error message with correct type's name
+			return err
+		}
+		*s = WorkflowRef(v)
 		return nil
 	}
-	if err := unmarshalKey("version", subflowRef, &s.Version); err != nil {
-		return err
-	}
-	if err := unmarshalKey("workflowId", subflowRef, &s.WorkflowID); err != nil {
-		return err
-	}
 
-	return nil
+	return fmt.Errorf("subFlowRef value '%s' not support, it must be an object or string", string(data))
 }
 
-// Sleep ...
+// Sleep defines time periods workflow execution should sleep before & after function execution
 type Sleep struct {
-	// Before Amount of time (ISO 8601 duration format) to sleep before function/subflow invocation. Does not apply if 'eventRef' is defined.
-	Before string `json:"before,omitempty"`
-	// After Amount of time (ISO 8601 duration format) to sleep after function/subflow invocation. Does not apply if 'eventRef' is defined.
-	After string `json:"after,omitempty"`
+	// Before defines amount of time (ISO 8601 duration format) to sleep before function/subflow invocation. Does not apply if 'eventRef' is defined.
+	Before string `json:"before,omitempty" validate:"omitempty,iso8601duration"`
+	// After defines amount of time (ISO 8601 duration format) to sleep after function/subflow invocation. Does not apply if 'eventRef' is defined.
+	After string `json:"after,omitempty" validate:"omitempty,iso8601duration"`
 }

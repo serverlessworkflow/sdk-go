@@ -15,8 +15,10 @@
 package model
 
 import (
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"encoding/json"
 	"reflect"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 
 	validator "github.com/go-playground/validator/v10"
 )
@@ -87,14 +89,36 @@ type EventRef struct {
 	TriggerEventRef string `json:"triggerEventRef" validate:"required"`
 	// Reference to the unique name of a 'consumed' event definition
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
-	// Maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it will be set to the 'actionExecTimeout'
+
+	// ResultEventTimeout defines maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it be set to the actionExecutionTimeout
 	ResultEventTimeout string `json:"resultEventTimeout,omitempty"`
+
 	// TODO: create StringOrMap structure
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
 	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.
 	Data interface{} `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
+
+	// Invoke specifies if the subflow should be invoked sync or async.
+	// Defaults to sync.
+	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+}
+
+type eventRefForUnmarshal EventRef
+
+// UnmarshalJSON implements json.Unmarshaler
+func (e *EventRef) UnmarshalJSON(data []byte) error {
+	v := eventRefForUnmarshal{
+		Invoke: "sync",
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return nil
+	}
+
+	*e = EventRef(v)
+	return nil
 }
 
 // InvokeKind ...

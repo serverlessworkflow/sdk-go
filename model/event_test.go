@@ -15,9 +15,11 @@
 package model
 
 import (
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestEventRefStructLevelValidation(t *testing.T) {
@@ -34,6 +36,7 @@ func TestEventRefStructLevelValidation(t *testing.T) {
 				TriggerEventRef:    "example valid",
 				ResultEventRef:     "example valid",
 				ResultEventTimeout: "PT1H",
+				Invoke:             "sync",
 			},
 			err: ``,
 		},
@@ -43,6 +46,7 @@ func TestEventRefStructLevelValidation(t *testing.T) {
 				TriggerEventRef:    "example invalid",
 				ResultEventRef:     "example invalid red",
 				ResultEventTimeout: "10hs",
+				Invoke:             "sync",
 			},
 			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'reqiso8601duration' tag`,
 		},

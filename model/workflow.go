@@ -19,6 +19,17 @@ import (
 	"fmt"
 )
 
+// InvokeKind defines how the target is invoked.
+type InvokeKind string
+
+const (
+	// InvokeKindSync meaning that worfklow execution should wait until the target completes.
+	InvokeKindSync InvokeKind = "sync"
+
+	// InvokeKindAsync meaning that workflow execution should just invoke the target and should not wait until its completion.
+	InvokeKindAsync InvokeKind = "async"
+)
+
 const (
 	// DefaultExpressionLang ...
 	DefaultExpressionLang = "jq"

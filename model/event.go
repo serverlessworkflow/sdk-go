@@ -102,7 +102,7 @@ type EventRef struct {
 
 	// Invoke specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
-	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
 type eventRefForUnmarshal EventRef
@@ -110,7 +110,7 @@ type eventRefForUnmarshal EventRef
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
 	v := eventRefForUnmarshal{
-		Invoke: "sync",
+		Invoke: InvokeKindSync,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -120,6 +120,3 @@ func (e *EventRef) UnmarshalJSON(data []byte) error {
 	*e = EventRef(v)
 	return nil
 }
-
-// InvokeKind ...
-type InvokeKind string

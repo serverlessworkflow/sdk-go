@@ -17,9 +17,10 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+
 	"github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"reflect"
 )
 
 // InvokeKind defines how the target is invoked.
@@ -33,13 +34,21 @@ const (
 	InvokeKindAsync InvokeKind = "async"
 )
 
+// ActionMode specifies how actions are to be performed.
+type ActionMode string
+
+const (
+	// ActionModeSequential specifies actions should be performed in sequence
+	ActionModeSequential ActionMode = "sequential"
+
+	// ActionModeParallel specifies actions should be performed in parallel
+	ActionModeParallel ActionMode = "parallel"
+)
+
 const (
 	// DefaultExpressionLang ...
 	DefaultExpressionLang = "jq"
-	// ActionModeSequential ...
-	ActionModeSequential ActionMode = "sequential"
-	// ActionModeParallel ...
-	ActionModeParallel ActionMode = "parallel"
+
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
 )
@@ -74,9 +83,6 @@ func continueAsStructLevelValidation(structLevel validator.StructLevel) {
 		}
 	}
 }
-
-// ActionMode ...
-type ActionMode string
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
@@ -460,18 +466,6 @@ type OnError struct {
 	Transition *Transition `json:"transition,omitempty"`
 	// End workflow execution in case of this error. If retryRef is defined, this ends workflow only if retries were unsuccessful.
 	End *End `json:"end,omitempty"`
-}
-
-// OnEvents ...
-type OnEvents struct {
-	// References one or more unique event names in the defined workflow events
-	EventRefs []string `json:"eventRefs" validate:"required,min=1"`
-	// Specifies how actions are to be performed (in sequence of parallel)
-	ActionMode ActionMode `json:"actionMode,omitempty"`
-	// Actions to be performed if expression matches
-	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
-	// Event data filter
-	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
 // End definition

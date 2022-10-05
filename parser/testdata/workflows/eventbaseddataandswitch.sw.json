@@ -4,9 +4,7 @@
   "name": "Event Based Switch Transitions",
   "description": "Event Based Switch Transitions with Event Database Condition",
   "specVersion": "0.7",
-  "start": {
-    "stateName": "Start"
-  },
+  "start": "Start",
   "events": [
     {
       "name": "visaApprovedEvent",

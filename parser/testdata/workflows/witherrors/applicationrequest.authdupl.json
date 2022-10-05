@@ -54,7 +54,7 @@
           }
         }
       ],
-      "default": {
+      "defaultCondition": {
         "transition": {
           "nextState": "RejectApplication"
         }
@@ -82,7 +82,7 @@
         {
           "functionRef": {
             "refName": "sendRejectionEmailFunction",
-            "parameters": {
+            "arguments": {
               "applicant": "${ .applicant }"
             }
           }

@@ -4,9 +4,7 @@
   "name": "Greeting Workflow",
   "description": "Greet Someone",
   "specVersion": "0.7",
-  "start": {
-    "stateName": "Greet"
-  },
+  "start": "Greet",
   "functions": [
     {
       "name": "greetingFunction",
@@ -21,7 +19,7 @@
         {
           "functionRef": {
             "refName": "greetingFunction",
-            "parameters": {
+            "arguments": {
               "name": "${ .person | .name }"
             }
           },

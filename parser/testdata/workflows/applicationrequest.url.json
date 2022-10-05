@@ -6,9 +6,7 @@
   "specVersion": "0.7",
   "functions": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestfunctions.json",
   "retries": "https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json",
-  "start": {
-    "stateName": "CheckApplication"
-  },
+  "start": "CheckApplication",
   "states": [
     {
       "name": "CheckApplication",
@@ -27,7 +25,7 @@
           }
         }
       ],
-      "default": {
+      "defaultCondition": {
         "transition": {
           "nextState": "RejectApplication"
         }
@@ -55,7 +53,7 @@
         {
           "functionRef": {
             "refName": "sendRejectionEmailFunction",
-            "parameters": {
+            "arguments": {
               "applicant": "${ .applicant }"
             }
           }

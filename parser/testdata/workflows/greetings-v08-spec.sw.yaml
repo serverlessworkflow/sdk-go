@@ -31,7 +31,7 @@ states:
       - name: greetingCustomFunction
         functionRef:
           refName: greetingCustomFunction
-          parameters:
+          arguments:
             name: "${ .greet | .name }"
         actionDataFilter:
           dataResultsPath: "${ .payload | .greeting }"

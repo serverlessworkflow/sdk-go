@@ -107,7 +107,7 @@ func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
 		return a.unmarshalMany(b)
 	}
 
-	return fmt.Errorf("auth value '%s' not support, it must be an array or string", string(b))
+	return fmt.Errorf("auth value '%s' is not supported, it must be an array or string", string(b))
 }
 
 func (a *AuthDefinitions) unmarshalFile(data []byte) error {

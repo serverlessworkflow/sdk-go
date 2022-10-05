@@ -28,7 +28,7 @@ type StateExecTimeout struct {
 	Total string `json:"total" validate:"required,iso8601duration"`
 }
 
-// just define another type to unmarshal object, so the UnmarshalJSON will not called recursively
+// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
 type stateExecTimeoutForUnmarshal StateExecTimeout
 
 // UnmarshalJSON unmarshal StateExecTimeout object from json bytes
@@ -57,5 +57,5 @@ func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	return fmt.Errorf("stateExecTimeout value '%s' not support, it must be an object or string", string(data))
+	return fmt.Errorf("stateExecTimeout value '%s' is not supported, it must be an object or string", string(data))
 }

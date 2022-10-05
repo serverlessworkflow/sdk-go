@@ -86,7 +86,7 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid string or object",
 			data:   `1`,
 			expect: WorkflowRef{},
-			err:    `subFlowRef value '1' not support, it must be an object or string`,
+			err:    `subFlowRef value '1' is not supported, it must be an object or string`,
 		},
 	}
 	for _, tc := range testCases {

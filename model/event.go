@@ -50,7 +50,7 @@ func EventRefStructLevelValidation(structLevel validator.StructLevel) {
 	if len(eventRef.ResultEventTimeout) > 0 {
 		err := val.ValidateISO8601TimeDuration(eventRef.ResultEventTimeout)
 		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "reqiso8601duration", "")
+			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "iso8601duration", "")
 		}
 	}
 }

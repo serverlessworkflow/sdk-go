@@ -329,6 +329,25 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT30D", w.Timeouts.WorkflowExecTimeout.Duration)
 				assert.Equal(t, "CancelOrder", w.Timeouts.WorkflowExecTimeout.RunBefore)
 			},
+		}, {
+			"./testdata/workflows/continue-as-example.yaml", func(t *testing.T, w *model.Workflow) {
+				assert.Equal(t, "Notify Customer", w.Name)
+				eventState := w.States[1].(*model.DataBasedSwitchState)
+
+				assert.NotNil(t, eventState)
+				assert.NotEmpty(t, eventState.DataConditions)
+				assert.IsType(t, &model.EndDataCondition{}, eventState.DataConditions[0])
+
+				endDataCondition := eventState.DataConditions[0].(*model.EndDataCondition)
+				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowRef.WorkflowID)
+				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.WorkflowRef.Version)
+				assert.Equal(t, "${ del(.customerCount) }", endDataCondition.End.ContinueAs.Data)
+				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
+				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
+				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
+				assert.Equal(t, model.InvokeKindSync, endDataCondition.End.ContinueAs.Invoke)
+				assert.Equal(t, "terminate", endDataCondition.End.ContinueAs.OnParentComplete)
+			},
 		},
 	}
 	for _, file := range files {

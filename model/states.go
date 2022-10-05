@@ -126,58 +126,6 @@ func (s *BaseState) GetStateDataFilter() *StateDataFilter { return s.StateDataFi
 // GetMetadata ...
 func (s *BaseState) GetMetadata() *Metadata { return s.Metadata }
 
-// EventState This state is used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
-type EventState struct {
-	BaseState
-	// If true consuming one of the defined events causes its associated actions to be performed. If false all of the defined events must be consumed in order for actions to be performed
-	Exclusive bool `json:"exclusive,omitempty"`
-	// Define the events to be consumed and optional actions to be performed
-	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
-	// State specific timeouts
-	Timeout *EventStateTimeout `json:"timeouts,omitempty"`
-}
-
-// UnmarshalJSON ...
-func (e *EventState) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &e.BaseState); err != nil {
-		return err
-	}
-
-	eventStateMap := make(map[string]interface{})
-	if err := json.Unmarshal(data, &eventStateMap); err != nil {
-		return err
-	}
-
-	e.Exclusive = true
-
-	if eventStateMap["exclusive"] != nil {
-		exclusiveVal, ok := eventStateMap["exclusive"].(bool)
-		if ok {
-			e.Exclusive = exclusiveVal
-		}
-	}
-
-	eventStateRaw := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &eventStateRaw); err != nil {
-		return err
-	}
-	if err := json.Unmarshal(eventStateRaw["onEvents"], &e.OnEvents); err != nil {
-		return err
-	}
-	if err := unmarshalKey("timeouts", eventStateRaw, &e.Timeout); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// EventStateTimeout ...
-type EventStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
-	EventTimeout      string           `json:"eventTimeout,omitempty"`
-}
-
 // OperationState Defines actions be performed. Does not wait for incoming events
 type OperationState struct {
 	BaseState
@@ -244,6 +192,7 @@ type ForEachState struct {
 	// State specific timeout
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
 	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
+	// Defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 

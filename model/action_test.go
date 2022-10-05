@@ -37,7 +37,7 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			expect: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "2",
-				Invoke:           "async",
+				Invoke:           InvokeKindAsync,
 				OnParentComplete: "continue",
 			},
 			err: ``,
@@ -48,7 +48,7 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			expect: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "",
-				Invoke:           "sync",
+				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate",
 			},
 			err: ``,
@@ -59,7 +59,7 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			expect: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "",
-				Invoke:           "sync",
+				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate",
 			},
 			err: ``,
@@ -118,7 +118,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 			workflowRef: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "2",
-				Invoke:           "sync",
+				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate",
 			},
 			err: ``,
@@ -128,7 +128,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 			workflowRef: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "2",
-				Invoke:           "async",
+				Invoke:           InvokeKindAsync,
 				OnParentComplete: "continue",
 			},
 			err: ``,
@@ -138,7 +138,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 			workflowRef: WorkflowRef{
 				WorkflowID:       "",
 				Version:          "2",
-				Invoke:           "sync",
+				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate",
 			},
 			err: `Key: 'WorkflowRef.WorkflowID' Error:Field validation for 'WorkflowID' failed on the 'required' tag`,
@@ -158,7 +158,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 			workflowRef: WorkflowRef{
 				WorkflowID:       "1",
 				Version:          "2",
-				Invoke:           "sync",
+				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate1",
 			},
 			err: `Key: 'WorkflowRef.OnParentComplete' Error:Field validation for 'OnParentComplete' failed on the 'oneof' tag`,

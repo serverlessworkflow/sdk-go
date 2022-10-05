@@ -74,7 +74,7 @@ type FunctionRef struct {
 
 	// Invoke specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
-	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
 type functionRefForUnmarshal FunctionRef
@@ -93,11 +93,11 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		f.Invoke = "sync"
+		f.Invoke = InvokeKindSync
 		return nil
 	case '{':
 		v := functionRefForUnmarshal{
-			Invoke: "sync",
+			Invoke: InvokeKindSync,
 		}
 		err = json.Unmarshal(data, &v)
 		if err != nil {
@@ -120,7 +120,7 @@ type WorkflowRef struct {
 
 	// Invoke specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
-	Invoke string `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 
 	// OnParantComplete specifies how subflow execution should behave when parent workflow completes if invoke is 'async'。
 	// Defaults to terminate.
@@ -143,11 +143,11 @@ func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		s.Invoke, s.OnParentComplete = "sync", "terminate"
+		s.Invoke, s.OnParentComplete = InvokeKindSync, "terminate"
 		return nil
 	case '{':
 		v := workflowRefForUnmarshal{
-			Invoke:           "sync",
+			Invoke:           InvokeKindSync,
 			OnParentComplete: "terminate",
 		}
 		err = json.Unmarshal(data, &v)

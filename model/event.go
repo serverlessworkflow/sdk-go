@@ -23,16 +23,19 @@ import (
 	validator "github.com/go-playground/validator/v10"
 )
 
+// EventKind defines this event as either `consumed` or `produced`
+type EventKind string
+
 const (
-	// EventKindConsumed ...
+	// EventKindConsumed means the event continuation of workflow instance execution
 	EventKindConsumed EventKind = "consumed"
-	// EventKindProduced ...
+
+	// EventKindProduced means the event was created during worflow instance execution
 	EventKindProduced EventKind = "produced"
 )
 
 func init() {
 	val.GetValidator().RegisterStructValidation(EventStructLevelValidation, Event{})
-	val.GetValidator().RegisterStructValidation(EventRefStructLevelValidation, EventRef{})
 }
 
 // EventStructLevelValidation custom validator for event kind consumed
@@ -43,22 +46,7 @@ func EventStructLevelValidation(structLevel validator.StructLevel) {
 	}
 }
 
-// EventRefStructLevelValidation custom validator for event kind consumed
-func EventRefStructLevelValidation(structLevel validator.StructLevel) {
-	eventRef := structLevel.Current().Interface().(EventRef)
-
-	if len(eventRef.ResultEventTimeout) > 0 {
-		err := val.ValidateISO8601TimeDuration(eventRef.ResultEventTimeout)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "iso8601duration", "")
-		}
-	}
-}
-
-// EventKind ...
-type EventKind string
-
-// Event ...
+// Event used to define events and their correlations
 type Event struct {
 	Common
 	// Unique event name
@@ -67,15 +55,34 @@ type Event struct {
 	Source string `json:"source,omitempty"`
 	// CloudEvent type
 	Type string `json:"type" validate:"required"`
-	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Default is 'consumed'
+	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow.
+	// Defaults to `consumed`
 	Kind EventKind `json:"kind,omitempty"`
 	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload and context attributes should be accessible"
+	// Defaults to true
 	DataOnly bool `json:"dataOnly,omitempty"`
 	// CloudEvent correlation definitions
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
 
-// Correlation ...
+type eventForUnmarshal Event
+
+// UnmarshalJSON unmarshal Event object from json bytes
+func (e *Event) UnmarshalJSON(data []byte) error {
+	v := eventForUnmarshal{
+		DataOnly: true,
+		Kind:     EventKindConsumed,
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+
+	*e = Event(v)
+	return nil
+}
+
+// Correlation define event correlation rules for an event. Only used for `consumed` events
 type Correlation struct {
 	// CloudEvent Extension Context Attribute name
 	ContextAttributeName string `json:"contextAttributeName" validate:"required"`
@@ -83,7 +90,7 @@ type Correlation struct {
 	ContextAttributeValue string `json:"contextAttributeValue,omitempty"`
 }
 
-// EventRef ...
+// EventRef defining invocation of a function via event
 type EventRef struct {
 	// Reference to the unique name of a 'produced' event definition
 	TriggerEventRef string `json:"triggerEventRef" validate:"required"`
@@ -91,7 +98,7 @@ type EventRef struct {
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
 
 	// ResultEventTimeout defines maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it be set to the actionExecutionTimeout
-	ResultEventTimeout string `json:"resultEventTimeout,omitempty"`
+	ResultEventTimeout string `json:"resultEventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 
 	// TODO: create StringOrMap structure
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
@@ -114,7 +121,7 @@ func (e *EventRef) UnmarshalJSON(data []byte) error {
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	*e = EventRef(v)

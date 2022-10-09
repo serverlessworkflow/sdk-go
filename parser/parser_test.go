@@ -339,14 +339,12 @@ func TestFromFile(t *testing.T) {
 				assert.IsType(t, &model.EndDataCondition{}, eventState.DataConditions[0])
 
 				endDataCondition := eventState.DataConditions[0].(*model.EndDataCondition)
-				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowRef.WorkflowID)
-				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.WorkflowRef.Version)
+				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowID)
+				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.Version)
 				assert.Equal(t, "${ del(.customerCount) }", endDataCondition.End.ContinueAs.Data)
 				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
 				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
 				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
-				assert.Equal(t, model.InvokeKindSync, endDataCondition.End.ContinueAs.Invoke)
-				assert.Equal(t, "terminate", endDataCondition.End.ContinueAs.OnParentComplete)
 			},
 		},
 	}

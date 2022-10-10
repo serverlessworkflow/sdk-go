@@ -15,6 +15,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -506,7 +507,11 @@ func (e *End) UnmarshalJSON(data []byte) error {
 
 // ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
 type ContinueAs struct {
-	WorkflowRef
+	// Unique id of the workflow to continue execution as.
+	WorkflowID string `json:"workflowId" validate:"required"`
+	// Version of the workflow to continue execution as.
+	Version string `json:"version,omitempty"`
+
 	// TODO: add object or string data type
 	// If string type, an expression which selects parts of the states data output to become the workflow data input of
 	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
@@ -518,39 +523,28 @@ type ContinueAs struct {
 type continueAsForUnmarshal ContinueAs
 
 func (c *ContinueAs) UnmarshalJSON(data []byte) error {
-	continueAs := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &continueAs); err != nil {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	var err error
+	switch data[0] {
+	case '"':
 		c.WorkflowID, err = unmarshalString(data)
+		return err
+	case '{':
+		v := continueAsForUnmarshal{}
+		err = json.Unmarshal(data, &v)
 		if err != nil {
 			return err
 		}
+
+		*c = ContinueAs(v)
 		return nil
 	}
 
-	if err := unmarshalKey("data", continueAs, &c.Data); err != nil {
-		return err
-	}
-	if err := unmarshalKey("workflowExecTimeout", continueAs, &c.WorkflowExecTimeout); err != nil {
-		return err
-	}
-
-	v := continueAsForUnmarshal{
-		WorkflowRef: WorkflowRef{
-			Invoke:           "sync",
-			OnParentComplete: "terminate",
-		},
-		Data:                c.Data,
-		WorkflowExecTimeout: c.WorkflowExecTimeout,
-	}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*c = ContinueAs(v)
-	return nil
-
+	return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
 }
 
 // ProduceEvent ...

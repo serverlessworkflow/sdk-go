@@ -49,7 +49,6 @@ func (f *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		// TODO: replace the error message with correct type's name
 		return err
 	}
 

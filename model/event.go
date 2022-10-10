@@ -36,6 +36,7 @@ const (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(EventStructLevelValidation, Event{})
+	val.GetValidator().RegisterStructValidation(EventRefStructLevelValidation, EventRef{})
 }
 
 // EventStructLevelValidation custom validator for event kind consumed
@@ -43,6 +44,17 @@ func EventStructLevelValidation(structLevel validator.StructLevel) {
 	event := structLevel.Current().Interface().(Event)
 	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
 		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
+	}
+}
+
+// EventRefStructLevelValidation custom validator for event kind consumed
+func EventRefStructLevelValidation(structLevel validator.StructLevel) {
+	eventRef := structLevel.Current().Interface().(EventRef)
+	if len(eventRef.ResultEventTimeout) > 0 {
+		err := val.ValidateISO8601TimeDuration(eventRef.ResultEventTimeout)
+		if err != nil {
+			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "iso8601duration", "")
+		}
 	}
 }
 

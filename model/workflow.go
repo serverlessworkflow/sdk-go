@@ -54,23 +54,6 @@ const (
 	UnlimitedTimeout = "unlimited"
 )
 
-var actionsModelMapping = map[string]func(state map[string]interface{}) State{
-	StateTypeDelay:     func(map[string]interface{}) State { return &DelayState{} },
-	StateTypeEvent:     func(map[string]interface{}) State { return &EventState{} },
-	StateTypeOperation: func(map[string]interface{}) State { return &OperationState{} },
-	StateTypeParallel:  func(map[string]interface{}) State { return &ParallelState{} },
-	StateTypeSwitch: func(s map[string]interface{}) State {
-		if _, ok := s["dataConditions"]; ok {
-			return &DataBasedSwitchState{}
-		}
-		return &EventBasedSwitchState{}
-	},
-	StateTypeInject:   func(map[string]interface{}) State { return &InjectState{} },
-	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
-	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
-	StateTypeSleep:    func(map[string]interface{}) State { return &SleepState{} },
-}
-
 func init() {
 	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
 }
@@ -157,10 +140,13 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(rawState, &mapState); err != nil {
 			return err
 		}
-		if _, ok := actionsModelMapping[mapState["type"].(string)]; !ok {
+
+		actionsMode, ok := getActionsModelMapping(mapState["type"].(string), mapState)
+		if !ok {
 			return fmt.Errorf("state %s not supported", mapState["type"])
 		}
-		state := actionsModelMapping[mapState["type"].(string)](mapState)
+		state := actionsMode
+
 		if err := json.Unmarshal(rawState, &state); err != nil {
 			return err
 		}
@@ -574,6 +560,26 @@ type Branch struct {
 	Actions []Action `json:"actions" validate:"required,min=1"`
 	// Timeouts State specific timeouts
 	Timeouts BranchTimeouts `json:"timeouts,omitempty"`
+}
+
+type branchForUnmarshal Branch
+
+// UnmarshalJSON unmarshal EventState object from json bytes
+func (b *Branch) UnmarshalJSON(data []byte) error {
+	var timeout BranchTimeouts
+	if err := json.Unmarshal(data, &timeout); err != nil {
+		return err
+	}
+
+	v := branchForUnmarshal{
+		Timeouts: timeout,
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return fmt.Errorf("branch.Timeouts value '%s' is not supported, it must be an object or string", string(data))
+	}
+	*b = Branch(v)
+	return nil
 }
 
 // BranchTimeouts ...

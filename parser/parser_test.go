@@ -83,21 +83,6 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "greetingFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
 			},
 		}, {
-			"./testdata/workflows/greetings-v08-spec.sw.yaml",
-			func(t *testing.T, w *model.Workflow) {
-				assert.Empty(t, w.Name)
-				assert.Empty(t, w.Start)
-				assert.IsType(t, &model.OperationState{}, w.States[0])
-				assert.Equal(t, "custom.greeting", w.ID)
-				assert.NotEmpty(t, w.States[0].(*model.OperationState).Actions)
-				assert.NotEmpty(t, w.Functions[0])
-				assert.Equal(t, "greetingCustomFunction", w.Functions[0].Name)
-				assert.Equal(t, model.FunctionTypeCustom, w.Functions[0].Type)
-				assert.NotNil(t, w.States[0].(*model.OperationState).Actions[0].FunctionRef)
-				assert.Equal(t, "greetingCustomFunction", w.States[0].(*model.OperationState).Actions[0].FunctionRef.RefName)
-				assert.Equal(t, "greetingCustomFunction", w.States[0].(*model.OperationState).Actions[0].Name)
-			},
-		}, {
 			"./testdata/workflows/eventbaseddataandswitch.sw.json",
 			func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Event Based Switch Transitions", w.Name)
@@ -105,6 +90,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckVisaStatus", w.States[1].GetName())
 				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 				assert.IsType(t, &model.EventBasedSwitchState{}, w.States[1])
+				//assert.Equal(t, "PT1H", w.States[1].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
 			},
 		}, {
 			"./testdata/workflows/conditionbasedstate.yaml", func(t *testing.T, w *model.Workflow) {
@@ -345,6 +331,155 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
 				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
 				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
+			},
+		}, {
+			"./testdata/workflows/greetings-v08-spec.sw.yaml",
+			func(t *testing.T, w *model.Workflow) {
+				assert.Equal(t, "custom.greeting", w.ID)
+				assert.Equal(t, "1.0", w.Version)
+				assert.Equal(t, "0.8", w.SpecVersion)
+
+				// Workflow "name" no longer a required property
+				assert.Empty(t, w.Name)
+				// 	Workflow "start" no longer a required property
+				assert.Empty(t, w.Start)
+
+				// Functions:
+				assert.NotEmpty(t, w.Functions[0])
+				assert.Equal(t, "greetingCustomFunction", w.Functions[0].Name)
+				assert.Equal(t, model.FunctionTypeCustom, w.Functions[0].Type)
+				assert.Equal(t, "/path/to/my/script/greeting.ts#CustomGreeting", w.Functions[0].Operation)
+
+				assert.NotEmpty(t, w.Functions[1])
+				assert.Equal(t, "sendTextFunction", w.Functions[1].Name)
+				assert.Equal(t, model.FunctionTypeGraphQL, w.Functions[1].Type)
+				assert.Equal(t, "http://myapis.org/inboxapi.json#sendText", w.Functions[1].Operation)
+
+				assert.NotEmpty(t, w.Functions[2])
+				assert.Equal(t, "greetingFunction", w.Functions[2].Name)
+				assert.Empty(t, w.Functions[2].Type)
+				assert.Equal(t, "file://myapis/greetingapis.json#greeting", w.Functions[2].Operation)
+
+				// Delay state
+				assert.NotEmpty(t, w.States[0].(*model.DelayState).TimeDelay)
+				assert.Equal(t, "GreetDelay", w.States[0].GetName())
+				assert.Equal(t, model.StateType("delay"), w.States[0].GetType())
+				assert.Equal(t, "StoreCarAuctionBid", w.States[0].(*model.DelayState).Transition.NextState)
+
+				// Event state
+				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents)
+				assert.Equal(t, "StoreCarAuctionBid", w.States[1].GetName())
+				assert.Equal(t, model.StateType("event"), w.States[1].GetType())
+				assert.Equal(t, true, w.States[1].(*model.EventState).Exclusive)
+				assert.NotEmpty(t, true, w.States[1].(*model.EventState).OnEvents[0])
+				assert.Equal(t, true, w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.UseData)
+				assert.Equal(t, "test", w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.Data)
+				assert.Equal(t, "testing", w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.ToStateData)
+				assert.Equal(t, model.ActionModeParallel, w.States[1].(*model.EventState).OnEvents[0].ActionMode)
+				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[0].FunctionRef)
+				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeout.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeout.StateExecTimeout.Single)
+				assert.Equal(t, "PT1H", w.States[1].(*model.EventState).Timeout.EventTimeout)
+				assert.Equal(t, "PT3S", w.States[1].(*model.EventState).Timeout.ActionExecTimeout)
+
+				// Parallel state
+				assert.NotEmpty(t, w.States[2].(*model.ParallelState).Branches)
+				assert.Equal(t, "PT5H", w.States[2].(*model.ParallelState).Branches[0].Timeouts.ActionExecTimeout)
+				assert.Equal(t, "PT6M", w.States[2].(*model.ParallelState).Branches[0].Timeouts.BranchExecTimeout)
+				assert.Equal(t, "ParallelExec", w.States[2].GetName())
+				assert.Equal(t, model.StateType("parallel"), w.States[2].GetType())
+				assert.Equal(t, model.CompletionType("allOf"), w.States[2].(*model.ParallelState).CompletionType)
+				assert.Equal(t, "PT6M", w.States[2].(*model.ParallelState).Timeouts.BranchExecTimeout)
+				assert.Equal(t, "PT1S", w.States[2].(*model.ParallelState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[2].(*model.ParallelState).Timeouts.StateExecTimeout.Single)
+
+				// Switch state
+				assert.NotEmpty(t, w.States[3].(*model.EventBasedSwitchState).EventConditions)
+				assert.Equal(t, "CheckVisaStatusSwitchEventBased", w.States[3].GetName())
+				assert.Equal(t, model.StateType("switch"), w.States[3].GetType())
+				assert.Equal(t, "PT1H", w.States[3].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
+				assert.Equal(t, "PT1S", w.States[3].(*model.EventBasedSwitchState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[3].(*model.EventBasedSwitchState).Timeouts.StateExecTimeout.Single)
+				assert.Equal(t, &model.Transition{
+					NextState: "HandleNoVisaDecision",
+				}, w.States[3].(*model.EventBasedSwitchState).DefaultCondition.Transition)
+				//  DataBasedSwitchState
+				dataBased := w.States[4].(*model.DataBasedSwitchState)
+				assert.NotEmpty(t, dataBased.DataConditions)
+				assert.Equal(t, "CheckApplicationSwitchDataBased", w.States[4].GetName())
+				dataCondition := dataBased.DataConditions[0].(*model.TransitionDataCondition)
+				assert.Equal(t, "${ .applicants | .age >= 18 }", dataCondition.Condition)
+				assert.Equal(t, "StartApplication", dataCondition.Transition.NextState)
+				assert.Equal(t, &model.Transition{
+					NextState: "RejectApplication",
+				}, w.States[4].(*model.DataBasedSwitchState).DefaultCondition.Transition)
+				assert.Equal(t, "PT1S", w.States[4].(*model.DataBasedSwitchState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[4].(*model.DataBasedSwitchState).Timeouts.StateExecTimeout.Single)
+
+				// operation state
+				assert.NotEmpty(t, w.States[5].(*model.OperationState).Actions)
+				assert.Equal(t, "GreetSequential", w.States[5].GetName())
+				assert.Equal(t, model.StateType("operation"), w.States[5].GetType())
+				assert.Equal(t, model.ActionModeSequential, w.States[5].(*model.OperationState).ActionMode)
+				assert.Equal(t, "greetingCustomFunction", w.States[5].(*model.OperationState).Actions[0].Name)
+				assert.Equal(t, "greetingCustomFunction", w.States[5].(*model.OperationState).Actions[0].Name)
+				assert.NotNil(t, w.States[5].(*model.OperationState).Actions[0].FunctionRef)
+				assert.Equal(t, "greetingCustomFunction", w.States[5].(*model.OperationState).Actions[0].FunctionRef.RefName)
+				assert.Equal(t, "example", w.States[5].(*model.OperationState).Actions[0].EventRef.TriggerEventRef)
+				assert.Equal(t, "example", w.States[5].(*model.OperationState).Actions[0].EventRef.ResultEventRef)
+				assert.Equal(t, "PT1H", w.States[5].(*model.OperationState).Actions[0].EventRef.ResultEventTimeout)
+				assert.Equal(t, "PT1H", w.States[5].(*model.OperationState).Timeouts.ActionExecTimeout)
+				assert.Equal(t, "PT1S", w.States[5].(*model.OperationState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[5].(*model.OperationState).Timeouts.StateExecTimeout.Single)
+
+				// forEach state
+				assert.NotEmpty(t, w.States[6].(*model.ForEachState).Actions)
+				assert.Equal(t, "SendTextForHighPriority", w.States[6].GetName())
+				assert.Equal(t, model.ForEachModeTypeParallel, w.States[6].(*model.ForEachState).Mode)
+				assert.Equal(t, model.StateType("foreach"), w.States[6].GetType())
+				assert.Equal(t, "${ .messages }", w.States[6].(*model.ForEachState).InputCollection)
+				assert.NotNil(t, w.States[6].(*model.ForEachState).Actions)
+				assert.Equal(t, "test", w.States[6].(*model.ForEachState).Actions[0].Name)
+				assert.NotNil(t, w.States[6].(*model.ForEachState).Actions[0].FunctionRef)
+				assert.Equal(t, "sendTextFunction", w.States[6].(*model.ForEachState).Actions[0].FunctionRef.RefName)
+				assert.Equal(t, "example1", w.States[6].(*model.ForEachState).Actions[0].EventRef.TriggerEventRef)
+				assert.Equal(t, "example1", w.States[6].(*model.ForEachState).Actions[0].EventRef.ResultEventRef)
+				assert.Equal(t, "PT12H", w.States[6].(*model.ForEachState).Actions[0].EventRef.ResultEventTimeout)
+				assert.Equal(t, "PT11H", w.States[6].(*model.ForEachState).Timeouts.ActionExecTimeout)
+				assert.Equal(t, "PT11S", w.States[6].(*model.ForEachState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT22S", w.States[6].(*model.ForEachState).Timeouts.StateExecTimeout.Single)
+
+				// Inject state
+				assert.Equal(t, map[string]interface{}{"result": "Hello World, last state!"}, w.States[7].(*model.InjectState).Data)
+				assert.Equal(t, "HelloInject", w.States[7].GetName())
+				assert.Equal(t, model.StateType("inject"), w.States[7].GetType())
+				assert.Equal(t, "PT11M", w.States[7].(*model.InjectState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT22M", w.States[7].(*model.InjectState).Timeouts.StateExecTimeout.Single)
+
+				// callback state
+				assert.NotEmpty(t, w.States[8].(*model.CallbackState).Action)
+				assert.Equal(t, "CheckCreditCallback", w.States[8].GetName())
+				assert.Equal(t, model.StateType("callback"), w.States[8].GetType())
+				assert.Equal(t, "callCreditCheckMicroservice", w.States[8].(*model.CallbackState).Action.FunctionRef.RefName)
+				assert.Equal(t, map[string]interface{}{"customer": "${ .customer }"}, w.States[8].(*model.CallbackState).Action.FunctionRef.Arguments)
+				assert.Equal(t, "PT10S", w.States[8].(*model.CallbackState).Action.Sleep.Before)
+				assert.Equal(t, "PT20S", w.States[8].(*model.CallbackState).Action.Sleep.After)
+				assert.Equal(t, "PT150M", w.States[8].(*model.CallbackState).Timeouts.ActionExecTimeout)
+				assert.Equal(t, "PT34S", w.States[8].(*model.CallbackState).Timeouts.EventTimeout)
+				assert.Equal(t, "PT115M", w.States[8].(*model.CallbackState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT22M", w.States[8].(*model.CallbackState).Timeouts.StateExecTimeout.Single)
+
+				// sleepState
+				assert.NotEmpty(t, w.States[9].(*model.SleepState).Duration)
+				assert.Equal(t, "WaitForCompletionSleep", w.States[9].GetName())
+				assert.Equal(t, model.StateType("sleep"), w.States[9].GetType())
+				assert.Equal(t, "PT5S", w.States[9].(*model.SleepState).Duration)
+				assert.NotNil(t, w.States[9].(*model.SleepState).Timeouts)
+				assert.Equal(t, "PT100S", w.States[9].(*model.SleepState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT200S", w.States[9].(*model.SleepState).Timeouts.StateExecTimeout.Single)
+				assert.Equal(t, &model.Transition{
+					NextState: "GetJobStatus",
+				}, w.States[9].(*model.SleepState).Transition)
 			},
 		},
 	}

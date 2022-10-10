@@ -14,6 +14,11 @@
 
 package model
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // SleepState suspends workflow execution for a given time duration.
 type SleepState struct {
 	BaseState
@@ -27,4 +32,25 @@ type SleepState struct {
 // SleepStateTimeout defines timeout settings for sleep state
 type SleepStateTimeout struct {
 	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+}
+
+type sleepStateForUnmarshal SleepState
+
+func (s *SleepState) UnmarshalJSON(data []byte) error {
+
+	var stateTimout SleepStateTimeout
+	if err := json.Unmarshal(data, &stateTimout); err != nil {
+		return err
+	}
+
+	v := sleepStateForUnmarshal{
+		Timeouts: &stateTimout,
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return fmt.Errorf("sleepState value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	*s = SleepState(v)
+	return nil
 }

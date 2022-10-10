@@ -50,14 +50,16 @@ type actionForUnmarshal Action
 
 // UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
+
 	v := actionForUnmarshal{
 		ActionDataFilter: ActionDataFilter{UseResults: true},
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return err
+		return fmt.Errorf("action value '%s' is not supported, it must be an object or string", string(data))
 	}
 	*a = Action(v)
+
 	return nil
 }
 
@@ -101,8 +103,7 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 		}
 		err = json.Unmarshal(data, &v)
 		if err != nil {
-			// TODO: replace the error message with correct type's name
-			return err
+			return fmt.Errorf("functionRef value '%s' is not supported, it must be an object or string", string(data))
 		}
 		*f = FunctionRef(v)
 		return nil

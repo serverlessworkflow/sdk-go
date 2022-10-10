@@ -17,6 +17,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -70,7 +71,7 @@ func unmarshalString(data []byte) (string, error) {
 func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {
 	if _, found := data[key]; found {
 		if err := json.Unmarshal(data[key], output); err != nil {
-			return err
+			return fmt.Errorf("failed to  unmarshall key '%s' with data'%s'", key, data[key])
 		}
 	}
 	return nil

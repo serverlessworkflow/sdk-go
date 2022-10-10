@@ -15,7 +15,9 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // EventState used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
@@ -36,12 +38,18 @@ type eventStateForUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
+	var timeout EventStateTimeout
+	if err := json.Unmarshal(data, &timeout); err != nil {
+		return err
+	}
+
 	v := eventStateForUnmarshal{
 		Exclusive: true,
+		Timeout:   &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return err
+		return fmt.Errorf("eventState value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	*e = EventState(v)
@@ -71,7 +79,7 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return err
+		return fmt.Errorf("onEvents value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	*o = OnEvents(v)
@@ -80,7 +88,35 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 
 // EventStateTimeout defines timeout settings for event state
 type EventStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	EventTimeout      string           `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	EventTimeout      string            `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+}
+
+type eventStateTimeoutForUnmarshal EventStateTimeout
+
+func (e *EventStateTimeout) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		// TODO: Normalize error messages
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	var err error
+	switch data[0] {
+	case '"':
+		e.StateExecTimeout.Total, err = unmarshalString(data)
+		return err
+	case '{':
+		var v eventStateTimeoutForUnmarshal
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			// TODO: replace the error message with correct type's name
+			return fmt.Errorf("eventStateTimeout value '%s' is not supported, it must be an object or string", string(data))
+		}
+
+		*e = EventStateTimeout(v)
+		return nil
+	}
+	return fmt.Errorf("eventStateTimeout value '%s' is not supported, it must be an object or string", string(data))
 }

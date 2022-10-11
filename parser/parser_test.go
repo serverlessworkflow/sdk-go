@@ -90,7 +90,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckVisaStatus", w.States[1].GetName())
 				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
 				assert.IsType(t, &model.EventBasedSwitchState{}, w.States[1])
-				//assert.Equal(t, "PT1H", w.States[1].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
+				assert.Equal(t, "PT1H", w.States[1].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
 			},
 		}, {
 			"./testdata/workflows/conditionbasedstate.yaml", func(t *testing.T, w *model.Workflow) {

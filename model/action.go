@@ -69,11 +69,10 @@ type FunctionRef struct {
 	RefName string `json:"refName" validate:"required"`
 	// Function arguments
 	// TODO: validate it as required if function type is graphql
-	Arguments map[string]interface{} `json:"arguments,omitempty"`
+	Arguments map[string]SwObject `json:"arguments,omitempty"`
 	// String containing a valid GraphQL selection set
 	// TODO: validate it as required if function type is graphql
 	SelectionSet string `json:"selectionSet,omitempty"`
-
 	// Invoke specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`

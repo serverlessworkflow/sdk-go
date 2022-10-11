@@ -14,13 +14,5 @@
 
 package model
 
-// DelayState Causes the workflow execution to delay for a specified duration
-type DelayState struct {
-	BaseState
-	// Amount of time (ISO 8601 format) to delay
-	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
-}
-
-func (in *DelayState) DeepCopyState() State {
-	return in
-}
+// +k8s:deepcopy-gen=package
+// +k8s:deepcopy-gen:nonpointer-interfaces=true

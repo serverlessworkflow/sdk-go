@@ -57,6 +57,10 @@ jobs:
           make addheaders
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
+      - name: Check DeepCopy Generation
+        run: |
+          export GOPATH=$(go env GOPATH)
+          make deepcopy
       - name: Check Formatting
         run: |
           make fmt

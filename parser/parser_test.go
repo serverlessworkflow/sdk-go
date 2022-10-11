@@ -16,6 +16,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -211,6 +212,9 @@ func TestFromFile(t *testing.T) {
 				basicProperties := auth[1].Properties.(*model.BasicAuthProperties)
 				assert.Equal(t, "test_user", basicProperties.Username)
 				assert.Equal(t, "test_pwd", basicProperties.Password)
+				// metadata
+				assert.Equal(t, model.Metadata{"metadata1": model.SwObject{Object: model.String("metadata1")}, "metadata2": model.SwObject{Object: model.String("metadata2")}}, w.Metadata)
+				assert.Equal(t, &model.Metadata{"auth1": model.SwObject{Object: model.String("auth1")}, "auth2": model.SwObject{Object: model.String("auth2")}}, auth[0].Properties.GetMetadata())
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {
@@ -334,7 +338,7 @@ func TestFromFile(t *testing.T) {
 				endDataCondition := eventState.DataConditions[0]
 				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowID)
 				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.Version)
-				assert.Equal(t, "${ del(.customerCount) }", endDataCondition.End.ContinueAs.Data)
+				assert.Equal(t, model.SwObject{Object: model.String("${ del(.customerCount) }")}, endDataCondition.End.ContinueAs.Data)
 				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
 				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
 				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
@@ -383,7 +387,12 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "test", w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.Data)
 				assert.Equal(t, "testing", w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.ToStateData)
 				assert.Equal(t, model.ActionModeParallel, w.States[1].(*model.EventState).OnEvents[0].ActionMode)
+
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[0].FunctionRef)
+				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef)
+				assert.Equal(t, model.SwObject{Object: model.String("${ .patientInfo }")}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.Data)
+				assert.Equal(t, map[string]model.SwObject{"customer": {Object: model.String("${ .customer }")}, "time": {Object: model.Integer(48)}}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.ContextAttributes)
+
 				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Single)
 				assert.Equal(t, "PT1H", w.States[1].(*model.EventState).Timeouts.EventTimeout)
@@ -458,7 +467,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT22S", w.States[6].(*model.ForEachState).Timeouts.StateExecTimeout.Single)
 
 				// Inject state
-				assert.Equal(t, map[string]interface{}{"result": "Hello World, last state!"}, w.States[7].(*model.InjectState).Data)
+				assert.Equal(t, map[string]model.SwObject{"result": {Object: model.String("Hello World, last state!")}}, w.States[7].(*model.InjectState).Data)
 				assert.Equal(t, "HelloInject", w.States[7].GetName())
 				assert.Equal(t, model.StateType("inject"), w.States[7].GetType())
 				assert.Equal(t, "PT11M", w.States[7].(*model.InjectState).Timeouts.StateExecTimeout.Total)
@@ -469,7 +478,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckCreditCallback", w.States[8].GetName())
 				assert.Equal(t, model.StateType("callback"), w.States[8].GetType())
 				assert.Equal(t, "callCreditCheckMicroservice", w.States[8].(*model.CallbackState).Action.FunctionRef.RefName)
-				assert.Equal(t, map[string]interface{}{"customer": "${ .customer }"}, w.States[8].(*model.CallbackState).Action.FunctionRef.Arguments)
+				assert.Equal(t, "map[argsObj:{{map[age:%!s(float64=10) name:hi]}} customer:{${ .customer }} time:{%!s(model.Integer=48)}]",
+					fmt.Sprintf("%s", w.States[8].(*model.CallbackState).Action.FunctionRef.Arguments))
 				assert.Equal(t, "PT10S", w.States[8].(*model.CallbackState).Action.Sleep.Before)
 				assert.Equal(t, "PT20S", w.States[8].(*model.CallbackState).Action.Sleep.After)
 				assert.Equal(t, "PT150M", w.States[8].(*model.CallbackState).Timeouts.ActionExecTimeout)
@@ -648,6 +658,17 @@ specVersion: '0.8'
 name: Hello World Workflow
 description: Inject Hello World
 start: Hello State
+metadata:
+  metadata1: metadata1
+  metadata2: metadata2
+auth:
+- name: testAuth
+  scheme: bearer
+  properties:
+    token: test_token
+    metadata:
+      auth1: auth1
+      auth2: auth2
 states:
 - name: Hello State
   type: switch
@@ -660,12 +681,48 @@ states:
       nextState: HandleRejectedVisa
   defaultCondition:
     transition:
-      nextState: HandleNoVisaDecision
+      nextState: CheckCreditCallback
+- name: HelloInject
+  type: inject
+  data:
+    result: Hello World, another state!
+- name: CheckCreditCallback
+  type: callback
+  action:
+    functionRef:
+      refName: callCreditCheckMicroservice
+      arguments:
+        customer: "${ .customer }"
+        time: 48
+        argsObj: {
+          "name" : "hi",
+          "age": {
+            "initial": 10,
+            "final": 32
+          }
+        }
+    sleep:
+      before: PT10S
+      after: PT20S
+  eventRef: CreditCheckCompletedEvent
+  timeouts:
+    actionExecTimeout: PT150M
+    eventTimeout: PT34S
+    stateExecTimeout:
+      total: PT115M
+      single: PT22M
 - name: HandleApprovedVisa
   type: operation
   actions:
   - subFlowRef:
       workflowId: handleApprovedVisaWorkflowID
+  - eventRef:
+      triggerEventRef: StoreBidFunction
+      data: "${ .patientInfo }"
+      resultEventRef: StoreBidFunction
+      contextAttributes:
+        customer: "${ .customer }"
+        time: 48
   end:
     terminate: true
 - name: HandleRejectedVisa
@@ -690,6 +747,12 @@ states:
 		b, err := json.Marshal(workflow)
 		assert.Nil(t, err)
 		assert.True(t, strings.Contains(string(b), "eventConditions"))
+		assert.True(t, strings.Contains(string(b), "\"arguments\":{\"argsObj\":{\"age\":{\"final\":32,\"initial\":10},\"name\":\"hi\"},\"customer\":\"${ .customer }\",\"time\":48}"))
+		assert.True(t, strings.Contains(string(b), "\"metadata\":{\"metadata1\":\"metadata1\",\"metadata2\":\"metadata2\"}"))
+		assert.True(t, strings.Contains(string(b), ":{\"metadata\":{\"auth1\":\"auth1\",\"auth2\":\"auth2\"}"))
+		assert.True(t, strings.Contains(string(b), "\"data\":\"${ .patientInfo }\""))
+		assert.True(t, strings.Contains(string(b), "\"contextAttributes\":{\"customer\":\"${ .customer }\",\"time\":48}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloInject\",\"type\":\"inject\",\"data\":{\"result\":\"Hello World, another state!\"}}"))
 
 		workflow = nil
 		err = json.Unmarshal(b, &workflow)

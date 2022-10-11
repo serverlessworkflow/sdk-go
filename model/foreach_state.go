@@ -61,6 +61,10 @@ type ForEachState struct {
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 
+func (f *ForEachState) DeepCopyState() State {
+	return f
+}
+
 type forEachStateForUnmarshal ForEachState
 
 func (f *ForEachState) UnmarshalJSON(data []byte) error {

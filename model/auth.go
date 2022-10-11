@@ -110,6 +110,9 @@ type AuthProperties interface {
 	GetMetadata() *Metadata
 	// GetSecret ...
 	GetSecret() string
+	// DeepCopyAuthProperties fixes in.Properties.DeepCopyAuthProperties undefined (type AuthProperties has no
+	// field or method DeepCopyAuthProperties)
+	DeepCopyAuthProperties() AuthProperties
 }
 
 // BaseAuthProperties ...
@@ -148,6 +151,10 @@ func (b *BaseAuthProperties) GetSecret() string {
 	return b.Secret
 }
 
+func (b *BasicAuthProperties) DeepCopyAuthProperties() AuthProperties {
+	return b
+}
+
 // BasicAuthProperties Basic Auth Info
 type BasicAuthProperties struct {
 	BaseAuthProperties
@@ -184,6 +191,10 @@ type BearerAuthProperties struct {
 	BaseAuthProperties
 	// Token String or a workflow expression. Contains the token
 	Token string `json:"token" validate:"required"`
+}
+
+func (b *BearerAuthProperties) DeepCopyAuthProperties() AuthProperties {
+	return b
 }
 
 // UnmarshalJSON ...
@@ -230,6 +241,10 @@ type OAuth2AuthProperties struct {
 	RequestedSubject string `json:"requestedSubject,omitempty" validate:"omitempty,min=1"`
 	// RequestedIssuer String or a workflow expression. Contains the requested issuer
 	RequestedIssuer string `json:"requestedIssuer,omitempty" validate:"omitempty,min=1"`
+}
+
+func (b *OAuth2AuthProperties) DeepCopyAuthProperties() AuthProperties {
+	return b
 }
 
 // TODO: use reflection to unmarshal the keys and think on a generic approach to handle them

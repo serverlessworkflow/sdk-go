@@ -50,6 +50,13 @@ states:
               refName: StoreBidFunction
               arguments:
                 bid: "${ .bid }"
+          - eventRef:
+              triggerEventRef: StoreBidFunction
+              data: "${ .patientInfo }"
+              resultEventRef: StoreBidFunction
+              contextAttributes:
+                customer: "${ .customer }"
+                time: 48
     timeouts:
       eventTimeout: PT1H
       actionExecTimeout: PT3S
@@ -158,6 +165,11 @@ states:
         refName: callCreditCheckMicroservice
         arguments:
           customer: "${ .customer }"
+          argsObj: {
+                   "name" : "hi",
+                   "age": 10
+          }
+          time: 48
       sleep:
         before: PT10S
         after: PT20S

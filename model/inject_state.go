@@ -18,9 +18,14 @@ package model
 type InjectState struct {
 	BaseState
 	// JSON object which can be set as states data input and can be manipulated via filters
-	Data map[string]interface{} `json:"data" validate:"required,min=1"`
+	// TODO  map[string]interface{}
+	Data map[string]SwObject `json:"data" validate:"required,min=1"`
 	// State specific timeouts
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (in *InjectState) DeepCopyState() State {
+	return in
 }
 
 // InjectStateTimeout defines timeout settings for inject state

@@ -21,4 +21,4 @@ type Common struct {
 }
 
 // Metadata information
-type Metadata map[string]interface{}
+type Metadata map[string]SwObject

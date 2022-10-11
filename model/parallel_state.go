@@ -54,6 +54,10 @@ type ParallelState struct {
 	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
 }
 
+func (s *ParallelState) DeepCopyState() State {
+	return s
+}
+
 type parallelStateForUnmarshal ParallelState
 
 // UnmarshalJSON unmarshal ParallelState object from json bytes

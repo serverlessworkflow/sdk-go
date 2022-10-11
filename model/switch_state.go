@@ -20,7 +20,7 @@ import (
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 )
 
 func init() {
@@ -44,6 +44,10 @@ type SwitchState struct {
 	DataConditions []DataCondition `json:"dataConditions" validate:"omitempty,min=1,dive"`
 	// SwitchState specific timeouts
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (in *SwitchState) DeepCopyState() State {
+	return in
 }
 
 // SwitchStateStructLevelValidation custom validator for SwitchState

@@ -14,6 +14,10 @@ lint:
 
 .PHONY: test
 coverage="false"
-test:
+test: deepcopy
 	make lint
 	@go test ./...
+
+.PHONY: deepcopy
+deepcopy: $(DEEPCOPY_GEN) ## Download deeepcopy-gen locally if necessary.
+	./hack/deepcopy-gen.sh deepcopy

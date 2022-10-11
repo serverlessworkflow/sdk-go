@@ -17,7 +17,7 @@ package model
 import (
 	"reflect"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"

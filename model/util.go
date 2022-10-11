@@ -21,11 +21,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/yaml"
+
 	"strings"
 	"sync/atomic"
-
-	"sigs.k8s.io/yaml"
 )
+
+// +k8s:deepcopy-gen=false
 
 const prefix = "file:/"
 

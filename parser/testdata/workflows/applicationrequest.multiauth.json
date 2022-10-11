@@ -5,12 +5,20 @@
   "description": "Determine if applicant request is valid",
   "start": "CheckApplication",
   "specVersion": "0.8",
+  "metadata":{
+    "metadata1": "metadata1",
+    "metadata2": "metadata2"
+  },
   "auth": [
     {
       "name": "testAuth",
       "scheme": "bearer",
       "properties": {
-        "token": "test_token"
+        "token": "test_token",
+        "metadata":{
+          "auth1": "auth1",
+          "auth2": "auth2"
+        }
       }
     },
     {

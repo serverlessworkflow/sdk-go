@@ -11,16 +11,3 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-package model
-
-// DelayState Causes the workflow execution to delay for a specified duration
-type DelayState struct {
-	BaseState
-	// Amount of time (ISO 8601 format) to delay
-	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
-}
-
-func (in *DelayState) DeepCopyState() State {
-	return in
-}

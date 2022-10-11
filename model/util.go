@@ -21,6 +21,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"sigs.k8s.io/yaml"
 )
 
 const prefix = "file:/"
@@ -49,6 +51,17 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	if b, err = os.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err
 	}
+
+	// TODO: optimize this
+	// NOTE: In specification, we can declared independently definitions with another file format, so
+	// we must convert independently yaml source to json format data before unmarshal.
+	if strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".yml") {
+		b, err = yaml.YAMLToJSON(b)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return b, nil
 }
 

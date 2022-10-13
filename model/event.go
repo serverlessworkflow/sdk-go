@@ -36,7 +36,6 @@ const (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(EventStructLevelValidation, Event{})
-	val.GetValidator().RegisterStructValidation(EventRefStructLevelValidation, EventRef{})
 }
 
 // EventStructLevelValidation custom validator for event kind consumed
@@ -44,17 +43,6 @@ func EventStructLevelValidation(structLevel validator.StructLevel) {
 	event := structLevel.Current().Interface().(Event)
 	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
 		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
-	}
-}
-
-// EventRefStructLevelValidation custom validator for event kind consumed
-func EventRefStructLevelValidation(structLevel validator.StructLevel) {
-	eventRef := structLevel.Current().Interface().(EventRef)
-	if len(eventRef.ResultEventTimeout) > 0 {
-		err := val.ValidateISO8601TimeDuration(eventRef.ResultEventTimeout)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(eventRef.ResultEventTimeout), "ResultEventTimeout", "resultEventTimeout", "iso8601duration", "")
-		}
 	}
 }
 
@@ -108,10 +96,8 @@ type EventRef struct {
 	TriggerEventRef string `json:"triggerEventRef" validate:"required"`
 	// Reference to the unique name of a 'consumed' event definition
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
-
 	// ResultEventTimeout defines maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it be set to the actionExecutionTimeout
 	ResultEventTimeout string `json:"resultEventTimeout,omitempty" validate:"omitempty,iso8601duration"`
-
 	// TODO: create StringOrMap structure
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
 	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.

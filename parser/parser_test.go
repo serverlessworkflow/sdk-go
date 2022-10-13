@@ -377,10 +377,10 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "testing", w.States[1].(*model.EventState).OnEvents[0].EventDataFilter.ToStateData)
 				assert.Equal(t, model.ActionModeParallel, w.States[1].(*model.EventState).OnEvents[0].ActionMode)
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[0].FunctionRef)
-				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeout.StateExecTimeout.Total)
-				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeout.StateExecTimeout.Single)
-				assert.Equal(t, "PT1H", w.States[1].(*model.EventState).Timeout.EventTimeout)
-				assert.Equal(t, "PT3S", w.States[1].(*model.EventState).Timeout.ActionExecTimeout)
+				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Single)
+				assert.Equal(t, "PT1H", w.States[1].(*model.EventState).Timeouts.EventTimeout)
+				assert.Equal(t, "PT3S", w.States[1].(*model.EventState).Timeouts.ActionExecTimeout)
 
 				// Parallel state
 				assert.NotEmpty(t, w.States[2].(*model.ParallelState).Branches)
@@ -403,6 +403,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, &model.Transition{
 					NextState: "HandleNoVisaDecision",
 				}, w.States[3].(*model.EventBasedSwitchState).DefaultCondition.Transition)
+
 				//  DataBasedSwitchState
 				dataBased := w.States[4].(*model.DataBasedSwitchState)
 				assert.NotEmpty(t, dataBased.DataConditions)

@@ -45,7 +45,6 @@ type Retry struct {
 	Multiplier *floatstr.Float32OrString `json:"multiplier,omitempty" validate:"omitempty,min=1"`
 	// Maximum number of retry attempts.
 	MaxAttempts intstr.IntOrString `json:"maxAttempts" validate:"required"`
-
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
 	// TODO: make iso8601duration compatible this type
 	Jitter floatstr.Float32OrString `json:"jitter,omitempty" validate:"omitempty,min=0,max=1"`

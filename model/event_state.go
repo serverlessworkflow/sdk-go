@@ -15,7 +15,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -25,13 +24,14 @@ type EventState struct {
 	// TODO: EventState doesn't have usedForCompensation field.
 	BaseState
 
-	// If true consuming one of the defined events causes its associated actions to be performed. If false all of the defined events must be consumed in order for actions to be performed
+	// If true consuming one of the defined events causes its associated actions to be performed.
+	// If false all the defined events must be consumed in order for actions to be performed
 	// Defaults to true
 	Exclusive bool `json:"exclusive,omitempty"`
 	// Define the events to be consumed and optional actions to be performed
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeout *EventStateTimeout `json:"timeouts,omitempty"`
+	Timeouts EventStateTimeout `json:"timeouts,omitempty"`
 }
 
 type eventStateForUnmarshal EventState
@@ -45,7 +45,7 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 
 	v := eventStateForUnmarshal{
 		Exclusive: true,
-		Timeout:   &timeout,
+		Timeouts:  timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -91,32 +91,4 @@ type EventStateTimeout struct {
 	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
 	EventTimeout      string            `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
-}
-
-type eventStateTimeoutForUnmarshal EventStateTimeout
-
-func (e *EventStateTimeout) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		// TODO: Normalize error messages
-		return fmt.Errorf("no bytes to unmarshal")
-	}
-
-	var err error
-	switch data[0] {
-	case '"':
-		e.StateExecTimeout.Total, err = unmarshalString(data)
-		return err
-	case '{':
-		var v eventStateTimeoutForUnmarshal
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			// TODO: replace the error message with correct type's name
-			return fmt.Errorf("eventStateTimeout value '%s' is not supported, it must be an object or string", string(data))
-		}
-
-		*e = EventStateTimeout(v)
-		return nil
-	}
-	return fmt.Errorf("eventStateTimeout value '%s' is not supported, it must be an object or string", string(data))
 }

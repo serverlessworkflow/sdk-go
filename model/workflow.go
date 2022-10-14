@@ -559,7 +559,7 @@ type Branch struct {
 	// Actions to be executed in this branch
 	Actions []Action `json:"actions" validate:"required,min=1"`
 	// Timeouts State specific timeouts
-	Timeouts BranchTimeouts `json:"timeouts,omitempty"`
+	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
 }
 
 type branchForUnmarshal Branch
@@ -572,7 +572,7 @@ func (b *Branch) UnmarshalJSON(data []byte) error {
 	}
 
 	v := branchForUnmarshal{
-		Timeouts: timeout,
+		Timeouts: &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {

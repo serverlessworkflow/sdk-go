@@ -31,7 +31,7 @@ type EventState struct {
 	// Define the events to be consumed and optional actions to be performed
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeouts EventStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
 type eventStateForUnmarshal EventState
@@ -45,7 +45,7 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 
 	v := eventStateForUnmarshal{
 		Exclusive: true,
-		Timeouts:  timeout,
+		Timeouts:  &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {

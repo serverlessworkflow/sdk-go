@@ -162,7 +162,7 @@ type OperationState struct {
 	// Actions to be performed
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeouts OperationStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
 }
 
 type operationStateForUnmarshal OperationState
@@ -176,7 +176,7 @@ func (o *OperationState) UnmarshalJSON(data []byte) error {
 	}
 
 	v := operationStateForUnmarshal{
-		Timeouts: timeout,
+		Timeouts: &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -239,7 +239,7 @@ type InjectState struct {
 	// JSON object which can be set as states data input and can be manipulated via filters
 	Data map[string]interface{} `json:"data" validate:"required,min=1"`
 	// State specific timeouts
-	Timeouts InjectStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
 }
 
 type injectStateForUnmarshal InjectState
@@ -252,7 +252,7 @@ func (i *InjectState) UnmarshalJSON(data []byte) error {
 	}
 
 	v := injectStateForUnmarshal{
-		Timeouts: timeout,
+		Timeouts: &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -282,7 +282,7 @@ type ForEachState struct {
 	// Actions to be executed for each of the elements of inputCollection
 	Actions []Action `json:"actions,omitempty"`
 	// State specific timeout
-	Timeouts ForEachStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
 	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
 	// Defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
@@ -297,7 +297,7 @@ func (f *ForEachState) UnmarshalJSON(data []byte) error {
 	}
 
 	v := forEachStateForUnmarshal{
-		Timeouts: timeout,
+		Timeouts: &timeout,
 		Mode:     StateTypeParallel,
 	}
 	err := json.Unmarshal(data, &v)
@@ -324,7 +324,7 @@ type CallbackState struct {
 	// References a unique callback event name in the defined workflow events
 	EventRef string `json:"eventRef" validate:"required"`
 	// Time period to wait for incoming events (ISO 8601 format)
-	Timeouts *CallbackStateTimeout `json:"timeouts" validate:"required"`
+	Timeouts CallbackStateTimeout `json:"timeouts" validate:"required"`
 	// Event data filter
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
@@ -338,7 +338,7 @@ func (c *CallbackState) UnmarshalJSON(data []byte) error {
 	}
 
 	v := callbackStateForUnmarshal{
-		Timeouts: &timeout,
+		Timeouts: timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -370,7 +370,7 @@ type EventBasedSwitchState struct {
 	// Defines conditions evaluated against events
 	EventConditions []EventCondition `json:"eventConditions" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeouts EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the EventBasedSwitch type
@@ -467,8 +467,8 @@ type EndEventCondition struct {
 // DataBasedSwitchState Permits transitions to other states based on data conditions
 type DataBasedSwitchState struct {
 	BaseSwitchState
-	DataConditions []DataCondition             `json:"dataConditions" validate:"required,min=1,dive"`
-	Timeouts       DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
+	DataConditions []DataCondition              `json:"dataConditions" validate:"required,min=1,dive"`
+	Timeouts       *DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the DataBasedSwitch type

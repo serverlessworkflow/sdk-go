@@ -17,11 +17,12 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
-	//StateTypeDelay ...
+	// StateTypeDelay ...
 	StateTypeDelay = "delay"
 	// StateTypeEvent ...
 	StateTypeEvent = "event"
@@ -383,7 +384,7 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if err := json.Unmarshal(data, &j.Timeouts); err != nil {
+	if err := json.Unmarshal(eventBasedSwitch["timeouts"], &j.Timeouts); err != nil {
 		return err
 	}
 

@@ -81,10 +81,11 @@ states:
         transition: HandleApprovedVisa
       - eventRef: visaRejectedEvent
         transition: HandleRejectedVisa
-    eventTimeout: PT1H
-    stateExecTimeout:
-      total: PT1S
-      single: PT2S
+    timeouts:
+      eventTimeout: PT1H
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
     defaultCondition:
       transition: HandleNoVisaDecision
   - name: CheckApplicationSwitchDataBased

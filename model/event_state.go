@@ -38,14 +38,14 @@ type eventStateForUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
-	var timeout EventStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
+	// var timeout EventStateTimeout
+	// if err := json.Unmarshal(data, &timeout); err != nil {
+	// 	return err
+	// }
 
 	v := eventStateForUnmarshal{
 		Exclusive: true,
-		Timeouts:  &timeout,
+		// Timeouts:  &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {

@@ -21,6 +21,7 @@ import (
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
@@ -53,23 +54,6 @@ const (
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
 )
-
-var actionsModelMapping = map[string]func(state map[string]interface{}) State{
-	StateTypeDelay:     func(map[string]interface{}) State { return &DelayState{} },
-	StateTypeEvent:     func(map[string]interface{}) State { return &EventState{} },
-	StateTypeOperation: func(map[string]interface{}) State { return &OperationState{} },
-	StateTypeParallel:  func(map[string]interface{}) State { return &ParallelState{} },
-	StateTypeSwitch: func(s map[string]interface{}) State {
-		if _, ok := s["dataConditions"]; ok {
-			return &DataBasedSwitchState{}
-		}
-		return &EventBasedSwitchState{}
-	},
-	StateTypeInject:   func(map[string]interface{}) State { return &InjectState{} },
-	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
-	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
-	StateTypeSleep:    func(map[string]interface{}) State { return &SleepState{} },
-}
 
 func init() {
 	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
@@ -157,10 +141,13 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(rawState, &mapState); err != nil {
 			return err
 		}
-		if _, ok := actionsModelMapping[mapState["type"].(string)]; !ok {
+
+		actionsMode, ok := getActionsModelMapping(mapState["type"].(string), mapState)
+		if !ok {
 			return fmt.Errorf("state %s not supported", mapState["type"])
 		}
-		state := actionsModelMapping[mapState["type"].(string)](mapState)
+		state := actionsMode
+
 		if err := json.Unmarshal(rawState, &state); err != nil {
 			return err
 		}
@@ -292,7 +279,8 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 type WorkflowExecTimeout struct {
 	// Duration Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
 	Duration string `json:"duration,omitempty" validate:"omitempty,min=1"`
-	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is abrupted.
+	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is
+	// abrupted terminated.
 	Interrupt bool `json:"interrupt,omitempty"`
 	// Name of a workflow state to be executed before workflow instance is terminated
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
@@ -573,7 +561,7 @@ type Branch struct {
 	// Actions to be executed in this branch
 	Actions []Action `json:"actions" validate:"required,min=1"`
 	// Timeouts State specific timeouts
-	Timeouts BranchTimeouts `json:"timeouts,omitempty"`
+	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
 }
 
 // BranchTimeouts ...

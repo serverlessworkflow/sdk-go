@@ -16,11 +16,13 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
-	//StateTypeDelay ...
+	// StateTypeDelay ...
 	StateTypeDelay = "delay"
 	// StateTypeEvent ...
 	StateTypeEvent = "event"
@@ -49,6 +51,33 @@ const (
 	// ForEachModeTypeParallel ...
 	ForEachModeTypeParallel ForEachModeType = "parallel"
 )
+
+func getActionsModelMapping(stateType string, s map[string]interface{}) (State, bool) {
+	switch stateType {
+	case StateTypeDelay:
+		return &DelayState{}, true
+	case StateTypeEvent:
+		return &EventState{}, true
+	case StateTypeOperation:
+		return &OperationState{}, true
+	case StateTypeParallel:
+		return &ParallelState{}, true
+	case StateTypeSwitch:
+		if _, ok := s["dataConditions"]; ok {
+			return &DataBasedSwitchState{}, true
+		}
+		return &EventBasedSwitchState{}, true
+	case StateTypeInject:
+		return &InjectState{}, true
+	case StateTypeForEach:
+		return &ForEachState{}, true
+	case StateTypeCallback:
+		return &CallbackState{}, true
+	case StateTypeSleep:
+		return &SleepState{}, true
+	}
+	return nil, false
+}
 
 // StateType ...
 type StateType string
@@ -139,8 +168,8 @@ type OperationState struct {
 
 // OperationStateTimeout ...
 type OperationStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
 // ParallelState Consists of a number of states that are executed in parallel
@@ -173,7 +202,7 @@ type InjectState struct {
 
 // InjectStateTimeout ...
 type InjectStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
 // ForEachState ...
@@ -196,10 +225,25 @@ type ForEachState struct {
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 
+type forEachStateForUnmarshal ForEachState
+
+func (f *ForEachState) UnmarshalJSON(data []byte) error {
+	v := forEachStateForUnmarshal{
+		Mode: StateTypeParallel,
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return fmt.Errorf("forEachState value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	*f = ForEachState(v)
+	return nil
+}
+
 // ForEachStateTimeout ...
 type ForEachStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
 }
 
 // CallbackState ...
@@ -217,9 +261,9 @@ type CallbackState struct {
 
 // CallbackStateTimeout ...
 type CallbackStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
-	EventTimeout      string           `json:"eventTimeout,omitempty"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
+	EventTimeout      string            `json:"eventTimeout,omitempty"`
 }
 
 // BaseSwitchState ...
@@ -238,7 +282,7 @@ type EventBasedSwitchState struct {
 	Timeouts *EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
-// UnmarshalJSON implementation for json Unmarshal function for the Eventbasedswitch type
+// UnmarshalJSON implementation for json Unmarshal function for the EventBasedSwitch type
 func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
 		return err
@@ -247,10 +291,12 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &eventBasedSwitch); err != nil {
 		return err
 	}
-	var rawConditions []json.RawMessage
-	if err := unmarshalKey("timeouts", eventBasedSwitch, &j.Timeouts); err != nil {
+
+	if err := json.Unmarshal(eventBasedSwitch["timeouts"], &j.Timeouts); err != nil {
 		return err
 	}
+
+	var rawConditions []json.RawMessage
 	if err := json.Unmarshal(eventBasedSwitch["eventConditions"], &rawConditions); err != nil {
 		return err
 	}
@@ -272,13 +318,14 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 		}
 		j.EventConditions[i] = condition
 	}
+
 	return nil
 }
 
 // EventBasedSwitchStateTimeout ...
 type EventBasedSwitchStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	EventTimeout     string           `json:"eventTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	EventTimeout     string            `json:"eventTimeout,omitempty"`
 }
 
 // EventCondition ...
@@ -333,7 +380,7 @@ type DataBasedSwitchState struct {
 	Timeouts       *DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
-// UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type
+// UnmarshalJSON implementation for json Unmarshal function for the DataBasedSwitch type
 func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
 		return err
@@ -342,10 +389,10 @@ func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &dataBasedSwitch); err != nil {
 		return err
 	}
-	var rawConditions []json.RawMessage
-	if err := unmarshalKey("timeouts", dataBasedSwitch, &j.Timeouts); err != nil {
+	if err := json.Unmarshal(data, &j.Timeouts); err != nil {
 		return err
 	}
+	var rawConditions []json.RawMessage
 	if err := json.Unmarshal(dataBasedSwitch["dataConditions"], &rawConditions); err != nil {
 		return err
 	}
@@ -371,7 +418,7 @@ func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 
 // DataBasedSwitchStateTimeout ...
 type DataBasedSwitchStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
 // DataCondition ...

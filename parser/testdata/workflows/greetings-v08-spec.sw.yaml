@@ -14,17 +14,92 @@
 
 id: custom.greeting
 version: '1.0'
-description: Greet Someone
 specVersion: "0.8"
+description: Greet Someone
+# name: Greeting example #can be empty
+# start: Greet #can be empty
 functions:
   - name: greetingCustomFunction
     operation: /path/to/my/script/greeting.ts#CustomGreeting
+    # Support custom function type definition
     type: custom
   - name: sendTextFunction
     operation: http://myapis.org/inboxapi.json#sendText
-
+    type: graphql
+  - name: greetingFunction
+    operation: file://myapis/greetingapis.json#greeting
 states:
-  - name: Greet
+  - name: GreetDelay
+    type: delay
+    timeDelay: PT5S
+    transition:
+      nextState: StoreCarAuctionBid
+  - name: StoreCarAuctionBid
+    type: event
+    exclusive: true
+    onEvents:
+      - eventRefs:
+          - CarBidEvent
+        eventDataFilter:
+          useData: true
+          data: "test"
+          toStateData: "testing"
+        actionMode: parallel
+        actions:
+          - functionRef:
+              refName: StoreBidFunction
+              arguments:
+                bid: "${ .bid }"
+    timeouts:
+      eventTimeout: PT1H
+      actionExecTimeout: PT3S
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
+  - name: ParallelExec
+    type: parallel
+    completionType: allOf
+    branches:
+      - name: ShortDelayBranch
+        actions:
+          - subFlowRef: shortdelayworkflowid
+        timeouts:
+          actionExecTimeout: "PT5H"
+          branchExecTimeout: "PT6M"
+      - name: LongDelayBranch
+        actions:
+          - subFlowRef: longdelayworkflowid
+    timeouts:
+      branchExecTimeout: "PT6M"
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
+  - name: CheckVisaStatusSwitchEventBased
+    type: switch
+    eventConditions:
+      - eventRef: visaApprovedEvent
+        transition: HandleApprovedVisa
+      - eventRef: visaRejectedEvent
+        transition: HandleRejectedVisa
+    timeouts:
+      eventTimeout: PT1H
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
+    defaultCondition:
+      transition: HandleNoVisaDecision
+  - name: CheckApplicationSwitchDataBased
+    type: switch
+    dataConditions:
+      - condition: "${ .applicants | .age >= 18 }"
+        transition:
+          nextState: StartApplication
+    defaultCondition:
+      transition: RejectApplication
+    stateExecTimeout:
+      total: PT1S
+      single: PT2S
+  - name: GreetSequential
     type: operation
     actionMode: sequential
     actions:
@@ -35,10 +110,16 @@ states:
             name: "${ .greet | .name }"
         actionDataFilter:
           dataResultsPath: "${ .payload | .greeting }"
-      - eventRef:
+        eventRef:
           triggerEventRef: example
           resultEventRef: example
+          # Added "resultEventTimeout" for action eventref
           resultEventTimeout: PT1H
+    timeouts:
+      actionExecTimeout: PT1H
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
     stateDataFilter:
       dataOutputPath: "${ .greeting }"
     transition: SendTextForHighPriority
@@ -46,8 +127,52 @@ states:
     type: foreach
     inputCollection: "${ .messages }"
     actions:
-      - functionRef:
+      - name: test
+        functionRef:
           refName: sendTextFunction
           arguments:
             message: "${ .singlemessage }"
+        eventRef:
+          triggerEventRef: example1
+          resultEventRef: example1
+          # Added "resultEventTimeout" for action eventref
+          resultEventTimeout: PT12H
+    timeouts:
+      actionExecTimeout: PT11H
+      stateExecTimeout:
+        total: PT11S
+        single: PT22S
+  - name: HelloInject
+    type: inject
+    data:
+      result: Hello World, last state!
+    timeouts:
+      stateExecTimeout:
+        total: PT11M
+        single: PT22M
+  - name: CheckCreditCallback
+    type: callback
+    action:
+      functionRef:
+        refName: callCreditCheckMicroservice
+        arguments:
+          customer: "${ .customer }"
+      sleep:
+        before: PT10S
+        after: PT20S
+    eventRef: CreditCheckCompletedEvent
+    timeouts:
+      actionExecTimeout: PT150M
+      eventTimeout: PT34S
+      stateExecTimeout:
+        total: PT115M
+        single: PT22M
+  - name: WaitForCompletionSleep
+    type: sleep
+    duration: PT5S
+    transition: GetJobStatus
+    timeouts:
+      stateExecTimeout:
+        total: PT100S
+        single: PT200S
     end: true

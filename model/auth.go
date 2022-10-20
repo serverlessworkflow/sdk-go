@@ -113,7 +113,7 @@ func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
 func (a *AuthDefinitions) unmarshalFile(data []byte) error {
 	b, err := unmarshalFile(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	return a.unmarshalMany(b)
@@ -123,7 +123,7 @@ func (a *AuthDefinitions) unmarshalMany(data []byte) error {
 	var auths []Auth
 	err := json.Unmarshal(data, &auths)
 	if err != nil {
-		return err
+		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	a.Defs = auths

@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // EventState used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
@@ -23,25 +24,32 @@ type EventState struct {
 	// TODO: EventState doesn't have usedForCompensation field.
 	BaseState
 
-	// If true consuming one of the defined events causes its associated actions to be performed. If false all of the defined events must be consumed in order for actions to be performed
+	// If true consuming one of the defined events causes its associated actions to be performed.
+	// If false all the defined events must be consumed in order for actions to be performed
 	// Defaults to true
 	Exclusive bool `json:"exclusive,omitempty"`
 	// Define the events to be consumed and optional actions to be performed
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
-	Timeout *EventStateTimeout `json:"timeouts,omitempty"`
+	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
 type eventStateForUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
+	// var timeout EventStateTimeout
+	// if err := json.Unmarshal(data, &timeout); err != nil {
+	// 	return err
+	// }
+
 	v := eventStateForUnmarshal{
 		Exclusive: true,
+		// Timeouts:  &timeout,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return err
+		return fmt.Errorf("eventState value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	*e = EventState(v)
@@ -71,7 +79,7 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return err
+		return fmt.Errorf("onEvents value '%s' is not supported, it must be an object or string", string(data))
 	}
 
 	*o = OnEvents(v)
@@ -80,7 +88,7 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 
 // EventStateTimeout defines timeout settings for event state
 type EventStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	EventTimeout      string           `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	EventTimeout      string            `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }

@@ -44,10 +44,10 @@ func TestEventStateUnmarshalJSON(t *testing.T) {
 						ActionMode: "parallel",
 					},
 				},
-				Timeout: &EventStateTimeout{
+				Timeouts: &EventStateTimeout{
 					EventTimeout:      "PT5M",
 					ActionExecTimeout: "PT5M",
-					StateExecTimeout: StateExecTimeout{
+					StateExecTimeout: &StateExecTimeout{
 						Total: "PT5M",
 					},
 				},
@@ -69,10 +69,10 @@ func TestEventStateUnmarshalJSON(t *testing.T) {
 						ActionMode: "parallel",
 					},
 				},
-				Timeout: &EventStateTimeout{
+				Timeouts: &EventStateTimeout{
 					EventTimeout:      "PT5M",
 					ActionExecTimeout: "PT5M",
-					StateExecTimeout: StateExecTimeout{
+					StateExecTimeout: &StateExecTimeout{
 						Total: "PT5M",
 					},
 				},

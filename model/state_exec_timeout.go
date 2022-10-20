@@ -49,11 +49,11 @@ func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
 		var v stateExecTimeoutForUnmarshal
 		err = json.Unmarshal(data, &v)
 		if err != nil {
-			// TODO: replace the error message with correct type's name
 			return err
 		}
 
 		*s = StateExecTimeout(v)
+
 		return nil
 	}
 

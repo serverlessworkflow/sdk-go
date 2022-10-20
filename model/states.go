@@ -166,28 +166,6 @@ type OperationState struct {
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
 }
 
-type operationStateForUnmarshal OperationState
-
-// UnmarshalJSON unmarshal EventState object from json bytes
-func (o *OperationState) UnmarshalJSON(data []byte) error {
-
-	var timeout OperationStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
-	v := operationStateForUnmarshal{
-		Timeouts: &timeout,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("operationState value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*o = OperationState(v)
-	return nil
-}
-
 // OperationStateTimeout ...
 type OperationStateTimeout struct {
 	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
@@ -207,27 +185,6 @@ type ParallelState struct {
 	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
 }
 
-type parallelStateForUnmarshal ParallelState
-
-// UnmarshalJSON unmarshal EventState object from json bytes
-func (p *ParallelState) UnmarshalJSON(data []byte) error {
-	var timeout ParallelStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
-	v := parallelStateForUnmarshal{
-		Timeouts: &timeout,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("parallelState value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*p = ParallelState(v)
-	return nil
-}
-
 // ParallelStateTimeout ...
 type ParallelStateTimeout struct {
 	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
@@ -241,27 +198,6 @@ type InjectState struct {
 	Data map[string]interface{} `json:"data" validate:"required,min=1"`
 	// State specific timeouts
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
-}
-
-type injectStateForUnmarshal InjectState
-
-// UnmarshalJSON unmarshal EventState object from json bytes
-func (i *InjectState) UnmarshalJSON(data []byte) error {
-	var timeout InjectStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
-	v := injectStateForUnmarshal{
-		Timeouts: &timeout,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("injectState value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*i = InjectState(v)
-	return nil
 }
 
 // InjectStateTimeout ...
@@ -292,14 +228,8 @@ type ForEachState struct {
 type forEachStateForUnmarshal ForEachState
 
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
-	var timeout ForEachStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
 	v := forEachStateForUnmarshal{
-		Timeouts: &timeout,
-		Mode:     StateTypeParallel,
+		Mode: StateTypeParallel,
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -308,7 +238,6 @@ func (f *ForEachState) UnmarshalJSON(data []byte) error {
 
 	*f = ForEachState(v)
 	return nil
-
 }
 
 // ForEachStateTimeout ...
@@ -328,27 +257,6 @@ type CallbackState struct {
 	Timeouts CallbackStateTimeout `json:"timeouts" validate:"required"`
 	// Event data filter
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
-}
-
-type callbackStateForUnmarshal CallbackState
-
-func (c *CallbackState) UnmarshalJSON(data []byte) error {
-	var timeout CallbackStateTimeout
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
-	v := callbackStateForUnmarshal{
-		Timeouts: timeout,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("callbackState value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*c = CallbackState(v)
-	return nil
-
 }
 
 // CallbackStateTimeout ...

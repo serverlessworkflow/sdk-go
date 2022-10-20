@@ -21,6 +21,7 @@ import (
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
@@ -278,7 +279,8 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 type WorkflowExecTimeout struct {
 	// Duration Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
 	Duration string `json:"duration,omitempty" validate:"omitempty,min=1"`
-	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is abrupted.
+	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is
+	// abrupted terminated.
 	Interrupt bool `json:"interrupt,omitempty"`
 	// Name of a workflow state to be executed before workflow instance is terminated
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
@@ -560,26 +562,6 @@ type Branch struct {
 	Actions []Action `json:"actions" validate:"required,min=1"`
 	// Timeouts State specific timeouts
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
-}
-
-type branchForUnmarshal Branch
-
-// UnmarshalJSON unmarshal EventState object from json bytes
-func (b *Branch) UnmarshalJSON(data []byte) error {
-	var timeout BranchTimeouts
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		return err
-	}
-
-	v := branchForUnmarshal{
-		Timeouts: &timeout,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("branch.Timeouts value '%s' is not supported, it must be an object or string", string(data))
-	}
-	*b = Branch(v)
-	return nil
 }
 
 // BranchTimeouts ...

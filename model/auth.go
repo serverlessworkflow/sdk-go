@@ -19,7 +19,8 @@ import (
 	"fmt"
 	"reflect"
 
-	validator "github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
@@ -43,7 +44,7 @@ func AuthDefinitionsStructLevelValidation(structLevel validator.StructLevel) {
 
 // AuthDefinitions used to define authentication information applied to resources defined in the operation property of function definitions
 type AuthDefinitions struct {
-	Defs []Auth
+	Defs []Auth `json:"defs,omitempty"`
 }
 
 // AuthType ...
@@ -105,9 +106,12 @@ func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
 		return a.unmarshalFile(b)
 	case '[':
 		return a.unmarshalMany(b)
+	case '{': // single values are not supported, should we support it?
+		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(b))
+	default:
+		// nil can be returned as both cases are returning errors in case of unmarshal problem.
+		return nil
 	}
-
-	return fmt.Errorf("auth value '%s' is not supported, it must be an array or string", string(b))
 }
 
 func (a *AuthDefinitions) unmarshalFile(data []byte) error {

@@ -31,11 +31,9 @@ func TestAuthDefinitionsStructLevelValidation(t *testing.T) {
 	}
 	testCases := []testCase{
 		{
-			desp: "nil defs",
-			authDefs: AuthDefinitions{
-				Defs: nil,
-			},
-			err: ``,
+			desp:     "nil defs",
+			authDefs: AuthDefinitions{},
+			err:      ``,
 		},
 		{
 			desp: "zero length defs",

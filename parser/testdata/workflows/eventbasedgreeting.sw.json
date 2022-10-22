@@ -1,56 +1,52 @@
 {
-  "id": "eventbasedgreeting",
-  "version": "1.0",
-  "name": "Event Based Greeting Workflow",
-  "description": "Event Based Greeting",
-  "specVersion": "0.7",
-  "start": {
-    "stateName": "Greet"
-  },
-  "events": [
-    {
-      "name": "GreetingEvent",
-      "type": "greetingEventType",
-      "source": "greetingEventSource"
-    }
-  ],
-  "functions": [
-    {
-      "name": "greetingFunction",
-      "operation": "file://myapis/greetingapis.json#greeting"
-    }
-  ],
-  "states": [
-    {
-      "name": "Greet",
-      "type": "event",
-      "onEvents": [
+    "id": "eventbasedgreeting",
+    "version": "1.0",
+    "specVersion": "0.8",
+    "name": "Event Based Greeting Workflow",
+    "description": "Event Based Greeting",
+    "start": "Greet",
+    "events": [
         {
-          "eventRefs": [
-            "GreetingEvent"
-          ],
-          "eventDataFilter": {
-            "data": "${ .data | .greet }",
-            "useData": false
-          },
-          "actions": [
-            {
-              "functionRef": {
-                "refName": "greetingFunction",
-                "arguments": {
-                  "name": "${ .greet | .name }"
-                }
-              }
-            }
-          ]
+            "name": "GreetingEvent",
+            "type": "greetingEventType",
+            "source": "greetingEventSource"
         }
-      ],
-      "stateDataFilter": {
-        "output": "${ .payload | .greeting }"
-      },
-      "end": {
-        "terminate": true
-      }
-    }
-  ]
+    ],
+    "functions": [
+        {
+            "name": "greetingFunction",
+            "operation": "file://myapis/greetingapis.json#greeting"
+        }
+    ],
+    "states": [
+        {
+            "name": "Greet",
+            "type": "event",
+            "onEvents": [
+                {
+                    "eventRefs": [
+                        "GreetingEvent"
+                    ],
+                    "eventDataFilter": {
+                        "data": "${ .greet }",
+                        "toStateData": "${ .greet }"
+                    },
+                    "actions": [
+                        {
+                            "functionRef": {
+                                "refName": "greetingFunction",
+                                "arguments": {
+                                    "name": "${ .greet.name }"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "stateDataFilter": {
+                "output": "${ .payload.greeting }"
+            },
+            "end": true
+        }
+    ]
 }

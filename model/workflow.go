@@ -164,6 +164,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			if nestedData, err = getBytesFromFile(s); err != nil {
 				return err
 			}
+
 			m := make(map[string][]Event)
 			if err := json.Unmarshal(nestedData, &m); err != nil {
 				return err

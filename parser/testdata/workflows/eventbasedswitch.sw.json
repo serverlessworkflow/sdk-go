@@ -3,7 +3,7 @@
   "version": "1.0",
   "name": "Event Based Switch Transitions",
   "description": "Event Based Switch Transitions",
-  "specVersion": "0.7",
+  "specVersion": "0.8",
   "start": {
     "stateName": "CheckVisaStatus"
   },

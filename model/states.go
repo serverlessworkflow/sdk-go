@@ -41,11 +41,6 @@ const (
 	// StateTypeSleep ...
 	StateTypeSleep = "sleep"
 
-	// CompletionTypeAllOf ...
-	CompletionTypeAllOf CompletionType = "allOf"
-	// CompletionTypeAtLeast ...
-	CompletionTypeAtLeast CompletionType = "atLeast"
-
 	// ForEachModeTypeSequential ...
 	ForEachModeTypeSequential ForEachModeType = "sequential"
 	// ForEachModeTypeParallel ...
@@ -81,9 +76,6 @@ func getActionsModelMapping(stateType string, s map[string]interface{}) (State, 
 
 // StateType ...
 type StateType string
-
-// CompletionType Option types on how to complete branch execution.
-type CompletionType string
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
@@ -170,25 +162,6 @@ type OperationState struct {
 type OperationStateTimeout struct {
 	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-}
-
-// ParallelState Consists of a number of states that are executed in parallel
-type ParallelState struct {
-	BaseState
-	// Branch Definitions
-	Branches []Branch `json:"branches" validate:"required,min=1,dive"`
-	// Option types on how to complete branch execution.
-	CompletionType CompletionType `json:"completionType,omitempty"`
-	// Used when completionType is set to 'atLeast' to specify the minimum number of branches that must complete before the state will transition."
-	NumCompleted intstr.IntOrString `json:"numCompleted,omitempty"`
-	// State specific timeouts
-	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
-}
-
-// ParallelStateTimeout ...
-type ParallelStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	BranchExecTimeout string           `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
 // InjectState ...

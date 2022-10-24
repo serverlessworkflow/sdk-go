@@ -555,24 +555,6 @@ type StateDataFilter struct {
 	Output string `json:"output,omitempty"`
 }
 
-// Branch Definition
-type Branch struct {
-	// Branch name
-	Name string `json:"name" validate:"required"`
-	// Actions to be executed in this branch
-	Actions []Action `json:"actions" validate:"required,min=1"`
-	// Timeouts State specific timeouts
-	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
-}
-
-// BranchTimeouts ...
-type BranchTimeouts struct {
-	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
-	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
-	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
-}
-
 // DataInputSchema ...
 type DataInputSchema struct {
 	Schema                 string `json:"schema" validate:"required"`

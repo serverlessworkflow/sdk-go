@@ -4,7 +4,7 @@
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
   "start": "CheckApplication",
-  "specVersion": "0.7",
+  "specVersion": "0.8",
   "auth": "./testdata/workflows/urifiles/auth.json",
   "functions": [
     {

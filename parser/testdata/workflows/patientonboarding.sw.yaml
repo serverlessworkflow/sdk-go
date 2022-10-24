@@ -1,4 +1,4 @@
-# Copyright 2021 The Serverless Workflow Specification Authors
+# Copyright 2022 The Serverless Workflow Specification Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
 
 id: patientonboarding
 name: Patient Onboarding Workflow
-version: '1.0'
+version: "1.0"
+specVersion: "0.8"
 start: Onboard
-specVersion: "0.7"
 states:
   - name: Onboard
     type: event
@@ -25,12 +25,19 @@ states:
           - NewPatientEvent
         actions:
           - functionRef: StorePatient
+            retryRef: ServicesNotAvailableRetryStrategy
+            retryableErrors:
+              - ServiceNotAvailable
           - functionRef: AssignDoctor
+            retryRef: ServicesNotAvailableRetryStrategy
+            retryableErrors:
+              - ServiceNotAvailable
           - functionRef: ScheduleAppt
+            retryRef: ServicesNotAvailableRetryStrategy
+            retryableErrors:
+              - ServiceNotAvailable
     onErrors:
-      - error: ServiceNotAvailable
-        code: '503'
-        retryRef: ServicesNotAvailableRetryStrategy
+      - errorRef: ServiceNotAvailable
         end: true
     end: true
 events:
@@ -44,6 +51,9 @@ functions:
     operation: api/services.json#assignDoctor
   - name: ScheduleAppt
     operation: api/services.json#scheduleAppointment
+errors:
+  - name: ServiceNotAvailable
+    code: "503"
 retries:
   - name: ServicesNotAvailableRetryStrategy
     delay: PT3S

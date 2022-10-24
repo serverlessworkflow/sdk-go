@@ -292,8 +292,11 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if err := json.Unmarshal(eventBasedSwitch["timeouts"], &j.Timeouts); err != nil {
-		return err
+	eventBaseTimeoutsRawMessage, ok := eventBasedSwitch["timeouts"]
+	if ok {
+		if err := json.Unmarshal(eventBaseTimeoutsRawMessage, &j.Timeouts); err != nil {
+			return err
+		}
 	}
 
 	var rawConditions []json.RawMessage

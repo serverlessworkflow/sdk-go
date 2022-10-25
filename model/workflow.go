@@ -15,40 +15,59 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
+
+	"github.com/go-playground/validator/v10"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+)
+
+// InvokeKind defines how the target is invoked.
+type InvokeKind string
+
+const (
+	// InvokeKindSync meaning that worfklow execution should wait until the target completes.
+	InvokeKindSync InvokeKind = "sync"
+
+	// InvokeKindAsync meaning that workflow execution should just invoke the target and should not wait until its completion.
+	InvokeKindAsync InvokeKind = "async"
+)
+
+// ActionMode specifies how actions are to be performed.
+type ActionMode string
+
+const (
+	// ActionModeSequential specifies actions should be performed in sequence
+	ActionModeSequential ActionMode = "sequential"
+
+	// ActionModeParallel specifies actions should be performed in parallel
+	ActionModeParallel ActionMode = "parallel"
 )
 
 const (
 	// DefaultExpressionLang ...
 	DefaultExpressionLang = "jq"
-	// ActionModeSequential ...
-	ActionModeSequential ActionMode = "sequential"
-	// ActionModeParallel ...
-	ActionModeParallel ActionMode = "parallel"
+
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
 )
 
-var actionsModelMapping = map[string]func(state map[string]interface{}) State{
-	StateTypeDelay:     func(map[string]interface{}) State { return &DelayState{} },
-	StateTypeEvent:     func(map[string]interface{}) State { return &EventState{} },
-	StateTypeOperation: func(map[string]interface{}) State { return &OperationState{} },
-	StateTypeParallel:  func(map[string]interface{}) State { return &ParallelState{} },
-	StateTypeSwitch: func(s map[string]interface{}) State {
-		if _, ok := s["dataConditions"]; ok {
-			return &DataBasedSwitchState{}
-		}
-		return &EventBasedSwitchState{}
-	},
-	StateTypeInject:   func(map[string]interface{}) State { return &InjectState{} },
-	StateTypeForEach:  func(map[string]interface{}) State { return &ForEachState{} },
-	StateTypeCallback: func(map[string]interface{}) State { return &CallbackState{} },
-	StateTypeSleep:    func(map[string]interface{}) State { return &SleepState{} },
+func init() {
+	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
 }
 
-// ActionMode ...
-type ActionMode string
+func continueAsStructLevelValidation(structLevel validator.StructLevel) {
+	continueAs := structLevel.Current().Interface().(ContinueAs)
+	if len(continueAs.WorkflowExecTimeout.Duration) > 0 {
+		if err := val.ValidateISO8601TimeDuration(continueAs.WorkflowExecTimeout.Duration); err != nil {
+			structLevel.ReportError(reflect.ValueOf(continueAs.WorkflowExecTimeout.Duration),
+				"workflowExecTimeout", "duration", "iso8601duration", "")
+		}
+	}
+}
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
@@ -122,10 +141,13 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(rawState, &mapState); err != nil {
 			return err
 		}
-		if _, ok := actionsModelMapping[mapState["type"].(string)]; !ok {
+
+		actionsMode, ok := getActionsModelMapping(mapState["type"].(string), mapState)
+		if !ok {
 			return fmt.Errorf("state %s not supported", mapState["type"])
 		}
-		state := actionsModelMapping[mapState["type"].(string)](mapState)
+		state := actionsMode
+
 		if err := json.Unmarshal(rawState, &state); err != nil {
 			return err
 		}
@@ -142,6 +164,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 			if nestedData, err = getBytesFromFile(s); err != nil {
 				return err
 			}
+
 			m := make(map[string][]Event)
 			if err := json.Unmarshal(nestedData, &m); err != nil {
 				return err
@@ -257,7 +280,8 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 type WorkflowExecTimeout struct {
 	// Duration Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
 	Duration string `json:"duration,omitempty" validate:"omitempty,min=1"`
-	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is abrupted.
+	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is
+	// abrupted terminated.
 	Interrupt bool `json:"interrupt,omitempty"`
 	// Name of a workflow state to be executed before workflow instance is terminated
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
@@ -434,18 +458,6 @@ type OnError struct {
 	End *End `json:"end,omitempty"`
 }
 
-// OnEvents ...
-type OnEvents struct {
-	// References one or more unique event names in the defined workflow events
-	EventRefs []string `json:"eventRefs" validate:"required,min=1"`
-	// Specifies how actions are to be performed (in sequence of parallel)
-	ActionMode ActionMode `json:"actionMode,omitempty"`
-	// Actions to be performed if expression matches
-	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
-	// Event data filter
-	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
-}
-
 // End definition
 type End struct {
 	// If true, completes all execution flows in the given workflow instance
@@ -482,14 +494,46 @@ func (e *End) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ContinueAs ...
+// ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
 type ContinueAs struct {
-	WorkflowRef
+	// Unique id of the workflow to continue execution as.
+	WorkflowID string `json:"workflowId" validate:"required"`
+	// Version of the workflow to continue execution as.
+	Version string `json:"version,omitempty"`
+
 	// TODO: add object or string data type
-	// If string type, an expression which selects parts of the states data output to become the workflow data input of continued execution. If object type, a custom object to become the workflow data input of the continued execution
+	// If string type, an expression which selects parts of the states data output to become the workflow data input of
+	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
 	Data interface{} `json:"data,omitempty"`
 	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
+}
+
+type continueAsForUnmarshal ContinueAs
+
+func (c *ContinueAs) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	var err error
+	switch data[0] {
+	case '"':
+		c.WorkflowID, err = unmarshalString(data)
+		return err
+	case '{':
+		v := continueAsForUnmarshal{}
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			return err
+		}
+
+		*c = ContinueAs(v)
+		return nil
+	}
+
+	return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
 }
 
 // ProduceEvent ...
@@ -509,24 +553,6 @@ type StateDataFilter struct {
 	Input string `json:"input,omitempty"`
 	// Workflow expression that filters the state data output
 	Output string `json:"output,omitempty"`
-}
-
-// Branch Definition
-type Branch struct {
-	// Branch name
-	Name string `json:"name" validate:"required"`
-	// Actions to be executed in this branch
-	Actions []Action `json:"actions" validate:"required,min=1"`
-	// Timeouts State specific timeouts
-	Timeouts BranchTimeouts `json:"timeouts,omitempty"`
-}
-
-// BranchTimeouts ...
-type BranchTimeouts struct {
-	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
-	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
-	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
 // DataInputSchema ...

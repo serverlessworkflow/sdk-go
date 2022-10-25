@@ -14,27 +14,9 @@
 
 package model
 
-import (
-	"github.com/go-playground/validator/v10"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-)
-
-func init() {
-	val.GetValidator().RegisterStructValidation(
-		DelayStateStructLevelValidation,
-		DelayState{},
-	)
-}
-
 // DelayState Causes the workflow execution to delay for a specified duration
 type DelayState struct {
 	BaseState
 	// Amount of time (ISO 8601 format) to delay
 	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
-}
-
-// DelayStateStructLevelValidation custom validator for DelayState Struct
-func DelayStateStructLevelValidation(structLevel validator.StructLevel) {
-	// TODO
 }

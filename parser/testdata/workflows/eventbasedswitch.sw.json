@@ -3,8 +3,10 @@
   "version": "1.0",
   "name": "Event Based Switch Transitions",
   "description": "Event Based Switch Transitions",
-  "specVersion": "0.7",
-  "start": "CheckVisaStatus",
+  "specVersion": "0.8",
+  "start": {
+    "stateName": "CheckVisaStatus"
+  },
   "events": [
     {
       "name": "visaApprovedEvent",
@@ -35,7 +37,9 @@
           }
         }
       ],
-      "eventTimeout": "PT1H",
+      "timeouts": {
+        "eventTimeout": "PT1H"
+      },
       "defaultCondition": {
         "transition": {
           "nextState": "HandleNoVisaDecision"

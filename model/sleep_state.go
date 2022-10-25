@@ -26,5 +26,5 @@ type SleepState struct {
 
 // SleepStateTimeout defines timeout settings for sleep state
 type SleepStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }

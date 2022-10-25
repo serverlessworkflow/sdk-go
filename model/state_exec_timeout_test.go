@@ -71,7 +71,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			data: `PT10S`,
 
 			expect: &StateExecTimeout{},
-			err:    `stateExecTimeout value 'PT10S' not support, it must be an object or string`,
+			err:    `stateExecTimeout value 'PT10S' is not supported, it must be an object or string`,
 		},
 		{
 			desp: "invalid total type",

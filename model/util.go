@@ -17,10 +17,13 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"sigs.k8s.io/yaml"
 )
 
 const prefix = "file:/"
@@ -49,6 +52,17 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	if b, err = os.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err
 	}
+
+	// TODO: optimize this
+	// NOTE: In specification, we can declared independently definitions with another file format, so
+	// we must convert independently yaml source to json format data before unmarshal.
+	if strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".yml") {
+		b, err = yaml.YAMLToJSON(b)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return b, nil
 }
 
@@ -70,7 +84,7 @@ func unmarshalString(data []byte) (string, error) {
 func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {
 	if _, found := data[key]; found {
 		if err := json.Unmarshal(data[key], output); err != nil {
-			return err
+			return fmt.Errorf("failed to  unmarshall key '%s' with data'%s'", key, data[key])
 		}
 	}
 	return nil

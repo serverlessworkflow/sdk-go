@@ -1,85 +1,75 @@
 {
-  "id": "applicantrequest",
-  "version": "1.0",
-  "name": "Applicant Request Decision Workflow",
-  "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
-  "specVersion": "0.7",
-  "auth": [{
-    "name": "testAuth",
-    "scheme": "bearer",
-    "properties": {
-      "token": "test_token"
-    }
-  }],
-  "functions": [
-    {
-      "name": "sendRejectionEmailFunction",
-      "operation": "http://myapis.org/applicationapi.json#emailRejection"
-    }
-  ],
-  "retries": [
-    {
-      "name": "TimeoutRetryStrategy",
-      "delay": "PT1M",
-      "maxAttempts": "5"
-    }
-  ],
-  "states": [
-    {
-      "name": "CheckApplication",
-      "type": "switch",
-      "dataConditions": [
+    "id": "applicantrequest",
+    "version": "1.0",
+    "specVersion": "0.8",
+    "name": "Applicant Request Decision Workflow",
+    "description": "Determine if applicant request is valid",
+    "start": "CheckApplication",
+    "functions": [
         {
-          "condition": "${ .applicants | .age >= 18 }",
-          "transition": {
-            "nextState": "StartApplication"
-          }
+            "name": "sendRejectionEmailFunction",
+            "operation": "http://myapis.org/applicationapi.json#emailRejection"
+        }
+    ],
+    "auth": [
+        {
+            "name": "testAuth",
+            "scheme": "bearer",
+            "properties": {
+                "token": "test_token"
+            }
+        }
+    ],
+    "retries": [
+        {
+            "name": "TimeoutRetryStrategy",
+            "delay": "PT1M",
+            "maxAttempts": "5"
+        }
+    ],
+    "states": [
+        {
+            "name": "CheckApplication",
+            "type": "switch",
+            "dataConditions": [
+                {
+                    "condition": "${ .applicants | .age >= 18 }",
+                    "transition": "StartApplication"
+                },
+                {
+                    "condition": "${ .applicants | .age < 18 }",
+                    "transition": "RejectApplication"
+                }
+            ],
+            "defaultCondition": {
+                "transition": "RejectApplication"
+            }
         },
         {
-          "condition": "${ .applicants | .age < 18 }",
-          "transition": {
-            "nextState": "RejectApplication"
-          }
-        }
-      ],
-      "defaultCondition": {
-        "transition": {
-          "nextState": "RejectApplication"
-        }
-      }
-    },
-    {
-      "name": "StartApplication",
-      "type": "operation",
-      "actions": [
+            "name": "StartApplication",
+            "type": "operation",
+            "actions": [
+                {
+                    "subFlowRef": "startApplicationWorkflowId"
+                }
+            ],
+            "end": true
+        },
         {
-          "subFlowRef": {
-            "workflowId": "startApplicationWorkflowId"
-          }
+            "name": "RejectApplication",
+            "type": "operation",
+            "actionMode": "sequential",
+            "actions": [
+                {
+                    "functionRef": {
+                        "refName": "sendRejectionEmailFunction",
+                        "arguments": {
+                            "applicant": "${ .applicant }"
+                        }
+                    }
+                }
+            ],
+            "end": true
         }
-      ],
-      "end": {
-        "terminate": true
-      }
-    },
-    {
-      "name": "RejectApplication",
-      "type": "operation",
-      "actionMode": "sequential",
-      "actions": [
-        {
-          "functionRef": {
-            "refName": "sendRejectionEmailFunction",
-            "arguments": {
-              "applicant": "${ .applicant }"
-            }
-          }
-        }
-      ],
-      "end": {
-        "terminate": true
-      }
-    }
-  ]
+    ]
 }

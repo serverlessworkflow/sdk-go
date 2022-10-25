@@ -37,6 +37,7 @@ type ActionDataFilter struct {
 
 type actionDataFilterForUnmarshal ActionDataFilter
 
+// UnmarshalJSON implements json.Unmarshaler
 func (f *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {

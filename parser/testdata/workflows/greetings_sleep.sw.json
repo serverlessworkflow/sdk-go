@@ -1,79 +1,46 @@
 {
-  "id": "applicantrequest",
-  "version": "1.0",
-  "name": "Applicant Request Decision Workflow",
-  "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
-  "specVersion": "0.7",
-  "auth": "file://testdata/workflows/urifiles/auth.json",
-  "functions": [
-    {
-      "name": "sendRejectionEmailFunction",
-      "operation": "http://myapis.org/applicationapi.json#emailRejection"
-    }
-  ],
-  "retries": [
-    {
-      "name": "TimeoutRetryStrategy",
-      "delay": "PT1M",
-      "maxAttempts": "5"
-    }
-  ],
-  "states": [
-    {
-      "name": "CheckApplication",
-      "type": "switch",
-      "dataConditions": [
-        {
-          "condition": "${ .applicants | .age >= 18 }",
-          "transition": {
-            "nextState": "StartApplication"
-          }
+    "id": "greeting",
+    "version": "1.0",
+    "name": "Greeting Workflow",
+    "description": "Greet Someone",
+    "specVersion": "0.8",
+    "start": {
+      "stateName": "Greet"
+    },
+    "functions": [
+      {
+        "name": "greetingFunction",
+        "operation": "file://myapis/greetingapis.json#greeting"
+      }
+    ],
+    "states": [
+      {
+        "name": "SleepHere",
+        "type": "sleep",
+        "timeouts": {
+          "stateExecTimeout": "PT10S"
         },
-        {
-          "condition": "${ .applicants | .age < 18 }",
-          "transition": {
-            "nextState": "RejectApplication"
-          }
-        }
-      ],
-      "defaultCondition": {
-        "transition": {
-          "nextState": "RejectApplication"
-        }
-      }
-    },
-    {
-      "name": "StartApplication",
-      "type": "operation",
-      "actions": [
-        {
-          "subFlowRef": {
-            "workflowId": "startApplicationWorkflowId"
-          }
-        }
-      ],
-      "end": {
-        "terminate": true
-      }
-    },
-    {
-      "name": "RejectApplication",
-      "type": "operation",
-      "actionMode": "sequential",
-      "actions": [
-        {
-          "functionRef": {
-            "refName": "sendRejectionEmailFunction",
-            "arguments": {
-              "applicant": "${ .applicant }"
+        "duration": "PT40S"
+      },
+      {
+        "name": "Greet",
+        "type": "operation",
+        "actions": [
+          {
+            "functionRef": {
+              "refName": "greetingFunction",
+              "parameters": {
+                "name": "${ .person | .name }"
+              }
+            },
+            "actionDataFilter": {
+              "toStateData": "${ .greeting }"
             }
           }
+        ],
+        "end": {
+          "terminate": true
         }
-      ],
-      "end": {
-        "terminate": true
       }
-    }
-  ]
+    ]
 }

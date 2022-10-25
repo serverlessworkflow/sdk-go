@@ -16,12 +16,13 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
-	//StateTypeDelay ...
+	// StateTypeDelay ...
 	StateTypeDelay = "delay"
 	// StateTypeEvent ...
 	StateTypeEvent = "event"
@@ -40,22 +41,41 @@ const (
 	// StateTypeSleep ...
 	StateTypeSleep = "sleep"
 
-	// CompletionTypeAllOf ...
-	CompletionTypeAllOf CompletionType = "allOf"
-	// CompletionTypeAtLeast ...
-	CompletionTypeAtLeast CompletionType = "atLeast"
-
 	// ForEachModeTypeSequential ...
 	ForEachModeTypeSequential ForEachModeType = "sequential"
 	// ForEachModeTypeParallel ...
 	ForEachModeTypeParallel ForEachModeType = "parallel"
 )
 
+func getActionsModelMapping(stateType string, s map[string]interface{}) (State, bool) {
+	switch stateType {
+	case StateTypeDelay:
+		return &DelayState{}, true
+	case StateTypeEvent:
+		return &EventState{}, true
+	case StateTypeOperation:
+		return &OperationState{}, true
+	case StateTypeParallel:
+		return &ParallelState{}, true
+	case StateTypeSwitch:
+		if _, ok := s["dataConditions"]; ok {
+			return &DataBasedSwitchState{}, true
+		}
+		return &EventBasedSwitchState{}, true
+	case StateTypeInject:
+		return &InjectState{}, true
+	case StateTypeForEach:
+		return &ForEachState{}, true
+	case StateTypeCallback:
+		return &CallbackState{}, true
+	case StateTypeSleep:
+		return &SleepState{}, true
+	}
+	return nil, false
+}
+
 // StateType ...
 type StateType string
-
-// CompletionType Option types on how to complete branch execution.
-type CompletionType string
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
@@ -127,58 +147,6 @@ func (s *BaseState) GetStateDataFilter() *StateDataFilter { return s.StateDataFi
 // GetMetadata ...
 func (s *BaseState) GetMetadata() *Metadata { return s.Metadata }
 
-// EventState This state is used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
-type EventState struct {
-	BaseState
-	// If true consuming one of the defined events causes its associated actions to be performed. If false all of the defined events must be consumed in order for actions to be performed
-	Exclusive bool `json:"exclusive,omitempty"`
-	// Define the events to be consumed and optional actions to be performed
-	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
-	// State specific timeouts
-	Timeout *EventStateTimeout `json:"timeouts,omitempty"`
-}
-
-// UnmarshalJSON ...
-func (e *EventState) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &e.BaseState); err != nil {
-		return err
-	}
-
-	eventStateMap := make(map[string]interface{})
-	if err := json.Unmarshal(data, &eventStateMap); err != nil {
-		return err
-	}
-
-	e.Exclusive = true
-
-	if eventStateMap["exclusive"] != nil {
-		exclusiveVal, ok := eventStateMap["exclusive"].(bool)
-		if ok {
-			e.Exclusive = exclusiveVal
-		}
-	}
-
-	eventStateRaw := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &eventStateRaw); err != nil {
-		return err
-	}
-	if err := json.Unmarshal(eventStateRaw["onEvents"], &e.OnEvents); err != nil {
-		return err
-	}
-	if err := unmarshalKey("timeouts", eventStateRaw, &e.Timeout); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// EventStateTimeout ...
-type EventStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
-	EventTimeout      string           `json:"eventTimeout,omitempty"`
-}
-
 // OperationState Defines actions be performed. Does not wait for incoming events
 type OperationState struct {
 	BaseState
@@ -192,27 +160,8 @@ type OperationState struct {
 
 // OperationStateTimeout ...
 type OperationStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-}
-
-// ParallelState Consists of a number of states that are executed in parallel
-type ParallelState struct {
-	BaseState
-	// Branch Definitions
-	Branches []Branch `json:"branches" validate:"required,min=1,dive"`
-	// Option types on how to complete branch execution.
-	CompletionType CompletionType `json:"completionType,omitempty"`
-	// Used when completionType is set to 'atLeast' to specify the minimum number of branches that must complete before the state will transition."
-	NumCompleted intstr.IntOrString `json:"numCompleted,omitempty"`
-	// State specific timeouts
-	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
-}
-
-// ParallelStateTimeout ...
-type ParallelStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	BranchExecTimeout string           `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
 // InjectState ...
@@ -226,7 +175,7 @@ type InjectState struct {
 
 // InjectStateTimeout ...
 type InjectStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
 // ForEachState ...
@@ -245,13 +194,29 @@ type ForEachState struct {
 	// State specific timeout
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
 	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
+	// Defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
+}
+
+type forEachStateForUnmarshal ForEachState
+
+func (f *ForEachState) UnmarshalJSON(data []byte) error {
+	v := forEachStateForUnmarshal{
+		Mode: StateTypeParallel,
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return fmt.Errorf("forEachState value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	*f = ForEachState(v)
+	return nil
 }
 
 // ForEachStateTimeout ...
 type ForEachStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
 }
 
 // CallbackState ...
@@ -269,9 +234,9 @@ type CallbackState struct {
 
 // CallbackStateTimeout ...
 type CallbackStateTimeout struct {
-	StateExecTimeout  StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string           `json:"actionExecTimeout,omitempty"`
-	EventTimeout      string           `json:"eventTimeout,omitempty"`
+	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
+	EventTimeout      string            `json:"eventTimeout,omitempty"`
 }
 
 // BaseSwitchState ...
@@ -290,7 +255,7 @@ type EventBasedSwitchState struct {
 	Timeouts *EventBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
-// UnmarshalJSON implementation for json Unmarshal function for the Eventbasedswitch type
+// UnmarshalJSON implementation for json Unmarshal function for the EventBasedSwitch type
 func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
 		return err
@@ -299,10 +264,15 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &eventBasedSwitch); err != nil {
 		return err
 	}
-	var rawConditions []json.RawMessage
-	if err := unmarshalKey("timeouts", eventBasedSwitch, &j.Timeouts); err != nil {
-		return err
+
+	eventBaseTimeoutsRawMessage, ok := eventBasedSwitch["timeouts"]
+	if ok {
+		if err := json.Unmarshal(eventBaseTimeoutsRawMessage, &j.Timeouts); err != nil {
+			return err
+		}
 	}
+
+	var rawConditions []json.RawMessage
 	if err := json.Unmarshal(eventBasedSwitch["eventConditions"], &rawConditions); err != nil {
 		return err
 	}
@@ -324,13 +294,14 @@ func (j *EventBasedSwitchState) UnmarshalJSON(data []byte) error {
 		}
 		j.EventConditions[i] = condition
 	}
+
 	return nil
 }
 
 // EventBasedSwitchStateTimeout ...
 type EventBasedSwitchStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	EventTimeout     string           `json:"eventTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	EventTimeout     string            `json:"eventTimeout,omitempty"`
 }
 
 // EventCondition ...
@@ -385,7 +356,7 @@ type DataBasedSwitchState struct {
 	Timeouts       *DataBasedSwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
-// UnmarshalJSON implementation for json Unmarshal function for the Databasedswitch type
+// UnmarshalJSON implementation for json Unmarshal function for the DataBasedSwitch type
 func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &j.BaseSwitchState); err != nil {
 		return err
@@ -394,10 +365,10 @@ func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &dataBasedSwitch); err != nil {
 		return err
 	}
-	var rawConditions []json.RawMessage
-	if err := unmarshalKey("timeouts", dataBasedSwitch, &j.Timeouts); err != nil {
+	if err := json.Unmarshal(data, &j.Timeouts); err != nil {
 		return err
 	}
+	var rawConditions []json.RawMessage
 	if err := json.Unmarshal(dataBasedSwitch["dataConditions"], &rawConditions); err != nil {
 		return err
 	}
@@ -423,7 +394,7 @@ func (j *DataBasedSwitchState) UnmarshalJSON(data []byte) error {
 
 // DataBasedSwitchStateTimeout ...
 type DataBasedSwitchStateTimeout struct {
-	StateExecTimeout StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
 // DataCondition ...

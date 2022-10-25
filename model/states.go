@@ -150,26 +150,6 @@ type InjectStateTimeout struct {
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }
 
-// CallbackState ...
-type CallbackState struct {
-	BaseState
-	// Defines the action to be executed
-	Action Action `json:"action" validate:"required"`
-	// References a unique callback event name in the defined workflow events
-	EventRef string `json:"eventRef" validate:"required"`
-	// Time period to wait for incoming events (ISO 8601 format)
-	Timeouts CallbackStateTimeout `json:"timeouts" validate:"required"`
-	// Event data filter
-	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
-}
-
-// CallbackStateTimeout ...
-type CallbackStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
-	EventTimeout      string            `json:"eventTimeout,omitempty"`
-}
-
 // BaseSwitchState ...
 type BaseSwitchState struct {
 	BaseState

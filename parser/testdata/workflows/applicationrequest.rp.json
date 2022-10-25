@@ -4,11 +4,9 @@
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
   "specVersion": "0.8",
-  "start": {
-    "stateName": "CheckApplication"
-  },
-  "functions": "testdata/applicationrequestfunctions.json",
-  "retries": "testdata/applicationrequestretries.json",
+  "start": "CheckApplication",
+  "functions": "file://testdata/applicationrequestfunctions.json",
+  "retries": "file://testdata/applicationrequestretries.json",
   "states": [
     {
       "name": "CheckApplication",

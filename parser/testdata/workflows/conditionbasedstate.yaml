@@ -34,6 +34,6 @@ states:
           toStateData: "${ .payload | .greeting }"
         condition: "${ .applicants | .age < 18 }"
     stateDataFilter:
-      dataOutputPath: "${ .greeting }"
+      output: "${ .greeting }"
     end:
       terminate: true

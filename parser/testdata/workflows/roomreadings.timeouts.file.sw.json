@@ -4,7 +4,7 @@
   "version": "1.0",
   "specVersion": "0.8",
   "start": "ConsumeReading",
-  "timeouts": "testdata/timeouts.json",
+  "timeouts": "file://testdata/timeouts.json",
   "keepActive": true,
   "states": [
     {

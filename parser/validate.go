@@ -21,52 +21,64 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 	"sigs.k8s.io/yaml"
 )
 
 func validateSchema(fs embed.FS, path string, schema *jsonschema.Schema) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	workflowFilePaths, err := os.ReadDir(path)
 	if err != nil {
 		return err
 	}
 
+	var result error
+
 	for _, f := range workflowFilePaths {
 		if f.IsDir() {
-			if err := validateSchema(fs, fmt.Sprintf("%s/%s", path, f.Name()), schema); err != nil {
-				return err
+			if err = validateSchema(fs, fmt.Sprintf("%s/%s", path, f.Name()), schema); err != nil {
+				result = multierror.Append(result, err)
 			}
 			continue
 		}
 
 		var jsonBytes []byte
+		relativeFilePath := fmt.Sprintf("%s/%s", path, f.Name())
 		switch filepath.Ext(f.Name()) {
 		case extYAML:
 			fallthrough
 		case extYML:
-			fileBytes, err := os.ReadFile(fmt.Sprintf("%s/%s", path, f.Name()))
+			fileBytes, err := os.ReadFile(relativeFilePath)
 			if err != nil {
-				return err
+				result = multierror.Append(result, err)
+				continue
 			}
 			if jsonBytes, err = yaml.YAMLToJSON(fileBytes); err != nil {
-				return err
+				result = multierror.Append(result, err)
+				continue
 			}
 		case extJSON:
-			jsonBytes, err = os.ReadFile(fmt.Sprintf("%s/%s", path, f.Name()))
+			jsonBytes, err = os.ReadFile(relativeFilePath)
 			if err != nil {
-				return err
+				result = multierror.Append(result, err)
+				continue
 			}
 		default:
-			fmt.Printf("skipping %s\n", f.Name())
+			result = multierror.Append(result, fmt.Errorf("skipping %s/%s", cwd, relativeFilePath))
 			continue
 		}
 		err = validateYamlAgainstSchema(jsonBytes, schema)
 		if err != nil {
-			return fmt.Errorf("%s:%w", f.Name(), err)
+			result = multierror.Append(result, fmt.Errorf("%w\n%s/%s:", err, cwd, relativeFilePath))
+			continue
 		}
 	}
-	return nil
+	return result
 }
 
 func validateYamlAgainstSchema(jsonBytes []byte, schema *jsonschema.Schema) error {

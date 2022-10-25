@@ -121,7 +121,7 @@ states:
         total: PT1S
         single: PT2S
     stateDataFilter:
-      dataOutputPath: "${ .greeting }"
+      output: "${ .greeting }"
     transition: SendTextForHighPriority
   - name: SendTextForHighPriority
     type: foreach

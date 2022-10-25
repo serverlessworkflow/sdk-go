@@ -147,23 +147,6 @@ func (s *BaseState) GetStateDataFilter() *StateDataFilter { return s.StateDataFi
 // GetMetadata ...
 func (s *BaseState) GetMetadata() *Metadata { return s.Metadata }
 
-// OperationState Defines actions be performed. Does not wait for incoming events
-type OperationState struct {
-	BaseState
-	// Specifies whether actions are performed in sequence or in parallel
-	ActionMode ActionMode `json:"actionMode,omitempty"`
-	// Actions to be performed
-	Actions []Action `json:"actions" validate:"required,min=1,dive"`
-	// State specific timeouts
-	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
-}
-
-// OperationStateTimeout ...
-type OperationStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-}
-
 // InjectState ...
 type InjectState struct {
 	BaseState

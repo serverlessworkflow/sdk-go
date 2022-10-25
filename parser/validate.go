@@ -18,10 +18,11 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"github.com/santhosh-tekuri/jsonschema/v5"
-	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 	"os"
 	"path/filepath"
+
+	"github.com/santhosh-tekuri/jsonschema/v5"
+	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 	"sigs.k8s.io/yaml"
 )
 

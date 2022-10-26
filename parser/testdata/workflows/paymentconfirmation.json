@@ -4,8 +4,8 @@
     "specVersion": "0.8",
     "name": "Payment Confirmation Workflow",
     "description": "Performs Payment Confirmation",
-    "functions": "functiondefs.json",
-    "events": "eventdefs.yml",
+    "functions": "file://functiondefs.json",
+    "events": "file://eventdefs.yml",
     "states": [
         {
             "name": "PaymentReceived",

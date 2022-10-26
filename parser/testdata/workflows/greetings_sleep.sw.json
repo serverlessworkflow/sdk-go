@@ -18,7 +18,8 @@
         "timeouts": {
           "stateExecTimeout": "PT10S"
         },
-        "duration": "PT40S"
+        "duration": "PT40S",
+        "transition": "Greet"
       },
       {
         "name": "Greet",
@@ -27,7 +28,7 @@
           {
             "functionRef": {
               "refName": "greetingFunction",
-              "parameters": {
+              "arguments": {
                 "name": "${ .person | .name }"
               }
             },

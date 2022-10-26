@@ -5,7 +5,7 @@
   "description": "Event Based Greeting",
   "specVersion": "0.8",
   "start": "Greet",
-  "events": "testdata/eventbasedgreetingevents.json",
+  "events": "file://testdata/eventbasedgreetingevents.json",
   "functions": [
     {
       "name": "greetingFunction",

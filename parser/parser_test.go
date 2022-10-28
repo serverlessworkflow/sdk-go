@@ -15,8 +15,10 @@
 package parser
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -171,11 +173,11 @@ func TestFromFile(t *testing.T) {
 				assert.NotEmpty(t, operationState.Actions)
 				assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 				assert.NotNil(t, w.Auth)
-				assert.NotNil(t, w.Auth.Defs)
-				assert.Equal(t, len(w.Auth.Defs), 1)
-				assert.Equal(t, "testAuth", w.Auth.Defs[0].Name)
-				assert.Equal(t, model.AuthTypeBearer, w.Auth.Defs[0].Scheme)
-				bearerProperties := w.Auth.Defs[0].Properties.(*model.BearerAuthProperties).Token
+				auth := w.Auth.([]*model.Auth)
+				assert.Equal(t, len(auth), 1)
+				assert.Equal(t, "testAuth", auth[0].Name)
+				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
+				bearerProperties := auth[0].Properties.(*model.BearerAuthProperties).Token
 				assert.Equal(t, "test_token", bearerProperties)
 			},
 		}, {
@@ -194,15 +196,15 @@ func TestFromFile(t *testing.T) {
 				assert.NotEmpty(t, operationState.Actions)
 				assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 				assert.NotNil(t, w.Auth)
-				assert.NotNil(t, w.Auth.Defs)
-				assert.Equal(t, len(w.Auth.Defs), 2)
-				assert.Equal(t, "testAuth", w.Auth.Defs[0].Name)
-				assert.Equal(t, model.AuthTypeBearer, w.Auth.Defs[0].Scheme)
-				bearerProperties := w.Auth.Defs[0].Properties.(*model.BearerAuthProperties).Token
+				auth := w.Auth.([]*model.Auth)
+				assert.Equal(t, len(auth), 2)
+				assert.Equal(t, "testAuth", auth[0].Name)
+				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
+				bearerProperties := auth[0].Properties.(*model.BearerAuthProperties).Token
 				assert.Equal(t, "test_token", bearerProperties)
-				assert.Equal(t, "testAuth2", w.Auth.Defs[1].Name)
-				assert.Equal(t, model.AuthTypeBasic, w.Auth.Defs[1].Scheme)
-				basicProperties := w.Auth.Defs[1].Properties.(*model.BasicAuthProperties)
+				assert.Equal(t, "testAuth2", auth[1].Name)
+				assert.Equal(t, model.AuthTypeBasic, auth[1].Scheme)
+				basicProperties := auth[1].Properties.(*model.BasicAuthProperties)
 				assert.Equal(t, "test_user", basicProperties.Username)
 				assert.Equal(t, "test_pwd", basicProperties.Password)
 			},
@@ -496,4 +498,139 @@ func TestFromFile(t *testing.T) {
 			},
 		)
 	}
+}
+
+func TestUnmarshalWorkflowBasicTests(t *testing.T) {
+	t.Run("BasicWorkflowYamlNoAuthDefs", func(t *testing.T) {
+		workflow, err := FromYAMLSource([]byte(`
+id: helloworld
+version: '1.0.0'
+specVersion: '0.8'
+name: Hello World Workflow
+description: Inject Hello World
+start: Hello State
+states:
+- name: Hello State
+  type: inject
+  data:
+    result: Hello World!
+  end: true
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow)
+
+		b, err := json.Marshal(workflow)
+		assert.Nil(t, err)
+		assert.True(t, !strings.Contains(string(b), "auth"))
+
+		workflow = nil
+		err = json.Unmarshal(b, &workflow)
+		assert.Nil(t, err)
+	})
+
+	t.Run("BasicWorkflowBasicAuthJSONSource", func(t *testing.T) {
+		workflow, err := FromJSONSource([]byte(`
+{
+  "id": "applicantrequest",
+  "version": "1.0",
+  "name": "Applicant Request Decision Workflow",
+  "description": "Determine if applicant request is valid",
+  "start": "CheckApplication",
+  "specVersion": "0.8",
+  "auth": [
+    {
+      "name": "testAuth",
+      "scheme": "bearer",
+      "properties": {
+        "token": "test_token"
+      }
+    },
+    {
+      "name": "testAuth2",
+      "scheme": "basic",
+      "properties": {
+        "username": "test_user",
+        "password": "test_pwd"
+      }
+    }
+  ],
+  "states": [
+    {
+	  "name": "Hello State",
+	  "type": "inject",
+      "data": {
+		"result": "Hello World!"
+	  },
+	  "end": true
+    }
+  ]
+}
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow.Auth)
+
+		b, _ := json.Marshal(workflow)
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{},\"data\":{\"result\":\"Hello World!\"}}]}",
+			string(b))
+
+	})
+
+	t.Run("BasicWorkflowBasicAuthStringJSONSource", func(t *testing.T) {
+		workflow, err := FromJSONSource([]byte(`
+{
+  "id": "applicantrequest",
+  "version": "1.0",
+  "name": "Applicant Request Decision Workflow",
+  "description": "Determine if applicant request is valid",
+  "start": "CheckApplication",
+  "specVersion": "0.8",
+  "auth": "./testdata/workflows/urifiles/auth.json",
+  "states": [
+    {
+	  "name": "Hello State",
+	  "type": "inject",
+      "data": {
+		"result": "Hello World!"
+	  },
+	  "end": true
+    }
+  ]
+}
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow.Auth)
+
+		b, _ := json.Marshal(workflow)
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{},\"data\":{\"result\":\"Hello World!\"}}]}",
+			string(b))
+
+	})
+
+	t.Run("BasicWorkflowInteger", func(t *testing.T) {
+		workflow, err := FromJSONSource([]byte(`
+{
+  "id": "applicantrequest",
+  "version": "1.0",
+  "name": "Applicant Request Decision Workflow",
+  "description": "Determine if applicant request is valid",
+  "start": "CheckApplication",
+  "specVersion": "0.7",
+  "auth": 123,
+  "states": [
+    {
+	  "name": "Hello State",
+	  "type": "inject",
+      "data": {
+		"result": "Hello World!"
+	  },
+	  "end": true
+    }
+  ]
+}
+`))
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "auth value '123' is not supported, it must be an object or string", err.Error())
+		assert.Nil(t, workflow)
+	})
 }

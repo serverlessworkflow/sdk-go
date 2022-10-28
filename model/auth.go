@@ -17,35 +17,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
-
-	"github.com/go-playground/validator/v10"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidation(AuthDefinitionsStructLevelValidation, AuthDefinitions{})
-}
-
-// AuthDefinitionsStructLevelValidation custom validator for unique name of the auth methods
-func AuthDefinitionsStructLevelValidation(structLevel validator.StructLevel) {
-	authDefs := structLevel.Current().Interface().(AuthDefinitions)
-	dict := map[string]bool{}
-
-	for _, a := range authDefs.Defs {
-		if !dict[a.Name] {
-			dict[a.Name] = true
-		} else {
-			structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
-		}
-	}
-}
-
-// AuthDefinitions used to define authentication information applied to resources defined in the operation property of function definitions
-type AuthDefinitions struct {
-	Defs []Auth `json:"defs,omitempty"`
-}
 
 // AuthType ...
 type AuthType string
@@ -91,47 +63,6 @@ type Auth struct {
 	Scheme AuthType `json:"scheme,omitempty" validate:"omitempty,min=1"`
 	// Properties ...
 	Properties AuthProperties `json:"properties" validate:"required"`
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (a *AuthDefinitions) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
-		// TODO: Normalize error messages
-		return fmt.Errorf("no bytes to unmarshal")
-	}
-
-	// See if we can guess based on the first character
-	switch b[0] {
-	case '"':
-		return a.unmarshalFile(b)
-	case '[':
-		return a.unmarshalMany(b)
-	case '{': // single values are not supported, should we support it?
-		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(b))
-	default:
-		// nil can be returned as both cases are returning errors in case of unmarshal problem.
-		return nil
-	}
-}
-
-func (a *AuthDefinitions) unmarshalFile(data []byte) error {
-	b, err := unmarshalFile(data)
-	if err != nil {
-		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	return a.unmarshalMany(b)
-}
-
-func (a *AuthDefinitions) unmarshalMany(data []byte) error {
-	var auths []Auth
-	err := json.Unmarshal(data, &auths)
-	if err != nil {
-		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	a.Defs = auths
-	return nil
 }
 
 // UnmarshalJSON Auth definition

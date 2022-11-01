@@ -57,6 +57,7 @@ const (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
+	val.GetValidator().RegisterStructValidation(BaseWorkflowStructLevelValidation, BaseWorkflow{})
 }
 
 func continueAsStructLevelValidation(structLevel validator.StructLevel) {
@@ -108,7 +109,60 @@ type BaseWorkflow struct {
 	// Auth definitions can be used to define authentication information that should be applied to resources defined in the operation
 	// property of function definitions. It is not used as authentication information for the function invocation,
 	// but just to access the resource containing the function invocation information.
-	Auth interface{} `json:"auth,omitempty"`
+	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
+}
+
+// BaseWorkflowStructLevelValidation custom validator for unique name of the auth methods
+func BaseWorkflowStructLevelValidation(structLevel validator.StructLevel) {
+	// NOTE: we cannot add the custom validation of auth to AuthArray
+	// because `RegisterStructValidation` only works with struct type
+	wf := structLevel.Current().Interface().(BaseWorkflow)
+	dict := map[string]bool{}
+
+	for _, a := range wf.Auth {
+		if !dict[a.Name] {
+			dict[a.Name] = true
+		} else {
+			structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
+		}
+	}
+}
+
+type AuthArray []Auth
+
+func (r *AuthArray) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return fmt.Errorf("no bytes to unmarshal")
+	}
+
+	switch data[0] {
+	case '"':
+		return r.unmarshalFile(data)
+	case '[':
+		return r.unmarshalMany(data)
+	}
+
+	return fmt.Errorf("auth value '%s' is not supported, it must be an array or string", string(data))
+}
+
+func (r *AuthArray) unmarshalFile(data []byte) error {
+	b, err := unmarshalFile(data)
+	if err != nil {
+		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	return r.unmarshalMany(b)
+}
+
+func (r *AuthArray) unmarshalMany(data []byte) error {
+	var auths []Auth
+	err := json.Unmarshal(data, &auths)
+	if err != nil {
+		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
+	}
+
+	*r = auths
+	return nil
 }
 
 // Workflow base definition
@@ -131,32 +185,32 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if len(workflowMap["auth"]) > 0 {
-		var auth []*Auth
-		if err := json.Unmarshal(workflowMap["auth"], &auth); err != nil {
+	// if len(workflowMap["auth"]) > 0 {
+	// 	var auth []*Auth
+	// 	if err := json.Unmarshal(workflowMap["auth"], &auth); err != nil {
 
-			b, err := unmarshalFile(workflowMap["auth"])
-			if err != nil {
-				return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(workflowMap["auth"]))
-			}
-			err = json.Unmarshal(b, &auth)
-			if err != nil {
-				return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(b))
-			}
-		}
+	// 		b, err := unmarshalFile(workflowMap["auth"])
+	// 		if err != nil {
+	// 			return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(workflowMap["auth"]))
+	// 		}
+	// 		err = json.Unmarshal(b, &auth)
+	// 		if err != nil {
+	// 			return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(b))
+	// 		}
+	// 	}
 
-		// detect duplicated auth.Name
-		dict := map[string]bool{}
-		for _, a := range auth {
-			if !dict[a.Name] {
-				dict[a.Name] = true
-			} else {
-				// TODO is there a way to report error with validator here?
-				return fmt.Errorf("auth field '%s.Name' must be unique", reflect.TypeOf(a))
-			}
-		}
-		w.BaseWorkflow.Auth = auth
-	}
+	// 	// detect duplicated auth.Name
+	// 	dict := map[string]bool{}
+	// 	for _, a := range auth {
+	// 		if !dict[a.Name] {
+	// 			dict[a.Name] = true
+	// 		} else {
+	// 			// TODO is there a way to report error with validator here?
+	// 			return fmt.Errorf("auth field '%s.Name' must be unique", reflect.TypeOf(a))
+	// 		}
+	// 	}
+	// 	w.BaseWorkflow.Auth = auth
+	// }
 
 	var rawStates []json.RawMessage
 	if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {

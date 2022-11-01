@@ -16,6 +16,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,6 +49,10 @@ func TestCustomValidators(t *testing.T) {
 	assert.NoError(t, err)
 	for _, file := range files {
 		if !file.IsDir() {
+			if file.Name() == "applicationrequest.authdupl.json" {
+				fmt.Println(file.Name())
+			}
+
 			_, err := FromFile(filepath.Join(rootPath, file.Name()))
 			assert.Error(t, err, "Test File %s", file.Name())
 		}
@@ -173,7 +178,7 @@ func TestFromFile(t *testing.T) {
 				assert.NotEmpty(t, operationState.Actions)
 				assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 				assert.NotNil(t, w.Auth)
-				auth := w.Auth.([]*model.Auth)
+				auth := w.Auth
 				assert.Equal(t, len(auth), 1)
 				assert.Equal(t, "testAuth", auth[0].Name)
 				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
@@ -196,7 +201,7 @@ func TestFromFile(t *testing.T) {
 				assert.NotEmpty(t, operationState.Actions)
 				assert.Equal(t, "startApplicationWorkflowId", operationState.Actions[0].SubFlowRef.WorkflowID)
 				assert.NotNil(t, w.Auth)
-				auth := w.Auth.([]*model.Auth)
+				auth := w.Auth
 				assert.Equal(t, len(auth), 2)
 				assert.Equal(t, "testAuth", auth[0].Name)
 				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
@@ -630,7 +635,7 @@ states:
 `))
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "auth value '123' is not supported, it must be an object or string", err.Error())
+		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
 		assert.Nil(t, workflow)
 	})
 }

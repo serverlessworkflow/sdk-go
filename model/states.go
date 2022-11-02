@@ -16,9 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
-
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -40,11 +37,6 @@ const (
 	StateTypeCallback = "callback"
 	// StateTypeSleep ...
 	StateTypeSleep = "sleep"
-
-	// ForEachModeTypeSequential ...
-	ForEachModeTypeSequential ForEachModeType = "sequential"
-	// ForEachModeTypeParallel ...
-	ForEachModeTypeParallel ForEachModeType = "parallel"
 )
 
 func getActionsModelMapping(stateType string, s map[string]interface{}) (State, bool) {
@@ -76,9 +68,6 @@ func getActionsModelMapping(stateType string, s map[string]interface{}) (State, 
 
 // StateType ...
 type StateType string
-
-// ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
-type ForEachModeType string
 
 // State definition for a Workflow state
 type State interface {
@@ -176,47 +165,6 @@ type InjectState struct {
 // InjectStateTimeout ...
 type InjectStateTimeout struct {
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-}
-
-// ForEachState ...
-type ForEachState struct {
-	BaseState
-	// Workflow expression selecting an array element of the states data
-	InputCollection string `json:"inputCollection" validate:"required"`
-	// Workflow expression specifying an array element of the states data to add the results of each iteration
-	OutputCollection string `json:"outputCollection,omitempty"`
-	// Name of the iteration parameter that can be referenced in actions/workflow. For each parallel iteration, this param should contain an unique element of the inputCollection array
-	IterationParam string `json:"iterationParam,omitempty"`
-	// Specifies how upper bound on how many iterations may run in parallel
-	BatchSize intstr.IntOrString `json:"batchSize,omitempty"`
-	// Actions to be executed for each of the elements of inputCollection
-	Actions []Action `json:"actions,omitempty"`
-	// State specific timeout
-	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
-	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
-	// Defaults to parallel
-	Mode ForEachModeType `json:"mode,omitempty"`
-}
-
-type forEachStateForUnmarshal ForEachState
-
-func (f *ForEachState) UnmarshalJSON(data []byte) error {
-	v := forEachStateForUnmarshal{
-		Mode: StateTypeParallel,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("forEachState value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*f = ForEachState(v)
-	return nil
-}
-
-// ForEachStateTimeout ...
-type ForEachStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty"`
 }
 
 // CallbackState ...

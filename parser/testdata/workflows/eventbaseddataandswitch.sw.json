@@ -26,7 +26,12 @@
           "condition": "${ true }",
           "transition": "CheckVisaStatus"
         }
-      ]
+      ],
+      "defaultCondition": {
+        "transition": {
+          "nextState": "CheckVisaStatus"
+        }
+      }
     },
     {
       "name": "CheckVisaStatus",

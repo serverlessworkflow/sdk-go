@@ -31,7 +31,10 @@
         "type": "switch",
         "dataConditions": [
           {
-            "condition": "${ .applicants | .age >= 18 }"
+            "condition": "${ .applicants | .age >= 18 }",
+            "transition": {
+              "nextState": "StartApplication"
+            }
           },
           {
             "condition": "${ .applicants | .age < 18 }",

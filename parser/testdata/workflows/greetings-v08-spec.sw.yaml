@@ -16,6 +16,16 @@ id: custom.greeting
 version: '1.0'
 specVersion: "0.8"
 description: Greet Someone
+events:
+  - name: ProducedEvent
+    type: new.event
+    source: newevent/+
+  - name: ConsumedEvent
+    type: new.event
+    source: newevent/+
+  - name: CreditCheckCompletedEvent
+    type: new.event
+    source: newevent/+
 # name: Greeting example #can be empty
 # start: Greet #can be empty
 functions:
@@ -30,8 +40,8 @@ functions:
     operation: file://myapis/greetingapis.json#greeting
 states:
   - name: GreetDelay
-    type: delay
-    timeDelay: PT5S
+    type: sleep
+    duration: PT5S
     transition:
       nextState: StoreCarAuctionBid
   - name: StoreCarAuctionBid
@@ -56,6 +66,7 @@ states:
       stateExecTimeout:
         total: PT1S
         single: PT2S
+    transition: ParallelExec
   - name: ParallelExec
     type: parallel
     completionType: allOf
@@ -74,6 +85,7 @@ states:
       stateExecTimeout:
         total: PT1S
         single: PT2S
+    transition: CheckVisaStatusSwitchEventBased
   - name: CheckVisaStatusSwitchEventBased
     type: switch
     eventConditions:
@@ -96,23 +108,20 @@ states:
           nextState: StartApplication
     defaultCondition:
       transition: RejectApplication
-    stateExecTimeout:
-      total: PT1S
-      single: PT2S
+    timeouts:
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
   - name: GreetSequential
     type: operation
     actionMode: sequential
     actions:
       - name: greetingCustomFunction
-        functionRef:
-          refName: greetingCustomFunction
-          arguments:
-            name: "${ .greet | .name }"
         actionDataFilter:
-          dataResultsPath: "${ .payload | .greeting }"
+          results: "${ .payload | .greeting }"
         eventRef:
-          triggerEventRef: example
-          resultEventRef: example
+          triggerEventRef: producedEvent
+          resultEventRef: consumedEvent
           # Added "resultEventTimeout" for action eventref
           resultEventTimeout: PT1H
     timeouts:
@@ -132,16 +141,12 @@ states:
           refName: sendTextFunction
           arguments:
             message: "${ .singlemessage }"
-        eventRef:
-          triggerEventRef: example1
-          resultEventRef: example1
-          # Added "resultEventTimeout" for action eventref
-          resultEventTimeout: PT12H
     timeouts:
       actionExecTimeout: PT11H
       stateExecTimeout:
         total: PT11S
         single: PT22S
+    transition: HelloInject
   - name: HelloInject
     type: inject
     data:
@@ -150,6 +155,7 @@ states:
       stateExecTimeout:
         total: PT11M
         single: PT22M
+    transition: CheckCreditCallback
   - name: CheckCreditCallback
     type: callback
     action:
@@ -167,10 +173,10 @@ states:
       stateExecTimeout:
         total: PT115M
         single: PT22M
+    transition: WaitForCompletionSleep
   - name: WaitForCompletionSleep
     type: sleep
     duration: PT5S
-    transition: GetJobStatus
     timeouts:
       stateExecTimeout:
         total: PT100S

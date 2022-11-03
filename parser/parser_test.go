@@ -16,7 +16,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,10 +48,6 @@ func TestCustomValidators(t *testing.T) {
 	assert.NoError(t, err)
 	for _, file := range files {
 		if !file.IsDir() {
-			if file.Name() == "applicationrequest.authdupl.json" {
-				fmt.Println(file.Name())
-			}
-
 			_, err := FromFile(filepath.Join(rootPath, file.Name()))
 			assert.Error(t, err, "Test File %s", file.Name())
 		}

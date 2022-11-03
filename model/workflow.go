@@ -185,33 +185,6 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// if len(workflowMap["auth"]) > 0 {
-	// 	var auth []*Auth
-	// 	if err := json.Unmarshal(workflowMap["auth"], &auth); err != nil {
-
-	// 		b, err := unmarshalFile(workflowMap["auth"])
-	// 		if err != nil {
-	// 			return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(workflowMap["auth"]))
-	// 		}
-	// 		err = json.Unmarshal(b, &auth)
-	// 		if err != nil {
-	// 			return fmt.Errorf("auth value '%s' is not supported, it must be an object or string", string(b))
-	// 		}
-	// 	}
-
-	// 	// detect duplicated auth.Name
-	// 	dict := map[string]bool{}
-	// 	for _, a := range auth {
-	// 		if !dict[a.Name] {
-	// 			dict[a.Name] = true
-	// 		} else {
-	// 			// TODO is there a way to report error with validator here?
-	// 			return fmt.Errorf("auth field '%s.Name' must be unique", reflect.TypeOf(a))
-	// 		}
-	// 	}
-	// 	w.BaseWorkflow.Auth = auth
-	// }
-
 	var rawStates []json.RawMessage
 	if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
 		return err

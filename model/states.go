@@ -136,20 +136,6 @@ func (s *BaseState) GetStateDataFilter() *StateDataFilter { return s.StateDataFi
 // GetMetadata ...
 func (s *BaseState) GetMetadata() *Metadata { return s.Metadata }
 
-// InjectState ...
-type InjectState struct {
-	BaseState
-	// JSON object which can be set as states data input and can be manipulated via filters
-	Data map[string]interface{} `json:"data" validate:"required,min=1"`
-	// State specific timeouts
-	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
-}
-
-// InjectStateTimeout ...
-type InjectStateTimeout struct {
-	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-}
-
 // BaseSwitchState ...
 type BaseSwitchState struct {
 	BaseState

@@ -37,7 +37,7 @@
           }
         }
       ],
-      "default": {
+      "defaultCondition": {
         "transition": {
           "nextState": "RejectApplication"
         }

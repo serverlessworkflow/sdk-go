@@ -403,12 +403,6 @@ func (s *Start) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// DefaultCondition Can be either a transition or end definition
-type DefaultCondition struct {
-	Transition *Transition `json:"transition,omitempty"`
-	End        *End        `json:"end,omitempty"`
-}
-
 // Schedule ...
 type Schedule struct {
 	// Time interval (must be repeating interval) described with ISO 8601 format. Declares when workflow instances will be automatically created.

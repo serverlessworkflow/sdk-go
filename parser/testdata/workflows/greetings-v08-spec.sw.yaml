@@ -96,9 +96,10 @@ states:
           nextState: StartApplication
     defaultCondition:
       transition: RejectApplication
-    stateExecTimeout:
-      total: PT1S
-      single: PT2S
+    timeouts:
+      stateExecTimeout:
+        total: PT1S
+        single: PT2S
   - name: GreetSequential
     type: operation
     actionMode: sequential

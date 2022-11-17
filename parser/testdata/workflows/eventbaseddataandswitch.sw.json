@@ -1,102 +1,107 @@
 {
-  "id": "eventbaseddataandswitch",
-  "version": "1.0",
-  "name": "Event Based Switch Transitions",
-  "description": "Event Based Switch Transitions with Event Database Condition",
-  "specVersion": "0.8",
-  "start": {
-    "stateName": "Start"
-  },
-  "events": [
-    {
-      "name": "visaApprovedEvent",
-      "type": "VisaApproved",
-      "source": "visaCheckSource"
+    "id": "eventbaseddataandswitch",
+    "version": "1.0",
+    "name": "Event Based Switch Transitions",
+    "description": "Event Based Switch Transitions with Event Database Condition",
+    "specVersion": "0.8",
+    "start": {
+        "stateName": "Start"
     },
-    {
-      "name": "visaRejectedEvent",
-      "type": "VisaRejected",
-      "source": "visaCheckSource"
-    }
-  ],
-  "states": [
-    {
-      "name": "Start",
-      "type": "switch",
-      "dataConditions": [
+    "events": [
         {
-          "condition": "${ true }",
-          "transition": "CheckVisaStatus"
-        }
-      ]
-    },
-    {
-      "name": "CheckVisaStatus",
-      "type": "switch",
-      "eventConditions": [
-        {
-          "eventRef": "visaApprovedEvent",
-          "transition": {
-            "nextState": "HandleApprovedVisa"
-          }
+            "name": "visaApprovedEvent",
+            "type": "VisaApproved",
+            "source": "visaCheckSource"
         },
         {
-          "eventRef": "visaRejectedEvent",
-          "transition": {
-            "nextState": "HandleRejectedVisa"
-          }
+            "name": "visaRejectedEvent",
+            "type": "VisaRejected",
+            "source": "visaCheckSource"
         }
-      ],
-      "timeouts": {
-        "eventTimeout": "PT1H"
-      },
-      "defaultCondition": {
-        "transition": {
-          "nextState": "HandleNoVisaDecision"
-        }
-      }
-    },
-    {
-      "name": "HandleApprovedVisa",
-      "type": "operation",
-      "actions": [
+    ],
+    "states": [
         {
-          "subFlowRef": {
-            "workflowId": "handleApprovedVisaWorkflowID"
-          }
-        }
-      ],
-      "end": {
-        "terminate": true
-      }
-    },
-    {
-      "name": "HandleRejectedVisa",
-      "type": "operation",
-      "actions": [
+            "name": "Start",
+            "type": "switch",
+            "dataConditions": [
+                {
+                    "condition": "${ true }",
+                    "transition": "CheckVisaStatus"
+                }
+            ],
+            "defaultCondition": {
+                "transition": {
+                    "nextState": "CheckVisaStatus"
+                }
+            }
+        },
         {
-          "subFlowRef": {
-            "workflowId": "handleRejectedVisaWorkflowID"
-          }
-        }
-      ],
-      "end": {
-        "terminate": true
-      }
-    },
-    {
-      "name": "HandleNoVisaDecision",
-      "type": "operation",
-      "actions": [
+            "name": "CheckVisaStatus",
+            "type": "switch",
+            "eventConditions": [
+                {
+                    "eventRef": "visaApprovedEvent",
+                    "transition": {
+                        "nextState": "HandleApprovedVisa"
+                    }
+                },
+                {
+                    "eventRef": "visaRejectedEvent",
+                    "transition": {
+                        "nextState": "HandleRejectedVisa"
+                    }
+                }
+            ],
+            "timeouts": {
+                "eventTimeout": "PT1H"
+            },
+            "defaultCondition": {
+                "transition": {
+                    "nextState": "HandleNoVisaDecision"
+                }
+            }
+        },
         {
-          "subFlowRef": {
-            "workflowId": "handleNoVisaDecisionWorkfowId"
-          }
+            "name": "HandleApprovedVisa",
+            "type": "operation",
+            "actions": [
+                {
+                    "subFlowRef": {
+                        "workflowId": "handleApprovedVisaWorkflowID"
+                    }
+                }
+            ],
+            "end": {
+                "terminate": true
+            }
+        },
+        {
+            "name": "HandleRejectedVisa",
+            "type": "operation",
+            "actions": [
+                {
+                    "subFlowRef": {
+                        "workflowId": "handleRejectedVisaWorkflowID"
+                    }
+                }
+            ],
+            "end": {
+                "terminate": true
+            }
+        },
+        {
+            "name": "HandleNoVisaDecision",
+            "type": "operation",
+            "actions": [
+                {
+                    "subFlowRef": {
+                        "workflowId": "handleNoVisaDecisionWorkfowId"
+                    }
+                }
+            ],
+            "end": {
+                "terminate": true
+            }
         }
-      ],
-      "end": {
-        "terminate": true
-      }
-    }
-  ]
+    ]
 }

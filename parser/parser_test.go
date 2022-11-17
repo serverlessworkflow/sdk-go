@@ -91,9 +91,9 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "Event Based Switch Transitions", w.Name)
 				assert.Equal(t, "Start", w.States[0].GetName())
 				assert.Equal(t, "CheckVisaStatus", w.States[1].GetName())
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				assert.IsType(t, &model.EventBasedSwitchState{}, w.States[1])
-				assert.Equal(t, "PT1H", w.States[1].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				assert.IsType(t, &model.SwitchState{}, w.States[1])
+				assert.Equal(t, "PT1H", w.States[1].(*model.SwitchState).Timeouts.EventTimeout)
 			},
 		}, {
 			"./testdata/workflows/conditionbasedstate.yaml", func(t *testing.T, w *model.Workflow) {
@@ -150,21 +150,21 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/eventbasedswitch.sw.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Event Based Switch Transitions", w.Name)
-				assert.IsType(t, &model.EventBasedSwitchState{}, w.States[0])
-				eventState := w.States[0].(*model.EventBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				eventState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.EventConditions)
 				assert.NotEmpty(t, eventState.Name)
-				assert.IsType(t, &model.TransitionEventCondition{}, eventState.EventConditions[0])
+				assert.IsType(t, model.EventCondition{}, eventState.EventConditions[0])
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Applicant Request Decision Workflow", w.Name)
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				eventState := w.States[0].(*model.DataBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				eventState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
-				assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
+				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
 				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 				assert.Equal(t, "CheckApplication", w.Start.StateName)
 				assert.IsType(t, &model.OperationState{}, w.States[1])
@@ -183,11 +183,11 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/applicationrequest.multiauth.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Applicant Request Decision Workflow", w.Name)
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				eventState := w.States[0].(*model.DataBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				eventState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
-				assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
+				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
 				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 				assert.Equal(t, "CheckApplication", w.Start.StateName)
 				assert.IsType(t, &model.OperationState{}, w.States[1])
@@ -211,20 +211,20 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Applicant Request Decision Workflow", w.Name)
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				eventState := w.States[0].(*model.DataBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				eventState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
-				assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
+				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
 				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.url.json", func(t *testing.T, w *model.Workflow) {
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				eventState := w.States[0].(*model.DataBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				eventState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
-				assert.IsType(t, &model.TransitionDataCondition{}, eventState.DataConditions[0])
+				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
 				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 			},
 		}, {
@@ -263,8 +263,8 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/applicationrequest-issue16.sw.yaml", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Applicant Request Decision Workflow", w.Name)
-				assert.IsType(t, &model.DataBasedSwitchState{}, w.States[0])
-				dataBaseSwitchState := w.States[0].(*model.DataBasedSwitchState)
+				assert.IsType(t, &model.SwitchState{}, w.States[0])
+				dataBaseSwitchState := w.States[0].(*model.SwitchState)
 				assert.NotNil(t, dataBaseSwitchState)
 				assert.NotEmpty(t, dataBaseSwitchState.DataConditions)
 				assert.Equal(t, "CheckApplication", w.States[0].GetName())
@@ -321,13 +321,13 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/continue-as-example.yaml", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Notify Customer", w.Name)
-				eventState := w.States[1].(*model.DataBasedSwitchState)
+				eventState := w.States[1].(*model.SwitchState)
 
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
-				assert.IsType(t, &model.EndDataCondition{}, eventState.DataConditions[0])
+				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
 
-				endDataCondition := eventState.DataConditions[0].(*model.EndDataCondition)
+				endDataCondition := eventState.DataConditions[0]
 				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowID)
 				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.Version)
 				assert.Equal(t, "${ del(.customerCount) }", endDataCondition.End.ContinueAs.Data)
@@ -397,28 +397,28 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT2S", w.States[2].(*model.ParallelState).Timeouts.StateExecTimeout.Single)
 
 				// Switch state
-				assert.NotEmpty(t, w.States[3].(*model.EventBasedSwitchState).EventConditions)
+				assert.NotEmpty(t, w.States[3].(*model.SwitchState).EventConditions)
 				assert.Equal(t, "CheckVisaStatusSwitchEventBased", w.States[3].GetName())
 				assert.Equal(t, model.StateType("switch"), w.States[3].GetType())
-				assert.Equal(t, "PT1H", w.States[3].(*model.EventBasedSwitchState).Timeouts.EventTimeout)
-				assert.Equal(t, "PT1S", w.States[3].(*model.EventBasedSwitchState).Timeouts.StateExecTimeout.Total)
-				assert.Equal(t, "PT2S", w.States[3].(*model.EventBasedSwitchState).Timeouts.StateExecTimeout.Single)
+				assert.Equal(t, "PT1H", w.States[3].(*model.SwitchState).Timeouts.EventTimeout)
+				assert.Equal(t, "PT1S", w.States[3].(*model.SwitchState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[3].(*model.SwitchState).Timeouts.StateExecTimeout.Single)
 				assert.Equal(t, &model.Transition{
 					NextState: "HandleNoVisaDecision",
-				}, w.States[3].(*model.EventBasedSwitchState).DefaultCondition.Transition)
+				}, w.States[3].(*model.SwitchState).DefaultCondition.Transition)
 
 				//  DataBasedSwitchState
-				dataBased := w.States[4].(*model.DataBasedSwitchState)
+				dataBased := w.States[4].(*model.SwitchState)
 				assert.NotEmpty(t, dataBased.DataConditions)
 				assert.Equal(t, "CheckApplicationSwitchDataBased", w.States[4].GetName())
-				dataCondition := dataBased.DataConditions[0].(*model.TransitionDataCondition)
+				dataCondition := dataBased.DataConditions[0]
 				assert.Equal(t, "${ .applicants | .age >= 18 }", dataCondition.Condition)
 				assert.Equal(t, "StartApplication", dataCondition.Transition.NextState)
 				assert.Equal(t, &model.Transition{
 					NextState: "RejectApplication",
-				}, w.States[4].(*model.DataBasedSwitchState).DefaultCondition.Transition)
-				assert.Equal(t, "PT1S", w.States[4].(*model.DataBasedSwitchState).Timeouts.StateExecTimeout.Total)
-				assert.Equal(t, "PT2S", w.States[4].(*model.DataBasedSwitchState).Timeouts.StateExecTimeout.Single)
+				}, w.States[4].(*model.SwitchState).DefaultCondition.Transition)
+				assert.Equal(t, "PT1S", w.States[4].(*model.SwitchState).Timeouts.StateExecTimeout.Total)
+				assert.Equal(t, "PT2S", w.States[4].(*model.SwitchState).Timeouts.StateExecTimeout.Single)
 
 				// operation state
 				assert.NotEmpty(t, w.States[5].(*model.OperationState).Actions)
@@ -631,6 +631,167 @@ states:
 
 		assert.NotNil(t, err)
 		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
+		assert.Nil(t, workflow)
+	})
+}
+
+func TestUnmarshalWorkflowSwitchState(t *testing.T) {
+	t.Run("WorkflowSwitchStateEventConditions", func(t *testing.T) {
+		workflow, err := FromYAMLSource([]byte(`
+id: helloworld
+version: '1.0.0'
+specVersion: '0.8'
+name: Hello World Workflow
+description: Inject Hello World
+start: Hello State
+states:
+- name: Hello State
+  type: switch
+  eventConditions:
+  - eventRef: visaApprovedEvent
+    transition:
+      nextState: HandleApprovedVisa
+  - eventRef: visaRejectedEvent
+    transition:
+      nextState: HandleRejectedVisa
+  defaultCondition:
+    transition:
+      nextState: HandleNoVisaDecision
+- name: HandleApprovedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleRejectedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleRejectedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleNoVisaDecision
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleNoVisaDecisionWorkfowId
+  end:
+    terminate: true
+
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow)
+
+		b, err := json.Marshal(workflow)
+		assert.Nil(t, err)
+		assert.True(t, strings.Contains(string(b), "eventConditions"))
+
+		workflow = nil
+		err = json.Unmarshal(b, &workflow)
+		assert.Nil(t, err)
+	})
+
+	t.Run("WorkflowSwitchStateDataConditions", func(t *testing.T) {
+		workflow, err := FromYAMLSource([]byte(`
+id: helloworld
+version: '1.0.0'
+specVersion: '0.8'
+name: Hello World Workflow
+description: Inject Hello World
+start: Hello State
+states:
+- name: Hello State
+  type: switch
+  dataConditions:
+  - condition: ${ true }
+    transition:
+      nextState: HandleApprovedVisa
+  - condition: ${ false }
+    transition:
+      nextState: HandleRejectedVisa
+  defaultCondition:
+    transition:
+      nextState: HandleNoVisaDecision
+- name: HandleApprovedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleRejectedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleRejectedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleNoVisaDecision
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleNoVisaDecisionWorkfowId
+  end:
+    terminate: true
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow)
+
+		b, err := json.Marshal(workflow)
+		assert.Nil(t, err)
+		assert.True(t, strings.Contains(string(b), "dataConditions"))
+
+		workflow = nil
+		err = json.Unmarshal(b, &workflow)
+		assert.Nil(t, err)
+	})
+
+	t.Run("WorkflowSwitchStateDataConditions with wrong field name", func(t *testing.T) {
+		workflow, err := FromYAMLSource([]byte(`
+id: helloworld
+version: '1.0.0'
+specVersion: '0.8'
+name: Hello World Workflow
+description: Inject Hello World
+start: Hello State
+states:
+- name: Hello State
+  type: switch
+  dataCondition:
+  - condition: ${ true }
+    transition:
+      nextState: HandleApprovedVisa
+  - condition: ${ false }
+    transition:
+      nextState: HandleRejectedVisa
+  defaultCondition:
+    transition:
+      nextState: HandleNoVisaDecision
+- name: HandleApprovedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleRejectedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleRejectedVisaWorkflowID
+  end:
+    terminate: true
+- name: HandleNoVisaDecision
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleNoVisaDecisionWorkfowId
+  end:
+    terminate: true
+`))
+		assert.Error(t, err)
+		assert.Regexp(t, `validation for \'DataConditions\' failed on the \'required\' tag`, err)
 		assert.Nil(t, workflow)
 	})
 }

@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 
 	"sigs.k8s.io/yaml"
 )
@@ -44,11 +45,20 @@ func getBytesFromFile(s string) (b []byte, err error) {
 		}
 		return buf.Bytes(), nil
 	}
-	if strings.HasPrefix(s, prefix) {
-		s = strings.TrimPrefix(s, prefix)
-	} else if s, err = filepath.Abs(s); err != nil {
-		return nil, err
+	s = strings.TrimPrefix(s, prefix)
+
+	if !filepath.IsAbs(s) {
+		// The import file is an non-absolute path, we join it with include path
+		// TODO: if the file didn't find in any include path, we should report an error
+		for _, p := range IncludePaths() {
+			sn := filepath.Join(p, s)
+			if _, err := os.Stat(sn); err == nil {
+				s = sn
+				break
+			}
+		}
 	}
+
 	if b, err = os.ReadFile(filepath.Clean(s)); err != nil {
 		return nil, err
 	}
@@ -103,4 +113,31 @@ func unmarshalFile(data []byte) (b []byte, err error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+var defaultIncludePaths atomic.Value
+
+func init() {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	SetIncludePaths([]string{wd})
+}
+
+// IncludePaths will return the search path for non-absolute import file
+func IncludePaths() []string {
+	return defaultIncludePaths.Load().([]string)
+}
+
+// SetIncludePaths will update the search path for non-absolute import file
+func SetIncludePaths(paths []string) {
+	for _, path := range paths {
+		if !filepath.IsAbs(path) {
+			panic(fmt.Errorf("%s must be an absolute file path", path))
+		}
+	}
+
+	defaultIncludePaths.Store(paths)
 }

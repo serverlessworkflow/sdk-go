@@ -24,12 +24,16 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
+	"github.com/serverlessworkflow/sdk-go/v2/test"
 )
 
 func TestBasicValidation(t *testing.T) {
 	rootPath := "./testdata/workflows"
 	files, err := os.ReadDir(rootPath)
 	assert.NoError(t, err)
+
+	model.SetIncludePaths(append(model.IncludePaths(), filepath.Join(test.CurrentProjectPath(), "./parser/testdata")))
+
 	for _, file := range files {
 		if !file.IsDir() {
 			workflow, err := FromFile(filepath.Join(rootPath, file.Name()))

@@ -15,21 +15,17 @@
 package model
 
 import (
+	"fmt"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestIncludePaths(t *testing.T) {
-	assert.NotNil(t, IncludePaths())
-	assert.True(t, len(IncludePaths()) > 0)
-
-	// update include paths
-	paths := []string{"/root", "/path"}
-	SetIncludePaths(paths)
-	assert.Equal(t, IncludePaths(), paths)
-
-	assert.PanicsWithError(t, "1 must be an absolute file path", assert.PanicTestFunc(func() {
-		SetIncludePaths([]string{"1"})
-	}))
+func Benchmark_IncludePaths_Parallel(b *testing.B) {
+	b.RunParallel(func(p *testing.PB) {
+		i := 0
+		for p.Next() {
+			IncludePaths()
+			SetIncludePaths([]string{fmt.Sprintf("%v", i)})
+			i++
+		}
+	})
 }

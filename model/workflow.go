@@ -551,7 +551,7 @@ type ContinueAs struct {
 	Version string `json:"version,omitempty"`
 	// If string type, an expression which selects parts of the states data output to become the workflow data input of
 	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
-	Data SwObject `json:"data,omitempty"`
+	Data Object `json:"data,omitempty"`
 	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }

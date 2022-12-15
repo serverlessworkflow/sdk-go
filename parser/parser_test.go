@@ -213,8 +213,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "test_user", basicProperties.Username)
 				assert.Equal(t, "test_pwd", basicProperties.Password)
 				// metadata
-				assert.Equal(t, model.Metadata{"metadata1": model.SwObject{Object: model.String("metadata1")}, "metadata2": model.SwObject{Object: model.String("metadata2")}}, w.Metadata)
-				assert.Equal(t, &model.Metadata{"auth1": model.SwObject{Object: model.String("auth1")}, "auth2": model.SwObject{Object: model.String("auth2")}}, auth[0].Properties.GetMetadata())
+				assert.Equal(t, model.Metadata{"metadata1": model.Object{IObject: model.String("metadata1")}, "metadata2": model.Object{IObject: model.String("metadata2")}}, w.Metadata)
+				assert.Equal(t, &model.Metadata{"auth1": model.Object{IObject: model.String("auth1")}, "auth2": model.Object{IObject: model.String("auth2")}}, auth[0].Properties.GetMetadata())
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {
@@ -338,7 +338,7 @@ func TestFromFile(t *testing.T) {
 				endDataCondition := eventState.DataConditions[0]
 				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowID)
 				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.Version)
-				assert.Equal(t, model.SwObject{Object: model.String("${ del(.customerCount) }")}, endDataCondition.End.ContinueAs.Data)
+				assert.Equal(t, model.Object{IObject: model.String("${ del(.customerCount) }")}, endDataCondition.End.ContinueAs.Data)
 				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
 				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
 				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
@@ -390,8 +390,8 @@ func TestFromFile(t *testing.T) {
 
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[0].FunctionRef)
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef)
-				assert.Equal(t, model.SwObject{Object: model.String("${ .patientInfo }")}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.Data)
-				assert.Equal(t, map[string]model.SwObject{"customer": {Object: model.String("${ .customer }")}, "time": {Object: model.Integer(48)}}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.ContextAttributes)
+				assert.Equal(t, model.Object{IObject: model.String("${ .patientInfo }")}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.Data)
+				assert.Equal(t, map[string]model.Object{"customer": {IObject: model.String("${ .customer }")}, "time": {IObject: model.Integer(48)}}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.ContextAttributes)
 
 				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Single)
@@ -467,7 +467,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT22S", w.States[6].(*model.ForEachState).Timeouts.StateExecTimeout.Single)
 
 				// Inject state
-				assert.Equal(t, map[string]model.SwObject{"result": {Object: model.String("Hello World, last state!")}}, w.States[7].(*model.InjectState).Data)
+				assert.Equal(t, map[string]model.Object{"result": {IObject: model.String("Hello World, last state!")}}, w.States[7].(*model.InjectState).Data)
 				assert.Equal(t, "HelloInject", w.States[7].GetName())
 				assert.Equal(t, model.StateType("inject"), w.States[7].GetType())
 				assert.Equal(t, "PT11M", w.States[7].(*model.InjectState).Timeouts.StateExecTimeout.Total)

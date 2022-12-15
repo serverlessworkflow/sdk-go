@@ -36,7 +36,7 @@ func TestContinueAsStructLevelValidation(t *testing.T) {
 			continueAs: ContinueAs{
 				WorkflowID: "another-test",
 				Version:    "2",
-				Data:       SwObject{Object(String("${ del(.customerCount) }"))},
+				Data:       Object{IObject(String("${ del(.customerCount) }"))},
 				WorkflowExecTimeout: WorkflowExecTimeout{
 					Duration:  "PT1H",
 					Interrupt: false,
@@ -50,7 +50,7 @@ func TestContinueAsStructLevelValidation(t *testing.T) {
 			continueAs: ContinueAs{
 				WorkflowID: "test",
 				Version:    "1",
-				Data:       SwObject{Object(String("${ del(.customerCount) }"))},
+				Data:       Object{IObject(String("${ del(.customerCount) }"))},
 				WorkflowExecTimeout: WorkflowExecTimeout{
 					Duration: "invalid",
 				},
@@ -95,7 +95,7 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 			expect: ContinueAs{
 				WorkflowID: "1",
 				Version:    "2",
-				Data:       SwObject{Object(String("3"))},
+				Data:       Object{IObject(String("3"))},
 				WorkflowExecTimeout: WorkflowExecTimeout{
 					Duration:  "PT1H",
 					Interrupt: true,
@@ -110,7 +110,7 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 			expect: ContinueAs{
 				WorkflowID: "1",
 				Version:    "",
-				Data:       SwObject{},
+				Data:       Object{},
 				WorkflowExecTimeout: WorkflowExecTimeout{
 					Duration:  "",
 					Interrupt: false,

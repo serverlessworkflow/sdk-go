@@ -69,7 +69,7 @@ type FunctionRef struct {
 	RefName string `json:"refName" validate:"required"`
 	// Function arguments
 	// TODO: validate it as required if function type is graphql
-	Arguments map[string]SwObject `json:"arguments,omitempty"`
+	Arguments map[string]Object `json:"arguments,omitempty"`
 	// String containing a valid GraphQL selection set
 	// TODO: validate it as required if function type is graphql
 	SelectionSet string `json:"selectionSet,omitempty"`

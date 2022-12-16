@@ -16,7 +16,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -213,8 +212,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "test_user", basicProperties.Username)
 				assert.Equal(t, "test_pwd", basicProperties.Password)
 				// metadata
-				assert.Equal(t, model.Metadata{"metadata1": model.Object{IObject: model.String("metadata1")}, "metadata2": model.Object{IObject: model.String("metadata2")}}, w.Metadata)
-				assert.Equal(t, &model.Metadata{"auth1": model.Object{IObject: model.String("auth1")}, "auth2": model.Object{IObject: model.String("auth2")}}, auth[0].Properties.GetMetadata())
+				assert.Equal(t, model.Metadata{"metadata1": model.FromString("metadata1"), "metadata2": model.FromString("metadata2")}, w.Metadata)
+				assert.Equal(t, &model.Metadata{"auth1": model.FromString("auth1"), "auth2": model.FromString("auth2")}, auth[0].Properties.GetMetadata())
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {
@@ -338,14 +337,14 @@ func TestFromFile(t *testing.T) {
 				endDataCondition := eventState.DataConditions[0]
 				assert.Equal(t, "notifycustomerworkflow", endDataCondition.End.ContinueAs.WorkflowID)
 				assert.Equal(t, "1.0", endDataCondition.End.ContinueAs.Version)
-				assert.Equal(t, model.Object{IObject: model.String("${ del(.customerCount) }")}, endDataCondition.End.ContinueAs.Data)
+				assert.Equal(t, model.FromString("${ del(.customerCount) }"), endDataCondition.End.ContinueAs.Data)
 				assert.Equal(t, "GenerateReport", endDataCondition.End.ContinueAs.WorkflowExecTimeout.RunBefore)
 				assert.Equal(t, true, endDataCondition.End.ContinueAs.WorkflowExecTimeout.Interrupt)
 				assert.Equal(t, "PT1H", endDataCondition.End.ContinueAs.WorkflowExecTimeout.Duration)
 			},
 		}, {
-			"./testdata/workflows/greetings-v08-spec.sw.yaml",
-			func(t *testing.T, w *model.Workflow) {
+			name: "./testdata/workflows/greetings-v08-spec.sw.yaml",
+			f: func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "custom.greeting", w.ID)
 				assert.Equal(t, "1.0", w.Version)
 				assert.Equal(t, "0.8", w.SpecVersion)
@@ -390,8 +389,8 @@ func TestFromFile(t *testing.T) {
 
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[0].FunctionRef)
 				assert.NotEmpty(t, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef)
-				assert.Equal(t, model.Object{IObject: model.String("${ .patientInfo }")}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.Data)
-				assert.Equal(t, map[string]model.Object{"customer": {IObject: model.String("${ .customer }")}, "time": {IObject: model.Integer(48)}}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.ContextAttributes)
+				assert.Equal(t, model.FromString("${ .patientInfo }"), w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.Data)
+				assert.Equal(t, map[string]model.Object{"customer": model.FromString("${ .customer }"), "time": model.FromInt(48)}, w.States[1].(*model.EventState).OnEvents[0].Actions[1].EventRef.ContextAttributes)
 
 				assert.Equal(t, "PT1S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[1].(*model.EventState).Timeouts.StateExecTimeout.Single)
@@ -467,7 +466,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT22S", w.States[6].(*model.ForEachState).Timeouts.StateExecTimeout.Single)
 
 				// Inject state
-				assert.Equal(t, map[string]model.Object{"result": {IObject: model.String("Hello World, last state!")}}, w.States[7].(*model.InjectState).Data)
+				assert.Equal(t, map[string]model.Object{"result": model.FromString("Hello World, last state!")}, w.States[7].(*model.InjectState).Data)
 				assert.Equal(t, "HelloInject", w.States[7].GetName())
 				assert.Equal(t, model.StateType("inject"), w.States[7].GetType())
 				assert.Equal(t, "PT11M", w.States[7].(*model.InjectState).Timeouts.StateExecTimeout.Total)
@@ -478,8 +477,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckCreditCallback", w.States[8].GetName())
 				assert.Equal(t, model.StateType("callback"), w.States[8].GetType())
 				assert.Equal(t, "callCreditCheckMicroservice", w.States[8].(*model.CallbackState).Action.FunctionRef.RefName)
-				assert.Equal(t, "map[argsObj:{{map[age:%!s(float64=10) name:hi]}} customer:{${ .customer }} time:{%!s(model.Integer=48)}]",
-					fmt.Sprintf("%s", w.States[8].(*model.CallbackState).Action.FunctionRef.Arguments))
+				assert.Equal(t, map[string]model.Object{"argsObj": model.FromRaw(map[string]interface{}{"age": 10, "name": "hi"}), "customer": model.FromString("${ .customer }"), "time": model.FromInt(48)},
+					w.States[8].(*model.CallbackState).Action.FunctionRef.Arguments)
 				assert.Equal(t, "PT10S", w.States[8].(*model.CallbackState).Action.Sleep.Before)
 				assert.Equal(t, "PT20S", w.States[8].(*model.CallbackState).Action.Sleep.After)
 				assert.Equal(t, "PT150M", w.States[8].(*model.CallbackState).Timeouts.ActionExecTimeout)

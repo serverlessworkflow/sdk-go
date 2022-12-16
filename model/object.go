@@ -17,6 +17,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -125,4 +126,32 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 			return nil
 		}
 	}
+}
+
+// FromInt creates an Object with an int32 value.
+func FromInt(val int) Object {
+	if val > math.MaxInt32 || val < math.MinInt32 {
+		panic(fmt.Errorf("value: %d overflows int32", val))
+	}
+	return Object{Integer(int32(val))}
+}
+
+// FromString creates an Object with a string value.
+func FromString(val string) Object {
+	return Object{String(val)}
+}
+
+// FromRaw creates an Object with untyped values.
+func FromRaw(val interface{}) Object {
+	var rawVal Object
+	data, err := json.Marshal(val)
+	if err != nil {
+		panic(err)
+	}
+	var cstVal raw
+	if err := json.Unmarshal(data, &cstVal.IObject); err != nil {
+		panic(err)
+	}
+	rawVal.IObject = cstVal
+	return rawVal
 }

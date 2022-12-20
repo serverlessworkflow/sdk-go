@@ -24,6 +24,10 @@ type SleepState struct {
 	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
 }
 
+func (in *SleepState) DeepCopyState() State {
+	return in
+}
+
 // SleepStateTimeout defines timeout settings for sleep state
 type SleepStateTimeout struct {
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`

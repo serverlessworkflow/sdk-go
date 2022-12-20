@@ -28,6 +28,10 @@ type CallbackState struct {
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
+func (in *CallbackState) DeepCopyState() State {
+	return in
+}
+
 // CallbackStateTimeout defines timeout settings for callback state
 type CallbackStateTimeout struct {
 	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`

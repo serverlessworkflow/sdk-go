@@ -30,7 +30,7 @@ const (
 	// EventKindConsumed means the event continuation of workflow instance execution
 	EventKindConsumed EventKind = "consumed"
 
-	// EventKindProduced means the event was created during worflow instance execution
+	// EventKindProduced means the event was created during workflow instance execution
 	EventKindProduced EventKind = "produced"
 )
 
@@ -98,13 +98,11 @@ type EventRef struct {
 	ResultEventRef string `json:"resultEventRef" validate:"required"`
 	// ResultEventTimeout defines maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it be set to the actionExecutionTimeout
 	ResultEventTimeout string `json:"resultEventTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	// TODO: create StringOrMap structure
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
 	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.
-	Data interface{} `json:"data,omitempty"`
+	Data Object `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
-	ContextAttributes map[string]interface{} `json:"contextAttributes,omitempty"`
-
+	ContextAttributes map[string]Object `json:"contextAttributes,omitempty"`
 	// Invoke specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`

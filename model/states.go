@@ -35,7 +35,7 @@ const (
 	StateTypeSleep = "sleep"
 )
 
-func getActionsModelMapping(stateType string, s map[string]interface{}) (State, bool) {
+func getActionsModelMapping(stateType string) (State, bool) {
 	switch stateType {
 	case StateTypeDelay:
 		return &DelayState{}, true
@@ -74,6 +74,8 @@ type State interface {
 	GetUsedForCompensation() bool
 	GetEnd() *End
 	GetMetadata() *Metadata
+	// DeepCopyState fixes undefined (type State has no field or method DeepCopyState)
+	DeepCopyState() State
 }
 
 // BaseState ...

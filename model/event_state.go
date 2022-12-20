@@ -34,6 +34,10 @@ type EventState struct {
 	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
+func (e *EventState) DeepCopyState() State {
+	return e
+}
+
 type eventStateForUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
@@ -50,7 +54,7 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// OnEvents define which actions are be be performed for the one or more events.
+// OnEvents define which actions are be performed for the one or more events.
 type OnEvents struct {
 	// References one or more unique event names in the defined workflow events
 	EventRefs []string `json:"eventRefs" validate:"required,min=1"`

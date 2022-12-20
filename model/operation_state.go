@@ -30,6 +30,10 @@ type OperationState struct {
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
 }
 
+func (o *OperationState) DeepCopyState() State {
+	return o
+}
+
 type operationStateForUnmarshal OperationState
 
 // UnmarshalJSON unmarshal OperationState object from json bytes

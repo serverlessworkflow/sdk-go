@@ -1,4 +1,4 @@
-// Copyright 2021 The Serverless Workflow Specification Authors
+// Copyright 2022 The Serverless Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,5 @@
 
 package model
 
-// Common schema for Serverless Workflow specification
-type Common struct {
-	// Metadata information
-	Metadata Metadata `json:"metadata,omitempty"`
-}
-
-// Metadata information
-type Metadata map[string]Object
+// +k8s:deepcopy-gen=package
+// +k8s:deepcopy-gen:nonpointer-interfaces=true

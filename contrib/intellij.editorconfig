@@ -1,3 +1,5 @@
+root = true
+
 [{*.go,*.go2}]
 indent_style = tab
 ij_continuation_indent_size = 4

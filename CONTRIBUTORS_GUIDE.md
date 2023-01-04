@@ -10,7 +10,7 @@ For the configurations below, make sure to properly configure your IDE:
 
 - **imports**: goimports
 
-For IntelliJ you can find an example `editorconfig` file [here](contrib/intellij.editorconfig).
+This should be enough to get you started.
 
 If you are unsure that your IDE is not correctly configured, you can run the lint checks:
 
@@ -34,10 +34,15 @@ Lint issues can be fixed with the `--fix` flag, this command can be used:
 make lint params=--fix
 ```
 
+
+### EditorConfig
+For IntelliJ you can find an example `editorconfig` file [here](contrib/intellij.editorconfig). To use it please visit
+the Jetbrains [documentation](https://www.jetbrains.com/help/idea/editorconfig.html).
+
+
 ## Known Issues
 
 On MacOSX/darwin you might get this issue:
-
 ```
  goimports: can't extract issues from gofmt diff output
 ```

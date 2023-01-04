@@ -116,7 +116,7 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	default:
 		// json parses all not typed numbers as float64, let's enforce to int32
 		if valInt, parseErr := strconv.Atoi(fmt.Sprint(val)); parseErr != nil {
-			return fmt.Errorf("falied to parse %d to int32: %s", valInt, parseErr.Error())
+			return fmt.Errorf("falied to parse %d to int32: %w", valInt, parseErr)
 		} else {
 			var intVal Integer
 			if err := json.Unmarshal(data, &intVal); err != nil {

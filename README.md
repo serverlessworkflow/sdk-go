@@ -1,8 +1,21 @@
 # Go SDK for Serverless Workflow
-
-To get started with the project standards, please take a look in the [contributors_guide](CONTRIBUTORS_GUIDE.md).  
 Here you will find all the [specification types](https://github.com/serverlessworkflow/specification/blob/main/schema/workflow.json) defined by our Json Schemas, in Go.
 
+Table of Contents
+=================
+
+- [Status](#status)
+- [Releases](#releases)
+- [How to Use](#how-to-use)
+  - [Parsing Serverless Workflow files](#parsing-serverless-workflow-files)
+- [Slack Channel](#slack-channel)
+- [Contributors Guide](#contributors-guide)
+  - [Code Style](#code-style)
+  - [EditorConfig](#editorconfig)
+  - [Known Issues](#known-issues)
+
+
+## Status
 Current status of features implemented in the SDK is listed in the table below:
 
 | Feature                                     | Status             |
@@ -13,8 +26,8 @@ Current status of features implemented in the SDK is listed in the table below:
 | Validate workflow definitions (Integrity)   | :heavy_check_mark: |
 | Generate workflow diagram (SVG)             | :no_entry_sign:    |
 
-## Status
 
+## Releases
 |                              Latest Releases                               | Conformance to spec version |
 |:--------------------------------------------------------------------------:| :---: |
 | [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v1.0.0) | [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x) |
@@ -68,5 +81,57 @@ The `Workflow` structure then can be used in your application.
 
 Join us at [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf), channel `#serverless-workflow-sdk` and say hello 🙋.
 
+## Contributors Guide
 
+This guide aims to guide newcomers to getting started with the project standards.
+
+
+### Code Style
+
+For this project we use basically the default configuration for most used IDEs.
+For the configurations below, make sure to properly configure your IDE:
+
+- **imports**: goimports
+
+This should be enough to get you started.
+
+If you are unsure that your IDE is not correctly configured, you can run the lint checks:
+
+```bash
+make lint
+```
+
+If something goes wrong, the error will be printed, e.g.:
+```bash
+$ make lint
+make addheaders
+make fmt
+./hack/go-lint.sh
+util/floatstr/floatstr_test.go:19: File is not `goimports`-ed (goimports)
+        "k8s.io/apimachinery/pkg/util/yaml"
+make: *** [lint] Error 1
+```
+
+Lint issues can be fixed with the `--fix` flag, this command can be used:
+```bash
+make lint params=--fix
+```
+
+
+### EditorConfig
+For IntelliJ you can find an example `editorconfig` file [here](contrib/intellij.editorconfig). To use it please visit
+the Jetbrains [documentation](https://www.jetbrains.com/help/idea/editorconfig.html).
+
+
+### Known Issues
+
+On MacOSX/darwin you might get this issue:
+```
+ goimports: can't extract issues from gofmt diff output
+```
+To solve install the `diffutils` package:
+
+```bash
+ brew install diffutils
+```
 

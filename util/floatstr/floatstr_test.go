@@ -16,9 +16,10 @@ package floatstr
 
 import (
 	"encoding/json"
-	"k8s.io/apimachinery/pkg/util/yaml"
 	"reflect"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func TestFromFloat(t *testing.T) {

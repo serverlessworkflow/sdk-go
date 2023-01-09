@@ -10,7 +10,7 @@ lint:
 	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin"
 	make addheaders
 	make fmt
-	./hack/go-lint.sh
+	./hack/go-lint.sh ${params}
 
 .PHONY: test
 coverage="false"

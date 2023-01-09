@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-golangci-lint run ./... --timeout 2m0s
+golangci-lint run -E goimports -E errorlint -E gosec "${1}" ./... --timeout 2m0s

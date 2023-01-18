@@ -33,7 +33,7 @@ import (
 //     parsed to int32
 //   - raw		- holds any not typed value, replaces the interface{} behavior.
 type Object struct {
-	IObject
+	IObject `json:",inline"`
 }
 
 // IObject interface that can converted into one of the three subtypes

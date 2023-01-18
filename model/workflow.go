@@ -592,7 +592,6 @@ type ProduceEvent struct {
 	// TODO
 	Data string `json:"data,omitempty"`
 	// Add additional event extension context attributes
-	// TODO map[string]interface{}
 	ContextAttributes map[string]string `json:"contextAttributes,omitempty"`
 }
 

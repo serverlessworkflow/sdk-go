@@ -14,6 +14,9 @@
 
 package model
 
+// StateType ...
+type StateType string
+
 const (
 	// StateTypeDelay ...
 	StateTypeDelay = "delay"
@@ -58,9 +61,6 @@ func getActionsModelMapping(stateType string) (State, bool) {
 	}
 	return nil, false
 }
-
-// StateType ...
-type StateType string
 
 // State definition for a Workflow state
 type State interface {

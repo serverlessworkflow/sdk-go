@@ -42,7 +42,7 @@ type FunctionType string
 
 // Function ...
 type Function struct {
-	Common
+	Common `json:",inline"`
 	// Unique function name
 	Name string `json:"name" validate:"required"`
 	// If type is `rest`, <path_to_openapi_definition>#<operation_id>. If type is `rpc`, <path_to_grpc_proto_file>#<service_name>#<service_method>.

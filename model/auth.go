@@ -117,7 +117,7 @@ type AuthProperties interface {
 
 // BaseAuthProperties ...
 type BaseAuthProperties struct {
-	Common
+	Common `json:",inline"`
 	// Secret Expression referencing a workflow secret that contains all needed auth info
 	Secret string `json:"secret,omitempty"`
 }
@@ -157,7 +157,7 @@ func (b *BasicAuthProperties) DeepCopyAuthProperties() AuthProperties {
 
 // BasicAuthProperties Basic Auth Info
 type BasicAuthProperties struct {
-	BaseAuthProperties
+	BaseAuthProperties `json:",inline"`
 	// Username String or a workflow expression. Contains the username
 	Username string `json:"username" validate:"required"`
 	// Password String or a workflow expression. Contains the user password
@@ -188,7 +188,7 @@ func (b *BasicAuthProperties) UnmarshalJSON(data []byte) error {
 
 // BearerAuthProperties Bearer auth information
 type BearerAuthProperties struct {
-	BaseAuthProperties
+	BaseAuthProperties `json:",inline"`
 	// Token String or a workflow expression. Contains the token
 	Token string `json:"token" validate:"required"`
 }
@@ -218,7 +218,7 @@ func (b *BearerAuthProperties) UnmarshalJSON(data []byte) error {
 
 // OAuth2AuthProperties OAuth2 information
 type OAuth2AuthProperties struct {
-	BaseAuthProperties
+	BaseAuthProperties `json:",inline"`
 	// Authority String or a workflow expression. Contains the authority information
 	Authority string `json:"authority,omitempty" validate:"omitempty,min=1"`
 	// GrantType Defines the grant type

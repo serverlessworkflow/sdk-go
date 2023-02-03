@@ -18,8 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strconv"
-	"strings"
 )
 
 // Object is used to allow integration with DeepCopy tool by replacing 'interface' generic type.
@@ -32,126 +30,68 @@ import (
 //   - Integer	- holds int32 values, JSON marshal any number to float64 by default, during the marshaling process it is
 //     parsed to int32
 //   - raw		- holds any not typed value, replaces the interface{} behavior.
+//
+// +kubebuilder:validation:Type=object
 type Object struct {
-	IObject `json:",inline"`
+	Type     Type            `json:",inline"`
+	IntVal   int32           `json:",inline"`
+	StrVal   string          `json:",inline"`
+	RawValue json.RawMessage `json:",inline"`
 }
 
-// IObject interface that can converted into one of the three subtypes
-type IObject interface {
-	DeepCopyIObject() IObject
-}
+type Type int64
 
-// raw generic subtype
-type raw struct {
-	IObject interface{}
-}
+const (
+	Integer Type = iota
+	String
+	Raw
+)
 
-func (o raw) DeepCopyIObject() IObject {
-	return o
-}
-
-// Integer int32 type
-type Integer int
-
-func (m Integer) DeepCopyIObject() IObject {
-	return m
-}
-
-// String string type
-type String string
-
-func (m String) DeepCopyIObject() IObject {
-	return m
-}
-
-// MarshalJSON marshal the given json object into the respective Object subtype.
-func (obj Object) MarshalJSON() ([]byte, error) {
-	switch val := obj.IObject.(type) {
-	case String:
-		return []byte(fmt.Sprintf(`%q`, val)), nil
-	case Integer:
-		return []byte(fmt.Sprintf(`%d`, val)), nil
-	case raw:
-		custom, err := json.Marshal(&struct {
-			raw
-		}{
-			val,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		// remove the field name and the last '}' for marshalling purposes
-		st := strings.Replace(string(custom), "{\"IObject\":", "", 1)
-		st = strings.TrimSuffix(st, "}")
-		return []byte(st), nil
-	default:
-		return []byte(fmt.Sprintf("%+v", obj.IObject)), nil
+func FromInt(val int) Object {
+	if val > math.MaxInt32 || val < math.MinInt32 {
+		fmt.Println(fmt.Errorf("value: %d overflows int32", val))
 	}
+	return Object{Type: Integer, IntVal: int32(val)}
+}
+
+func FromString(val string) Object {
+	return Object{Type: String, StrVal: val}
+}
+
+func FromRaw(val interface{}) Object {
+	custom, err := json.Marshal(val)
+	if err != nil {
+		er := fmt.Errorf("failed to parse value to Raw: %w", err)
+		fmt.Println(er.Error())
+		return Object{}
+	}
+	return Object{Type: Raw, RawValue: custom}
 }
 
 // UnmarshalJSON ...
 func (obj *Object) UnmarshalJSON(data []byte) error {
-	var test interface{}
-	if err := json.Unmarshal(data, &test); err != nil {
-		return err
+	if data[0] == '"' {
+		obj.Type = String
+		return json.Unmarshal(data, &obj.StrVal)
+	} else if data[0] == '{' {
+		obj.Type = Raw
+		return json.Unmarshal(data, &obj.RawValue)
 	}
-	switch val := test.(type) {
-	case string:
-		var strVal String
-		if err := json.Unmarshal(data, &strVal); err != nil {
-			return err
-		}
-		obj.IObject = strVal
-		return nil
+	obj.Type = Integer
+	return json.Unmarshal(data, &obj.IntVal)
+}
 
-	case map[string]interface{}:
-		var cstVal raw
-		if err := json.Unmarshal(data, &cstVal.IObject); err != nil {
-			return err
-		}
-		obj.IObject = cstVal
-		return nil
-
+// MarshalJSON marshal the given json object into the respective Object subtype.
+func (obj Object) MarshalJSON() ([]byte, error) {
+	switch obj.Type {
+	case String:
+		return []byte(fmt.Sprintf(`%q`, obj.StrVal)), nil
+	case Integer:
+		return []byte(fmt.Sprintf(`%d`, obj.IntVal)), nil
+	case Raw:
+		val, _ := json.Marshal(obj.RawValue)
+		return val, nil
 	default:
-		// json parses all not typed numbers as float64, let's enforce to int32
-		if valInt, parseErr := strconv.Atoi(fmt.Sprint(val)); parseErr != nil {
-			return fmt.Errorf("falied to parse %d to int32: %w", valInt, parseErr)
-		} else {
-			var intVal Integer
-			if err := json.Unmarshal(data, &intVal); err != nil {
-				return err
-			}
-			obj.IObject = intVal
-			return nil
-		}
+		return []byte(fmt.Sprintf("%+v", obj)), nil
 	}
-}
-
-// FromInt creates an Object with an int32 value.
-func FromInt(val int) Object {
-	if val > math.MaxInt32 || val < math.MinInt32 {
-		panic(fmt.Errorf("value: %d overflows int32", val))
-	}
-	return Object{Integer(int32(val))}
-}
-
-// FromString creates an Object with a string value.
-func FromString(val string) Object {
-	return Object{String(val)}
-}
-
-// FromRaw creates an Object with untyped values.
-func FromRaw(val interface{}) Object {
-	var rawVal Object
-	data, err := json.Marshal(val)
-	if err != nil {
-		panic(err)
-	}
-	var cstVal raw
-	if err := json.Unmarshal(data, &cstVal.IObject); err != nil {
-		panic(err)
-	}
-	rawVal.IObject = cstVal
-	return rawVal
 }

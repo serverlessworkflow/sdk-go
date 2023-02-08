@@ -92,10 +92,10 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 type AuthProperties struct {
 	Common `json:",inline"`
 	// Secret Expression referencing a workflow secret that contains all needed auth info
-	Secret string               `json:"secret,omitempty"`
-	Basic  BasicAuthProperties  `json:"basic,omitempty"`
-	Bearer BearerAuthProperties `json:"bearer,omitempty"`
-	OAuth2 OAuth2AuthProperties `json:"oauth2,omitempty"`
+	Secret string                `json:"secret,omitempty"`
+	Basic  *BasicAuthProperties  `json:"basic,omitempty"`
+	Bearer *BearerAuthProperties `json:"bearer,omitempty"`
+	OAuth2 *OAuth2AuthProperties `json:"oauth2,omitempty"`
 }
 
 // UnmarshalJSON ...

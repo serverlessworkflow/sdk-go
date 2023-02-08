@@ -127,9 +127,21 @@ func (in AuthArray) DeepCopy() AuthArray {
 func (in *AuthProperties) DeepCopyInto(out *AuthProperties) {
 	*out = *in
 	in.Common.DeepCopyInto(&out.Common)
-	out.Basic = in.Basic
-	out.Bearer = in.Bearer
-	in.OAuth2.DeepCopyInto(&out.OAuth2)
+	if in.Basic != nil {
+		in, out := &in.Basic, &out.Basic
+		*out = new(BasicAuthProperties)
+		**out = **in
+	}
+	if in.Bearer != nil {
+		in, out := &in.Bearer, &out.Bearer
+		*out = new(BearerAuthProperties)
+		**out = **in
+	}
+	if in.OAuth2 != nil {
+		in, out := &in.OAuth2, &out.OAuth2
+		*out = new(OAuth2AuthProperties)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

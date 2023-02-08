@@ -181,7 +181,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, len(auth), 1)
 				assert.Equal(t, "testAuth", auth[0].Name)
 				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
-				bearerProperties := auth[0].Properties.(*model.BearerAuthProperties).Token
+				bearerProperties := auth[0].Properties.Bearer.Token
 				assert.Equal(t, "test_token", bearerProperties)
 			},
 		}, {
@@ -204,16 +204,16 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, len(auth), 2)
 				assert.Equal(t, "testAuth", auth[0].Name)
 				assert.Equal(t, model.AuthTypeBearer, auth[0].Scheme)
-				bearerProperties := auth[0].Properties.(*model.BearerAuthProperties).Token
+				bearerProperties := auth[0].Properties.Bearer.Token
 				assert.Equal(t, "test_token", bearerProperties)
 				assert.Equal(t, "testAuth2", auth[1].Name)
 				assert.Equal(t, model.AuthTypeBasic, auth[1].Scheme)
-				basicProperties := auth[1].Properties.(*model.BasicAuthProperties)
+				basicProperties := auth[1].Properties.Basic
 				assert.Equal(t, "test_user", basicProperties.Username)
 				assert.Equal(t, "test_pwd", basicProperties.Password)
 				// metadata
 				assert.Equal(t, model.Metadata{"metadata1": model.FromString("metadata1"), "metadata2": model.FromString("metadata2")}, w.Metadata)
-				assert.Equal(t, &model.Metadata{"auth1": model.FromString("auth1"), "auth2": model.FromString("auth2")}, auth[0].Properties.GetMetadata())
+				assert.Equal(t, model.Metadata{"auth1": model.FromString("auth1"), "auth2": model.FromString("auth2")}, auth[0].Properties.Bearer.Metadata)
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {

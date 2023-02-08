@@ -46,8 +46,8 @@ func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
 		err = json.Unmarshal([]byte(a2JSON), &a2)
 		assert.NoError(t, err)
 
-		a1Properties := a1.Properties.(*BearerAuthProperties)
-		a2Properties := a2.Properties.(*BearerAuthProperties)
+		a1Properties := a1.Properties.Bearer
+		a2Properties := a2.Properties.Bearer
 
 		assert.Equal(t, "token1", a1Properties.Token)
 		assert.Equal(t, "token2", a2Properties.Token)
@@ -79,8 +79,8 @@ func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
 		err = json.Unmarshal([]byte(a2JSON), &a2)
 		assert.NoError(t, err)
 
-		a1Properties := a1.Properties.(*OAuth2AuthProperties)
-		a2Properties := a2.Properties.(*OAuth2AuthProperties)
+		a1Properties := a1.Properties.OAuth2
+		a2Properties := a2.Properties.OAuth2
 
 		assert.Equal(t, "secret1", a1Properties.ClientSecret)
 		assert.Equal(t, "secret2", a2Properties.ClientSecret)

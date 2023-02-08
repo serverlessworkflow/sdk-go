@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // AuthType ...
@@ -42,18 +41,6 @@ const (
 	// GrantTypeTokenExchange ...
 	GrantTypeTokenExchange GrantType = "tokenExchange"
 )
-
-func getAuthProperties(authType AuthType) (AuthProperties, bool) {
-	switch authType {
-	case AuthTypeBasic:
-		return &BasicAuthProperties{}, true
-	case AuthTypeBearer:
-		return &BearerAuthProperties{}, true
-	case AuthTypeOAuth2:
-		return &OAuth2AuthProperties{}, true
-	}
-	return nil, false
-}
 
 // Auth ...
 type Auth struct {
@@ -90,10 +77,7 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	if len(a.Scheme) == 0 {
 		a.Scheme = AuthTypeBasic
 	}
-	authProperties, ok := getAuthProperties(a.Scheme)
-	if !ok {
-		return fmt.Errorf("authentication scheme %s not supported", a.Scheme)
-	}
+	authProperties := AuthProperties{}
 
 	// we take the type we want to unmarshal based on the scheme
 	if err := unmarshalKey("properties", auth, authProperties); err != nil {
@@ -104,33 +88,21 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// AuthProperties ...
-type AuthProperties interface {
-	// GetMetadata ...
-	GetMetadata() *Metadata
-	// GetSecret ...
-	GetSecret() string
-	// DeepCopyAuthProperties fixes in.Properties.DeepCopyAuthProperties undefined (type AuthProperties has no
-	// field or method DeepCopyAuthProperties)
-	DeepCopyAuthProperties() AuthProperties
-}
-
 // BaseAuthProperties ...
-type BaseAuthProperties struct {
+type AuthProperties struct {
 	Common `json:",inline"`
 	// Secret Expression referencing a workflow secret that contains all needed auth info
-	Secret string `json:"secret,omitempty"`
+	Secret string               `json:"secret,omitempty"`
+	Basic  BasicAuthProperties  `json:"basic,omitempty"`
+	Bearer BearerAuthProperties `json:"bearer,omitempty"`
+	OAuth2 OAuth2AuthProperties `json:"oauth2,omitempty"`
 }
 
 // UnmarshalJSON ...
-func (b *BaseAuthProperties) UnmarshalJSON(data []byte) error {
+func (b *AuthProperties) UnmarshalJSON(data []byte) error {
 	properties := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &properties); err != nil {
-		b.Secret, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
 		return err
@@ -138,26 +110,20 @@ func (b *BaseAuthProperties) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("secret", properties, &b.Secret); err != nil {
 		return err
 	}
+	if err := unmarshalKey("basic", properties, &b.Basic); err != nil {
+		return err
+	}
+	if err := unmarshalKey("bearer", properties, &b.Bearer); err != nil {
+		return err
+	}
+	if err := unmarshalKey("oauth2", properties, &b.OAuth2); err != nil {
+		return err
+	}
 	return nil
-}
-
-// GetMetadata ...
-func (b *BaseAuthProperties) GetMetadata() *Metadata {
-	return &b.Metadata
-}
-
-// GetSecret ...
-func (b *BaseAuthProperties) GetSecret() string {
-	return b.Secret
-}
-
-func (b *BasicAuthProperties) DeepCopyAuthProperties() AuthProperties {
-	return b
 }
 
 // BasicAuthProperties Basic Auth Info
 type BasicAuthProperties struct {
-	BaseAuthProperties `json:",inline"`
 	// Username String or a workflow expression. Contains the username
 	Username string `json:"username" validate:"required"`
 	// Password String or a workflow expression. Contains the user password
@@ -168,11 +134,7 @@ type BasicAuthProperties struct {
 func (b *BasicAuthProperties) UnmarshalJSON(data []byte) error {
 	properties := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &properties); err != nil {
-		err = json.Unmarshal(data, &b.BaseAuthProperties)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 	if err := unmarshalKey("username", properties, &b.Username); err != nil {
 		return err
@@ -180,37 +142,22 @@ func (b *BasicAuthProperties) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("password", properties, &b.Password); err != nil {
 		return err
 	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
-		return err
-	}
 	return nil
 }
 
 // BearerAuthProperties Bearer auth information
 type BearerAuthProperties struct {
-	BaseAuthProperties `json:",inline"`
 	// Token String or a workflow expression. Contains the token
 	Token string `json:"token" validate:"required"`
-}
-
-func (b *BearerAuthProperties) DeepCopyAuthProperties() AuthProperties {
-	return b
 }
 
 // UnmarshalJSON ...
 func (b *BearerAuthProperties) UnmarshalJSON(data []byte) error {
 	properties := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &properties); err != nil {
-		err = json.Unmarshal(data, &b.BaseAuthProperties)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("token", properties, &b.Token); err != nil {
 		return err
 	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
+	if err := unmarshalKey("token", properties, &b.Token); err != nil {
 		return err
 	}
 	return nil
@@ -218,7 +165,6 @@ func (b *BearerAuthProperties) UnmarshalJSON(data []byte) error {
 
 // OAuth2AuthProperties OAuth2 information
 type OAuth2AuthProperties struct {
-	BaseAuthProperties `json:",inline"`
 	// Authority String or a workflow expression. Contains the authority information
 	Authority string `json:"authority,omitempty" validate:"omitempty,min=1"`
 	// GrantType Defines the grant type
@@ -243,17 +189,12 @@ type OAuth2AuthProperties struct {
 	RequestedIssuer string `json:"requestedIssuer,omitempty" validate:"omitempty,min=1"`
 }
 
-func (b *OAuth2AuthProperties) DeepCopyAuthProperties() AuthProperties {
-	return b
-}
-
 // TODO: use reflection to unmarshal the keys and think on a generic approach to handle them
 
 // UnmarshalJSON ...
 func (b *OAuth2AuthProperties) UnmarshalJSON(data []byte) error {
 	properties := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &properties); err != nil {
-		err = json.Unmarshal(data, &b.BaseAuthProperties)
 		if err != nil {
 			return err
 		}
@@ -290,9 +231,6 @@ func (b *OAuth2AuthProperties) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if err := unmarshalKey("requestedIssuer", properties, &b.RequestedIssuer); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
 		return err
 	}
 	return nil

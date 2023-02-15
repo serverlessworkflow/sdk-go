@@ -48,7 +48,7 @@ func EventStructLevelValidation(structLevel validator.StructLevel) {
 
 // Event used to define events and their correlations
 type Event struct {
-	Common
+	Common `json:",inline"`
 	// Unique event name
 	Name string `json:"name" validate:"required"`
 	// CloudEvent source

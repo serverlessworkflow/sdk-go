@@ -696,6 +696,60 @@ states:
 		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
 		assert.Nil(t, workflow)
 	})
+
+	t.Run("BasicWorkflowEndBool", func(t *testing.T) {
+		workflow, err := FromJSONSource([]byte(`
+{
+  "id": "applicantrequest",
+  "version": "1.0",
+  "name": "Applicant Request Decision Workflow",
+  "description": "Determine if applicant request is valid",
+  "start": "CheckApplication",
+  "specVersion": "0.7",
+  "states": [
+    {
+	  "name": "Hello State",
+	  "type": "inject",
+      "data": {
+		"result": "Hello World!"
+	  },
+	  "end": true
+    }
+  ]
+}
+`))
+
+		assert.Nil(t, err)
+		assert.Equal(t, true, workflow.States[0].GetEnd().Terminate)
+	})
+
+	t.Run("BasicWorkflowEndStruct", func(t *testing.T) {
+		workflow, err := FromJSONSource([]byte(`
+{
+  "id": "applicantrequest",
+  "version": "1.0",
+  "name": "Applicant Request Decision Workflow",
+  "description": "Determine if applicant request is valid",
+  "start": "CheckApplication",
+  "specVersion": "0.7",
+  "states": [
+    {
+	  "name": "Hello State",
+	  "type": "inject",
+      "data": {
+		"result": "Hello World!"
+	  },
+	  "end": {
+		"terminate": true
+	  }
+    }
+  ]
+}
+`))
+
+		assert.Nil(t, err)
+		assert.Equal(t, true, workflow.States[0].GetEnd().Terminate)
+	})
 }
 
 func TestUnmarshalWorkflowSwitchState(t *testing.T) {

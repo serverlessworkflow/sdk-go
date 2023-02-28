@@ -508,11 +508,15 @@ type End struct {
 
 // UnmarshalJSON ...
 func (e *End) UnmarshalJSON(data []byte) error {
+	endBool := false
+	if err := json.Unmarshal(data, &endBool); err == nil {
+		e.Terminate = endBool
+		return nil
+	}
 
 	endMap := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &endMap); err != nil {
 		e.Terminate = false
-		e.Compensate = false
 		return nil
 	}
 

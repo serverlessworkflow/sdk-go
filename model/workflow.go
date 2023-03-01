@@ -191,24 +191,12 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	}
 
 	w.States = make([]State, len(rawStates))
-	mapState := map[string]interface{}{}
 	for i, rawState := range rawStates {
-		if err := json.Unmarshal(rawState, &mapState); err != nil {
+		if err := json.Unmarshal(rawState, &w.States[i]); err != nil {
 			return err
 		}
-
-		actionsMode, ok := getActionsModelMapping(mapState["type"].(string))
-		if !ok {
-			return fmt.Errorf("state %s not supported", mapState["type"])
-		}
-		state := actionsMode
-
-		if err := json.Unmarshal(rawState, &state); err != nil {
-			return err
-		}
-		w.States[i] = state
-		mapState = map[string]interface{}{}
 	}
+
 	if _, ok := workflowMap["events"]; ok {
 		if err := json.Unmarshal(workflowMap["events"], &w.Events); err != nil {
 			var s string
@@ -520,6 +508,7 @@ type End struct {
 
 // UnmarshalJSON ...
 func (e *End) UnmarshalJSON(data []byte) error {
+
 	endMap := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &endMap); err != nil {
 		e.Terminate = false
@@ -588,8 +577,8 @@ type ProduceEvent struct {
 	// References a name of a defined event
 	EventRef string `json:"eventRef" validate:"required"`
 	// TODO: add object or string data type
-	// If String, expression which selects parts of the states data output to become the data of the produced event. If object a custom object to become the data of produced event.
-	// TODO
+	// If String, expression which selects parts of the states data output to become the data of the produced event.
+	// If object a custom object to become the data of produced event.
 	Data string `json:"data,omitempty"`
 	// Add additional event extension context attributes
 	ContextAttributes map[string]string `json:"contextAttributes,omitempty"`

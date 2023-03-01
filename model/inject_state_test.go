@@ -1,4 +1,4 @@
-// Copyright 2022 The Serverless Workflow Specification Authors
+// Copyright 2023 The Serverless Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,20 +13,3 @@
 // limitations under the License.
 
 package model
-
-import "encoding/json"
-
-// DelayState Causes the workflow execution to delay for a specified duration
-type DelayState struct {
-	// Amount of time (ISO 8601 format) to delay
-	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
-}
-
-func (a *DelayState) MarshalJSON() ([]byte, error) {
-	custom, err := json.Marshal(&struct {
-		TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
-	}{
-		TimeDelay: a.TimeDelay,
-	})
-	return custom, err
-}

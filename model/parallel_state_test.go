@@ -71,108 +71,118 @@ func TestParallelStateUnmarshalJSON(t *testing.T) {
 func TestParallelStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		desp  string
-		state *ParallelState
+		state *State
 		err   string
 	}
 	testCases := []testCase{
 		{
 			desp: "normal",
-			state: &ParallelState{
+			state: &State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "parallel",
 				},
-				Branches: []Branch{
-					{
-						Name: "b1",
-						Actions: []Action{
-							{},
+				ParallelState: &ParallelState{
+					Branches: []Branch{
+						{
+							Name: "b1",
+							Actions: []Action{
+								{},
+							},
 						},
 					},
+					CompletionType: CompletionTypeAllOf,
+					NumCompleted:   intstr.FromInt(1),
 				},
-				CompletionType: CompletionTypeAllOf,
-				NumCompleted:   intstr.FromInt(1),
 			},
 			err: ``,
 		},
 		{
 			desp: "invalid completeType",
-			state: &ParallelState{
+			state: &State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "parallel",
 				},
-				Branches: []Branch{
-					{
-						Name: "b1",
-						Actions: []Action{
-							{},
+				ParallelState: &ParallelState{
+					Branches: []Branch{
+						{
+							Name: "b1",
+							Actions: []Action{
+								{},
+							},
 						},
 					},
+					CompletionType: CompletionTypeAllOf + "1",
 				},
-				CompletionType: CompletionTypeAllOf + "1",
 			},
-			err: `Key: 'ParallelState.CompletionType' Error:Field validation for 'CompletionType' failed on the 'oneof' tag`,
+			err: `Key: 'State.ParallelState.CompletionType' Error:Field validation for 'CompletionType' failed on the 'oneof' tag`,
 		},
 		{
 			desp: "invalid numCompleted `int`",
-			state: &ParallelState{
+			state: &State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "parallel",
 				},
-				Branches: []Branch{
-					{
-						Name: "b1",
-						Actions: []Action{
-							{},
+				ParallelState: &ParallelState{
+					Branches: []Branch{
+						{
+							Name: "b1",
+							Actions: []Action{
+								{},
+							},
 						},
 					},
+					CompletionType: CompletionTypeAtLeast,
+					NumCompleted:   intstr.FromInt(0),
 				},
-				CompletionType: CompletionTypeAtLeast,
-				NumCompleted:   intstr.FromInt(0),
 			},
-			err: `Key: 'ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
+			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
 		},
 		{
 			desp: "invalid numCompleted string format",
-			state: &ParallelState{
+			state: &State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "parallel",
 				},
-				Branches: []Branch{
-					{
-						Name: "b1",
-						Actions: []Action{
-							{},
+				ParallelState: &ParallelState{
+					Branches: []Branch{
+						{
+							Name: "b1",
+							Actions: []Action{
+								{},
+							},
 						},
 					},
+					CompletionType: CompletionTypeAtLeast,
+					NumCompleted:   intstr.FromString("a"),
 				},
-				CompletionType: CompletionTypeAtLeast,
-				NumCompleted:   intstr.FromString("a"),
 			},
-			err: `Key: 'ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
+			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
 		},
 		{
 			desp: "normal",
-			state: &ParallelState{
+			state: &State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "parallel",
 				},
-				Branches: []Branch{
-					{
-						Name: "b1",
-						Actions: []Action{
-							{},
+				ParallelState: &ParallelState{
+					Branches: []Branch{
+						{
+							Name: "b1",
+							Actions: []Action{
+								{},
+							},
 						},
 					},
+					CompletionType: CompletionTypeAtLeast,
+					NumCompleted:   intstr.FromString("0"),
 				},
-				CompletionType: CompletionTypeAtLeast,
-				NumCompleted:   intstr.FromString("0"),
 			},
-			err: `Key: 'ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
+			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
 		},
 	}
 	for _, tc := range testCases {

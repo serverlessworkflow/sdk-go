@@ -14,18 +14,28 @@
 
 package model
 
+import (
+	"encoding/json"
+)
+
 // SleepState suspends workflow execution for a given time duration.
 type SleepState struct {
-	BaseState
-
 	// Duration (ISO 8601 duration format) to sleep
 	Duration string `json:"duration" validate:"required,iso8601duration"`
 	// Timeouts State specific timeouts
 	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (in *SleepState) DeepCopyState() State {
-	return in
+func (s *SleepState) MarshalJSON() ([]byte, error) {
+	type Alias SleepState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(s),
+		Timeouts: s.Timeouts,
+	})
+	return custom, err
 }
 
 // SleepStateTimeout defines timeout settings for sleep state

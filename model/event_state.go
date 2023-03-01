@@ -22,7 +22,6 @@ import (
 // EventState used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
 type EventState struct {
 	// TODO: EventState doesn't have usedForCompensation field.
-	BaseState
 
 	// If true consuming one of the defined events causes its associated actions to be performed.
 	// If false all the defined events must be consumed in order for actions to be performed
@@ -34,8 +33,16 @@ type EventState struct {
 	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (e *EventState) DeepCopyState() State {
-	return e
+func (e *EventState) MarshalJSON() ([]byte, error) {
+	type Alias EventState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(e),
+		Timeouts: e.Timeouts,
+	})
+	return custom, err
 }
 
 type eventStateForUnmarshal EventState
@@ -81,6 +88,7 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 	}
 
 	*o = OnEvents(v)
+
 	return nil
 }
 

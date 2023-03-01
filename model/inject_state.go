@@ -14,17 +14,28 @@
 
 package model
 
+import (
+	"encoding/json"
+)
+
 // InjectState used to inject static data into state data input.
 type InjectState struct {
-	BaseState
 	// JSON object which can be set as states data input and can be manipulated via filters
 	Data map[string]Object `json:"data" validate:"required,min=1"`
 	// State specific timeouts
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (in *InjectState) DeepCopyState() State {
-	return in
+func (i *InjectState) MarshalJSON() ([]byte, error) {
+	type Alias InjectState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(i),
+		Timeouts: i.Timeouts,
+	})
+	return custom, err
 }
 
 // InjectStateTimeout defines timeout settings for inject state

@@ -20,9 +20,7 @@ import (
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
 type OperationState struct {
-	BaseState
-	// Specifies whether actions are performed in sequence or in parallel
-	// Defaults to sequential
+	// Specifies whether actions are performed in sequence or in parallel, defaults to sequential
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
 	// Actions to be performed
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
@@ -30,14 +28,23 @@ type OperationState struct {
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (o *OperationState) DeepCopyState() State {
-	return o
+func (a *OperationState) MarshalJSON() ([]byte, error) {
+	type Alias OperationState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(a),
+		Timeouts: a.Timeouts,
+	})
+	return custom, err
 }
 
 type operationStateForUnmarshal OperationState
 
 // UnmarshalJSON unmarshal OperationState object from json bytes
 func (o *OperationState) UnmarshalJSON(data []byte) error {
+
 	v := operationStateForUnmarshal{
 		ActionMode: ActionModeSequential,
 	}

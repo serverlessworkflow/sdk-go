@@ -75,119 +75,131 @@ func TestForEachStateUnmarshalJSON(t *testing.T) {
 func TestForEachStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		desp  string
-		state ForEachState
+		state State
 		err   string
 	}
 	testCases := []testCase{
 		{
 			desp: "normal test & sequential",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeSequential,
 				},
-				Mode: ForEachModeTypeSequential,
 			},
 			err: ``,
 		},
 		{
 			desp: "normal test & parallel int",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
-				},
-				Mode: ForEachModeTypeParallel,
-				BatchSize: &intstr.IntOrString{
-					Type:   intstr.Int,
-					IntVal: 1,
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeParallel,
+					BatchSize: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 1,
+					},
 				},
 			},
 			err: ``,
 		},
 		{
 			desp: "normal test & parallel string",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
-				},
-				Mode: ForEachModeTypeParallel,
-				BatchSize: &intstr.IntOrString{
-					Type:   intstr.String,
-					StrVal: "1",
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeParallel,
+					BatchSize: &intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: "1",
+					},
 				},
 			},
 			err: ``,
 		},
 		{
 			desp: "invalid parallel int",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
-				},
-				Mode: ForEachModeTypeParallel,
-				BatchSize: &intstr.IntOrString{
-					Type:   intstr.Int,
-					IntVal: 0,
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeParallel,
+					BatchSize: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 0,
+					},
 				},
 			},
-			err: `Key: 'ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
 		{
 			desp: "invalid parallel string",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
-				},
-				Mode: ForEachModeTypeParallel,
-				BatchSize: &intstr.IntOrString{
-					Type:   intstr.String,
-					StrVal: "0",
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeParallel,
+					BatchSize: &intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: "0",
+					},
 				},
 			},
-			err: `Key: 'ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
 		{
 			desp: "invalid parallel string format",
-			state: ForEachState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
 				},
-				InputCollection: "3",
-				Actions: []Action{
-					{},
-				},
-				Mode: ForEachModeTypeParallel,
-				BatchSize: &intstr.IntOrString{
-					Type:   intstr.String,
-					StrVal: "a",
+				ForEachState: &ForEachState{
+					InputCollection: "3",
+					Actions: []Action{
+						{},
+					},
+					Mode: ForEachModeTypeParallel,
+					BatchSize: &intstr.IntOrString{
+						Type:   intstr.String,
+						StrVal: "a",
+					},
 				},
 			},
-			err: `Key: 'ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
 	}
 	for _, tc := range testCases {

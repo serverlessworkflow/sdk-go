@@ -43,7 +43,6 @@ const (
 
 // ForEachState used to execute actions for each element of a data set.
 type ForEachState struct {
-	BaseState
 	// Workflow expression selecting an array element of the states data
 	InputCollection string `json:"inputCollection" validate:"required"`
 	// Workflow expression specifying an array element of the states data to add the results of each iteration
@@ -56,13 +55,20 @@ type ForEachState struct {
 	Actions []Action `json:"actions,omitempty" validate:"required,min=1,dive"`
 	// State specific timeout
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
-	// Mode Specifies how iterations are to be performed (sequentially or in parallel)
-	// Defaults to parallel
+	// Mode Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 
-func (f *ForEachState) DeepCopyState() State {
-	return f
+func (f *ForEachState) MarshalJSON() ([]byte, error) {
+	type Alias ForEachState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(f),
+		Timeouts: f.Timeouts,
+	})
+	return custom, err
 }
 
 type forEachStateForUnmarshal ForEachState

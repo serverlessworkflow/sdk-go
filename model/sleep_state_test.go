@@ -25,31 +25,35 @@ import (
 func TestSleepStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		desp  string
-		state SleepState
+		state State
 		err   string
 	}
 	testCases := []testCase{
 		{
 			desp: "normal duration",
-			state: SleepState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "sleep",
 				},
-				Duration: "PT10S",
+				SleepState: &SleepState{
+					Duration: "PT10S",
+				},
 			},
 			err: ``,
 		},
 		{
 			desp: "invalid duration",
-			state: SleepState{
+			state: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "sleep",
 				},
-				Duration: "T10S",
+				SleepState: &SleepState{
+					Duration: "T10S",
+				},
 			},
-			err: `Key: 'SleepState.Duration' Error:Field validation for 'Duration' failed on the 'iso8601duration' tag`,
+			err: `Key: 'State.SleepState.Duration' Error:Field validation for 'Duration' failed on the 'iso8601duration' tag`,
 		},
 	}
 

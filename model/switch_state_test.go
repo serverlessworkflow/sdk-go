@@ -25,27 +25,29 @@ import (
 func TestSwitchStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		desp string
-		obj  SwitchState
+		obj  State
 		err  string
 	}
 	testCases := []testCase{
 		{
 			desp: "normal & eventConditions",
-			obj: SwitchState{
+			obj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "switch",
 				},
-				DefaultCondition: DefaultCondition{
-					Transition: &Transition{
-						NextState: "1",
-					},
-				},
-				EventConditions: []EventCondition{
-					{
-						EventRef: "1",
+				SwitchState: &SwitchState{
+					DefaultCondition: DefaultCondition{
 						Transition: &Transition{
-							NextState: "2",
+							NextState: "1",
+						},
+					},
+					EventConditions: []EventCondition{
+						{
+							EventRef: "1",
+							Transition: &Transition{
+								NextState: "2",
+							},
 						},
 					},
 				},
@@ -54,21 +56,23 @@ func TestSwitchStateStructLevelValidation(t *testing.T) {
 		},
 		{
 			desp: "normal & dataConditions",
-			obj: SwitchState{
+			obj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "switch",
 				},
-				DefaultCondition: DefaultCondition{
-					Transition: &Transition{
-						NextState: "1",
-					},
-				},
-				DataConditions: []DataCondition{
-					{
-						Condition: "1",
+				SwitchState: &SwitchState{
+					DefaultCondition: DefaultCondition{
 						Transition: &Transition{
-							NextState: "2",
+							NextState: "1",
+						},
+					},
+					DataConditions: []DataCondition{
+						{
+							Condition: "1",
+							Transition: &Transition{
+								NextState: "2",
+							},
 						},
 					},
 				},
@@ -77,49 +81,53 @@ func TestSwitchStateStructLevelValidation(t *testing.T) {
 		},
 		{
 			desp: "missing eventConditions & dataConditions",
-			obj: SwitchState{
+			obj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "switch",
 				},
-				DefaultCondition: DefaultCondition{
-					Transition: &Transition{
-						NextState: "1",
+				SwitchState: &SwitchState{
+					DefaultCondition: DefaultCondition{
+						Transition: &Transition{
+							NextState: "1",
+						},
 					},
 				},
 			},
-			err: `Key: 'SwitchState.DataConditions' Error:Field validation for 'DataConditions' failed on the 'required' tag`,
+			err: `Key: 'State.SwitchState.DataConditions' Error:Field validation for 'DataConditions' failed on the 'required' tag`,
 		},
 		{
 			desp: "exclusive eventConditions & dataConditions",
-			obj: SwitchState{
+			obj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "switch",
 				},
-				DefaultCondition: DefaultCondition{
-					Transition: &Transition{
-						NextState: "1",
-					},
-				},
-				EventConditions: []EventCondition{
-					{
-						EventRef: "1",
+				SwitchState: &SwitchState{
+					DefaultCondition: DefaultCondition{
 						Transition: &Transition{
-							NextState: "2",
+							NextState: "1",
 						},
 					},
-				},
-				DataConditions: []DataCondition{
-					{
-						Condition: "1",
-						Transition: &Transition{
-							NextState: "2",
+					EventConditions: []EventCondition{
+						{
+							EventRef: "1",
+							Transition: &Transition{
+								NextState: "2",
+							},
+						},
+					},
+					DataConditions: []DataCondition{
+						{
+							Condition: "1",
+							Transition: &Transition{
+								NextState: "2",
+							},
 						},
 					},
 				},
 			},
-			err: `Key: 'SwitchState.DataConditions' Error:Field validation for 'DataConditions' failed on the 'exclusive' tag`,
+			err: `Key: 'State.SwitchState.DataConditions' Error:Field validation for 'DataConditions' failed on the 'exclusive' tag`,
 		},
 	}
 	for _, tc := range testCases {

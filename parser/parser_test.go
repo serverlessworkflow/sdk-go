@@ -73,6 +73,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "greeting", w.ID)
 				assert.IsType(t, &model.OperationState{}, w.States[0].OperationState)
 				assert.Equal(t, "greetingFunction", w.States[0].OperationState.Actions[0].FunctionRef.RefName)
+				assert.NotNil(t, w.States[0].End)
+				assert.True(t, w.States[0].End.Terminate)
 			},
 		}, {
 			"./testdata/workflows/actiondata-defaultvalue.yaml",
@@ -93,6 +95,8 @@ func TestFromFile(t *testing.T) {
 				assert.NotEmpty(t, w.States[0].OperationState.Actions)
 				assert.NotNil(t, w.States[0].OperationState.Actions[0].FunctionRef)
 				assert.Equal(t, "greetingFunction", w.States[0].OperationState.Actions[0].FunctionRef.RefName)
+				assert.NotNil(t, w.States[0].End)
+				assert.True(t, w.States[0].End.Terminate)
 			},
 		}, {
 			"./testdata/workflows/eventbaseddataandswitch.sw.json",
@@ -105,11 +109,16 @@ func TestFromFile(t *testing.T) {
 				assert.NotNil(t, w.States[1])
 				assert.NotNil(t, w.States[1].SwitchState)
 				assert.Equal(t, "PT1H", w.States[1].SwitchState.Timeouts.EventTimeout)
+				assert.Nil(t, w.States[1].End)
+				assert.NotNil(t, w.States[2].End)
+				assert.True(t, w.States[2].End.Terminate)
 			},
 		}, {
 			"./testdata/workflows/conditionbasedstate.yaml", func(t *testing.T, w *model.Workflow) {
 				operationState := w.States[0].OperationState
 				assert.Equal(t, "${ .applicants | .age < 18 }", operationState.Actions[0].Condition)
+				assert.NotNil(t, w.States[0].End)
+				assert.True(t, w.States[0].End.Terminate)
 			},
 		}, {
 			"./testdata/workflows/eventbasedgreeting.sw.json", func(t *testing.T, w *model.Workflow) {
@@ -277,7 +286,8 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "0 0/15 * * * ?", w.Start.Schedule.Cron.Expression)
 				assert.Equal(t, "checkInboxFunction", w.States[0].OperationState.Actions[0].FunctionRef.RefName)
 				assert.Equal(t, "SendTextForHighPriority", w.States[0].Transition.NextState)
-				assert.False(t, w.States[1].End.Terminate)
+				assert.NotNil(t, w.States[1].End)
+				assert.True(t, w.States[1].End.Terminate)
 			},
 		}, {
 			"./testdata/workflows/applicationrequest-issue16.sw.yaml", func(t *testing.T, w *model.Workflow) {
@@ -695,60 +705,6 @@ states:
 		assert.NotNil(t, err)
 		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
 		assert.Nil(t, workflow)
-	})
-
-	t.Run("BasicWorkflowEndBool", func(t *testing.T) {
-		workflow, err := FromJSONSource([]byte(`
-{
-  "id": "applicantrequest",
-  "version": "1.0",
-  "name": "Applicant Request Decision Workflow",
-  "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
-  "specVersion": "0.7",
-  "states": [
-    {
-	  "name": "Hello State",
-	  "type": "inject",
-      "data": {
-		"result": "Hello World!"
-	  },
-	  "end": true
-    }
-  ]
-}
-`))
-
-		assert.Nil(t, err)
-		assert.Equal(t, true, workflow.States[0].GetEnd().Terminate)
-	})
-
-	t.Run("BasicWorkflowEndStruct", func(t *testing.T) {
-		workflow, err := FromJSONSource([]byte(`
-{
-  "id": "applicantrequest",
-  "version": "1.0",
-  "name": "Applicant Request Decision Workflow",
-  "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
-  "specVersion": "0.7",
-  "states": [
-    {
-	  "name": "Hello State",
-	  "type": "inject",
-      "data": {
-		"result": "Hello World!"
-	  },
-	  "end": {
-		"terminate": true
-	  }
-    }
-  ]
-}
-`))
-
-		assert.Nil(t, err)
-		assert.Equal(t, true, workflow.States[0].GetEnd().Terminate)
 	})
 }
 

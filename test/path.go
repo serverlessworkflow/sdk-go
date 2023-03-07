@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -49,5 +50,9 @@ func CurrentProjectPath() string {
 
 func currentFilePath() string {
 	_, file, _, _ := runtime.Caller(1)
-	return file
+	if strings.HasSuffix(file, "/") {
+		return file
+	}
+	println("Returning an empty string for currentFilePath since it's not a caller path: " + file)
+	return ""
 }

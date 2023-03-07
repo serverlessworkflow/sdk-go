@@ -51,7 +51,7 @@ type ServerlessWorkflow struct {
 // SDKServerlessWorkflowList contains a list of SDKServerlessWorkflow
 // +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type SDKServerlessWorkflowList struct {
+type ServerlessWorkflowList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []SDKServerlessWorkflow `json:"items"`

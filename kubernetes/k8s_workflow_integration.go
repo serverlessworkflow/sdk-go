@@ -40,7 +40,7 @@ type ServerlessWorkflowSpec struct {
 // +kubebuilder:object:generate=true
 // +kubebuilder:subresource:status
 // +k8s:openapi-gen=true
-type SDKServerlessWorkflow struct {
+type ServerlessWorkflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 

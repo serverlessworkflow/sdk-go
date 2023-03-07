@@ -62,7 +62,7 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 			},
 			err: `Key: 'State.CallbackState.EventRef' Error:Field validation for 'EventRef' failed on the 'required' tag`,
 		},
-		// TODO need to register custom types
+		// TODO need to register custom types - will be fixed by https://github.com/serverlessworkflow/sdk-go/issues/151
 		//{
 		//	desp: "missing required Action",
 		//	callbackStateObj: State{

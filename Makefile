@@ -19,5 +19,25 @@ test: deepcopy
 	@go test ./...
 
 .PHONY: deepcopy
-deepcopy: $(DEEPCOPY_GEN) ## Download deeepcopy-gen locally if necessary.
+deepcopy: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.
 	./hack/deepcopy-gen.sh deepcopy
+
+.PHONY: kube-integration
+kube-integration: controller-gen
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:allowDangerousTypes=true webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+
+####################################
+# install controller-gen tool
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+CONTROLLER_TOOLS_VERSION ?= v0.9.2
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+

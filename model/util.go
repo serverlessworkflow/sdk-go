@@ -67,7 +67,7 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	}
 
 	// TODO: optimize this
-	// NOTE: In specification, we can declared independently definitions with another file format, so
+	// NOTE: In specification, we can declare independent definitions with another file format, so
 	// we must convert independently yaml source to json format data before unmarshal.
 	if strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".yml") {
 		b, err = yaml.YAMLToJSON(b)
@@ -75,7 +75,6 @@ func getBytesFromFile(s string) (b []byte, err error) {
 			return nil, err
 		}
 	}
-
 	return b, nil
 }
 

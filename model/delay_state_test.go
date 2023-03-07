@@ -25,42 +25,48 @@ import (
 func TestDelayStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		desp          string
-		delayStateObj DelayState
+		delayStateObj State
 		err           string
 	}
 	testCases := []testCase{
 		{
 			desp: "normal",
-			delayStateObj: DelayState{
+			delayStateObj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "delay",
 				},
-				TimeDelay: "PT5S",
+				DelayState: &DelayState{
+					TimeDelay: "PT5S",
+				},
 			},
 			err: ``,
 		},
 		{
 			desp: "missing required timeDelay",
-			delayStateObj: DelayState{
+			delayStateObj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "delay",
 				},
-				TimeDelay: "",
+				DelayState: &DelayState{
+					TimeDelay: "",
+				},
 			},
-			err: `Key: 'DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'required' tag`,
+			err: `Key: 'State.DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'required' tag`,
 		},
 		{
 			desp: "invalid timeDelay duration",
-			delayStateObj: DelayState{
+			delayStateObj: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "delay",
 				},
-				TimeDelay: "P5S",
+				DelayState: &DelayState{
+					TimeDelay: "P5S",
+				},
 			},
-			err: `Key: 'DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'iso8601duration' tag`,
+			err: `Key: 'State.DelayState.TimeDelay' Error:Field validation for 'TimeDelay' failed on the 'iso8601duration' tag`,
 		},
 	}
 	for _, tc := range testCases {

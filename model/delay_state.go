@@ -14,13 +14,19 @@
 
 package model
 
+import "encoding/json"
+
 // DelayState Causes the workflow execution to delay for a specified duration
 type DelayState struct {
-	BaseState
 	// Amount of time (ISO 8601 format) to delay
 	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
 }
 
-func (in *DelayState) DeepCopyState() State {
-	return in
+func (a *DelayState) MarshalJSON() ([]byte, error) {
+	custom, err := json.Marshal(&struct {
+		TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
+	}{
+		TimeDelay: a.TimeDelay,
+	})
+	return custom, err
 }

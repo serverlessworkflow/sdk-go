@@ -16,6 +16,7 @@ package model
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -33,7 +34,6 @@ func init() {
 // SwitchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
 type SwitchState struct {
 	// TODO: don't use BaseState for this, there are a few fields that SwitchState don't need.
-	BaseState
 
 	// Default transition of the workflow if there is no matching data conditions. Can include a transition or end definition
 	// Required
@@ -46,8 +46,16 @@ type SwitchState struct {
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (in *SwitchState) DeepCopyState() State {
-	return in
+func (s *SwitchState) MarshalJSON() ([]byte, error) {
+	type Alias SwitchState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(s),
+		Timeouts: s.Timeouts,
+	})
+	return custom, err
 }
 
 // SwitchStateStructLevelValidation custom validator for SwitchState
@@ -55,9 +63,9 @@ func SwitchStateStructLevelValidation(ctx context.Context, structLevel validator
 	switchState := structLevel.Current().Interface().(SwitchState)
 	switch {
 	case len(switchState.DataConditions) == 0 && len(switchState.EventConditions) == 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "required", "must have one of dataCnoditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "required", "must have one of dataConditions, eventConditions")
 	case len(switchState.DataConditions) > 0 && len(switchState.EventConditions) > 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "exclusive", "must have one of dataCnoditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "exclusive", "must have one of dataConditions, eventConditions")
 	}
 }
 
@@ -95,9 +103,8 @@ type EventCondition struct {
 	// References a unique event name in the defined workflow events
 	EventRef string `json:"eventRef" validate:"required"`
 	// Event data filter definition
-	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
-	Metadata        Metadata        `json:"metadata,omitempty"`
-
+	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
+	Metadata        Metadata         `json:"metadata,omitempty"`
 	// Explicit transition to end
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true

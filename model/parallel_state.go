@@ -40,13 +40,11 @@ const (
 
 // ParallelState Consists of a number of states that are executed in parallel
 type ParallelState struct {
-	BaseState
 	// Branch Definitions
 	Branches []Branch `json:"branches" validate:"required,min=1,dive"`
 	// Option types on how to complete branch execution.
 	// Defaults to `allOf`
 	CompletionType CompletionType `json:"completionType,omitempty" validate:"required,oneof=allOf atLeast"`
-
 	// Used when completionType is set to 'atLeast' to specify the minimum number of branches that must complete before the state will transition."
 	// TODO: change this field to unmarshal result as int
 	NumCompleted intstr.IntOrString `json:"numCompleted,omitempty"`
@@ -54,8 +52,16 @@ type ParallelState struct {
 	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
 }
 
-func (ps *ParallelState) DeepCopyState() State {
-	return ps
+func (p *ParallelState) MarshalJSON() ([]byte, error) {
+	type Alias ParallelState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(p),
+		Timeouts: p.Timeouts,
+	})
+	return custom, err
 }
 
 type parallelStateForUnmarshal ParallelState

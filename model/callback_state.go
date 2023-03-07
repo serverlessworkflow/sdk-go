@@ -14,22 +14,33 @@
 
 package model
 
+import (
+	"encoding/json"
+)
+
 // CallbackState executes a function and waits for callback event that indicates
 // completion of the task.
 type CallbackState struct {
-	BaseState
 	// Defines the action to be executed
 	Action Action `json:"action" validate:"required"`
 	// References a unique callback event name in the defined workflow events
 	EventRef string `json:"eventRef" validate:"required"`
 	// Time period to wait for incoming events (ISO 8601 format)
-	Timeouts *CallbackStateTimeout `json:"timeouts" validate:"omitempty"`
+	Timeouts *CallbackStateTimeout `json:"timeouts,omitempty"`
 	// Event data filter
-	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
+	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
-func (in *CallbackState) DeepCopyState() State {
-	return in
+func (c *CallbackState) MarshalJSON() ([]byte, error) {
+	type Alias CallbackState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *CallbackStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(c),
+		Timeouts: c.Timeouts,
+	})
+	return custom, err
 }
 
 // CallbackStateTimeout defines timeout settings for callback state

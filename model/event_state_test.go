@@ -25,30 +25,32 @@ func TestEventStateUnmarshalJSON(t *testing.T) {
 	type testCase struct {
 		desp   string
 		data   string
-		expect EventState
+		expect State
 		err    string
 	}
 	testCases := []testCase{
 		{
 			desp: "all fields set",
-			data: `{"name": "1", "Type": "event", "exclusive": false, "onEvents": [{"eventRefs": ["E1", "E2"], "actionMode": "parallel"}], "timeouts": {"actionExecTimeout": "PT5M", "eventTimeout": "PT5M", "stateExecTimeout": "PT5M"}}`,
-			expect: EventState{
+			data: `{"name": "1", "type": "event", "exclusive": false, "onEvents": [{"eventRefs": ["E1", "E2"], "actionMode": "parallel"}], "timeouts": {"actionExecTimeout": "PT5M", "eventTimeout": "PT5M", "stateExecTimeout": "PT5M"}}`,
+			expect: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeEvent,
 				},
-				Exclusive: false,
-				OnEvents: []OnEvents{
-					{
-						EventRefs:  []string{"E1", "E2"},
-						ActionMode: "parallel",
+				EventState: &EventState{
+					Exclusive: false,
+					OnEvents: []OnEvents{
+						{
+							EventRefs:  []string{"E1", "E2"},
+							ActionMode: "parallel",
+						},
 					},
-				},
-				Timeouts: &EventStateTimeout{
-					EventTimeout:      "PT5M",
-					ActionExecTimeout: "PT5M",
-					StateExecTimeout: &StateExecTimeout{
-						Total: "PT5M",
+					Timeouts: &EventStateTimeout{
+						EventTimeout:      "PT5M",
+						ActionExecTimeout: "PT5M",
+						StateExecTimeout: &StateExecTimeout{
+							Total: "PT5M",
+						},
 					},
 				},
 			},
@@ -56,24 +58,26 @@ func TestEventStateUnmarshalJSON(t *testing.T) {
 		},
 		{
 			desp: "default exclusive",
-			data: `{"name": "1", "Type": "event", "onEvents": [{"eventRefs": ["E1", "E2"], "actionMode": "parallel"}], "timeouts": {"actionExecTimeout": "PT5M", "eventTimeout": "PT5M", "stateExecTimeout": "PT5M"}}`,
-			expect: EventState{
+			data: `{"name": "1", "type": "event", "onEvents": [{"eventRefs": ["E1", "E2"], "actionMode": "parallel"}], "timeouts": {"actionExecTimeout": "PT5M", "eventTimeout": "PT5M", "stateExecTimeout": "PT5M"}}`,
+			expect: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeEvent,
 				},
-				Exclusive: true,
-				OnEvents: []OnEvents{
-					{
-						EventRefs:  []string{"E1", "E2"},
-						ActionMode: "parallel",
+				EventState: &EventState{
+					Exclusive: true,
+					OnEvents: []OnEvents{
+						{
+							EventRefs:  []string{"E1", "E2"},
+							ActionMode: "parallel",
+						},
 					},
-				},
-				Timeouts: &EventStateTimeout{
-					EventTimeout:      "PT5M",
-					ActionExecTimeout: "PT5M",
-					StateExecTimeout: &StateExecTimeout{
-						Total: "PT5M",
+					Timeouts: &EventStateTimeout{
+						EventTimeout:      "PT5M",
+						ActionExecTimeout: "PT5M",
+						StateExecTimeout: &StateExecTimeout{
+							Total: "PT5M",
+						},
 					},
 				},
 			},
@@ -82,7 +86,7 @@ func TestEventStateUnmarshalJSON(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desp, func(t *testing.T) {
-			v := EventState{}
+			v := State{}
 			err := json.Unmarshal([]byte(tc.data), &v)
 
 			if tc.err != "" {

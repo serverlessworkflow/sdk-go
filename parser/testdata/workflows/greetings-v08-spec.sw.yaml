@@ -50,6 +50,7 @@ states:
               refName: StoreBidFunction
               arguments:
                 bid: "${ .bid }"
+            name: funcref1
           - eventRef:
               triggerEventRef: StoreBidFunction
               data: "${ .patientInfo }"
@@ -57,6 +58,7 @@ states:
               contextAttributes:
                 customer: "${ .customer }"
                 time: 48
+            name: eventRefName
     timeouts:
       eventTimeout: PT1H
       actionExecTimeout: PT3S
@@ -65,7 +67,7 @@ states:
         single: PT2S
   - name: ParallelExec
     type: parallel
-    completionType: allOf
+    completionType: atLeast
     branches:
       - name: ShortDelayBranch
         actions:
@@ -81,13 +83,20 @@ states:
       stateExecTimeout:
         total: PT1S
         single: PT2S
+    numCompleted: 13
   - name: CheckVisaStatusSwitchEventBased
     type: switch
     eventConditions:
-      - eventRef: visaApprovedEvent
+      - name: visaApprovedEvent
+        eventRef: visaApprovedEventRef
         transition: HandleApprovedVisa
+        metadata:
+          visa: allowed
+          mastercard: disallowed
       - eventRef: visaRejectedEvent
         transition: HandleRejectedVisa
+        metadata:
+          test: tested
     timeouts:
       eventTimeout: PT1H
       stateExecTimeout:
@@ -134,6 +143,10 @@ states:
   - name: SendTextForHighPriority
     type: foreach
     inputCollection: "${ .messages }"
+    outputCollection: "${ .outputMessages }"
+    iterationParam: "${ .this }"
+    batchSize: 45
+    mode: sequential
     actions:
       - name: test
         functionRef:
@@ -142,7 +155,7 @@ states:
             message: "${ .singlemessage }"
         eventRef:
           triggerEventRef: example1
-          resultEventRef: example1
+          resultEventRef: example2
           # Added "resultEventTimeout" for action eventref
           resultEventTimeout: PT12H
     timeouts:
@@ -174,6 +187,10 @@ states:
         before: PT10S
         after: PT20S
     eventRef: CreditCheckCompletedEvent
+    eventDataFilter:
+      useData: true
+      data: "test data"
+      toStateData: "${ .customer }"
     timeouts:
       actionExecTimeout: PT150M
       eventTimeout: PT34S
@@ -188,4 +205,5 @@ states:
       stateExecTimeout:
         total: PT100S
         single: PT200S
-    end: true
+    end:
+      terminate: true

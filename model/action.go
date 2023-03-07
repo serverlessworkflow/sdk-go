@@ -33,7 +33,7 @@ type Action struct {
 	// References a sub-workflow to be executed
 	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
 	// Sleep Defines time period workflow execution should sleep before / after function execution
-	Sleep Sleep `json:"sleep,omitempty"`
+	Sleep *Sleep `json:"sleep,omitempty"`
 	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
 	RetryRef string `json:"retryRef,omitempty"`
 	// List of unique references to defined workflow errors for which the action should not be retried. Used only when `autoRetries` is set to `true`

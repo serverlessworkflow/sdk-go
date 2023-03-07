@@ -24,6 +24,7 @@ functions:
     operation: file://myapis/greetingapis.json#greeting
 states:
   - name: Greet
+    id: idx
     type: operation
     actionMode: sequential
     actions:

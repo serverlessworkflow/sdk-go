@@ -35,7 +35,7 @@ type ServerlessWorkflowSpec struct {
 	States       []model.State      `json:"states"`
 }
 
-// SDKServerlessWorkflow ...
+// ServerlessWorkflow ...
 // +kubebuilder:object:root=true
 // +kubebuilder:object:generate=true
 // +kubebuilder:subresource:status
@@ -48,25 +48,25 @@ type ServerlessWorkflow struct {
 	Status string                 `json:"status,omitempty"`
 }
 
-// SDKServerlessWorkflowList contains a list of SDKServerlessWorkflow
+// ServerlessWorkflowList contains a list of SDKServerlessWorkflow
 // +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ServerlessWorkflowList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SDKServerlessWorkflow `json:"items"`
+	Items           []ServerlessWorkflow `json:"items"`
 }
 
-func (S SDKServerlessWorkflowList) DeepCopyObject() runtime.Object {
+func (S ServerlessWorkflowList) DeepCopyObject() runtime.Object {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (S SDKServerlessWorkflow) DeepCopyObject() runtime.Object {
+func (S ServerlessWorkflow) DeepCopyObject() runtime.Object {
 	//TODO implement me
 	panic("implement me")
 }
 
 func init() {
-	SchemeBuilder.Register(&SDKServerlessWorkflow{}, &SDKServerlessWorkflowList{})
+	SchemeBuilder.Register(&ServerlessWorkflow{}, &ServerlessWorkflowList{})
 }

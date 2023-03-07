@@ -633,7 +633,9 @@ states:
       "data": {
 		"result": "Hello World!"
 	  },
-	  "end": true
+	  "end": {
+		"terminate": true
+	  }
     }
   ]
 }
@@ -641,9 +643,8 @@ states:
 		assert.Nil(t, err)
 		assert.NotNil(t, workflow.Auth)
 
-		// TODO correctly marshall end: true (fixed by https://github.com/serverlessworkflow/sdk-go/pull/147)
 		b, _ := json.Marshal(workflow)
-		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{},\"data\":{\"result\":\"Hello World!\"}}]}",
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Hello World!\"}}]}",
 			string(b))
 
 	})
@@ -660,12 +661,20 @@ states:
   "auth": "./testdata/workflows/urifiles/auth.json",
   "states": [
     {
-	  "name": "Hello State",
-	  "type": "inject",
+      "name": "Hello State",
+      "type": "inject",
       "data": {
-		"result": "Hello World!"
-	  },
-	  "end": true
+        "result": "Hello World!"
+      },
+      "transition": "Hello State Next"
+    },
+    {
+      "name": "Hello State Next",
+      "type": "inject",
+      "data": {
+         "result": "Hello World Next!"
+      },
+      "end": true
     }
   ]
 }
@@ -674,7 +683,7 @@ states:
 		assert.NotNil(t, workflow.Auth)
 
 		b, _ := json.Marshal(workflow)
-		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{},\"data\":{\"result\":\"Hello World!\"}}]}",
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"transition\":{\"nextState\":\"Hello State Next\"},\"data\":{\"result\":\"Hello World!\"}},{\"name\":\"Hello State Next\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Hello World Next!\"}}]}",
 			string(b))
 
 	})

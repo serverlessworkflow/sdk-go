@@ -93,6 +93,14 @@ func unmarshalString(data []byte) (string, error) {
 	return value, nil
 }
 
+func unmarshalBool(data []byte) (bool, error) {
+	var value bool
+	if err := json.Unmarshal(data, &value); err != nil {
+		return false, err
+	}
+	return value, nil
+}
+
 func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {
 	if _, found := data[key]; found {
 		if err := json.Unmarshal(data[key], output); err != nil {

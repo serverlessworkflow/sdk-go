@@ -23,17 +23,108 @@ import (
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-func TestContinueAsStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		name       string
-		continueAs ContinueAs
-		err        string
-	}
+var workflowStructDefault = Workflow{
+	BaseWorkflow: BaseWorkflow{
+		ID:          "id",
+		SpecVersion: "0.8",
+		Auth: AuthArray{
+			{
+				Name: "auth name",
+			},
+		},
+		Start: &Start{
+			StateName: "name state",
+		},
+	},
+	States: []State{{
+		BaseState: BaseState{
+			Name: "name state",
+			Type: StateTypeOperation,
+		},
+		OperationState: &OperationState{
+			ActionMode: "sequential",
+			Actions: []Action{
+				{},
+			},
+		},
+	}},
+}
 
-	testCases := []testCase{
+func TestValidationAsStructLevelValidation(t *testing.T) {
+	type testCase[T any] struct {
+		name     string
+		instance T
+		err      string
+	}
+	testCases := []testCase[any]{
+		{
+			name:     "workflow success",
+			instance: workflowStructDefault,
+		},
+		{
+			name: "workflow auth.name repeat",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.Auth = append(w.Auth, w.Auth[0])
+				return w
+			}(),
+			err: `Key: 'Workflow.[]Auth.Name' Error:Field validation for '[]Auth.Name' failed on the 'reqnameunique' tag`,
+		},
+		{
+			name: "workflow id exclude key",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.ID = "id"
+				w.Key = ""
+				return w
+			}(),
+			err: ``,
+		},
+		{
+			name: "workflow key exclude id",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.ID = ""
+				w.Key = "key"
+				return w
+			}(),
+			err: ``,
+		},
+		{
+			name: "workflow id and key",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.ID = "id"
+				w.Key = "key"
+				return w
+			}(),
+			err: ``,
+		},
+		{
+			name: "workflow without id and key",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.ID = ""
+				w.Key = ""
+				return w
+			}(),
+			err: `Key: 'Workflow.BaseWorkflow.ID' Error:Field validation for 'ID' failed on the 'required_without' tag
+Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 'required_without' tag`,
+		},
+		{
+			name: "workflow start",
+			instance: func() Workflow {
+				w := workflowStructDefault
+				w.Start = &Start{
+					StateName: "start state not found",
+				}
+				return w
+			}(),
+			err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexists' tag`,
+		},
 		{
 			name: "valid ContinueAs",
-			continueAs: ContinueAs{
+			instance: ContinueAs{
 				WorkflowID: "another-test",
 				Version:    "2",
 				Data:       FromString("${ del(.customerCount) }"),
@@ -47,7 +138,7 @@ func TestContinueAsStructLevelValidation(t *testing.T) {
 		},
 		{
 			name: "invalid WorkflowExecTimeout",
-			continueAs: ContinueAs{
+			instance: ContinueAs{
 				WorkflowID: "test",
 				Version:    "1",
 				Data:       FromString("${ del(.customerCount) }"),
@@ -61,14 +152,92 @@ func TestContinueAsStructLevelValidation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.continueAs)
+			err := val.GetValidator().Struct(tc.instance)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				if err != nil {
+					assert.Equal(t, tc.err, err.Error())
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestWorkflowStartUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect Workflow
+		err    string
+	}
+	testCases := []testCase{
+		{
+			desp: "start string",
+			data: `{"start": "start state name"}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
+					Start: &Start{
+						StateName: "start state name",
+					},
+				},
+				States: []State{},
+			},
+			err: ``,
+		},
+		{
+			desp: "start empty and use the first state",
+			data: `{"states": [{"name": "start state name", "type": "operation"}]}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
+					Start: &Start{
+						StateName: "start state name",
+					},
+				},
+				States: []State{
+					{
+						BaseState: BaseState{
+							Name: "start state name",
+							Type: StateTypeOperation,
+						},
+						OperationState: &OperationState{
+							ActionMode: "sequential",
+						},
+					},
+				},
+			},
+			err: ``,
+		},
+		{
+			desp: "start empty, and states empty",
+			data: `{"states": []}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
+				},
+				States: []State{},
+			},
+			err: ``,
+		},
+	}
+
+	for _, tc := range testCases[1:] {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Workflow
+			err := json.Unmarshal([]byte(tc.data), &v)
 
 			if tc.err != "" {
 				assert.Error(t, err)
 				assert.Regexp(t, tc.err, err)
 				return
 			}
+
 			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
 		})
 	}
 }

@@ -57,7 +57,7 @@ const (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
-	val.GetValidator().RegisterStructValidation(BaseWorkflowStructLevelValidation, BaseWorkflow{})
+	val.GetValidator().RegisterStructValidation(workflowStructLevelValidation, Workflow{})
 }
 
 func continueAsStructLevelValidation(structLevel validator.StructLevel) {
@@ -70,20 +70,49 @@ func continueAsStructLevelValidation(structLevel validator.StructLevel) {
 	}
 }
 
+// WorkflowStructLevelValidation custom validator
+func workflowStructLevelValidation(structLevel validator.StructLevel) {
+	// unique name of the auth methods
+	// NOTE: we cannot add the custom validation of auth to AuthArray
+	// because `RegisterStructValidation` only works with struct type
+	wf := structLevel.Current().Interface().(Workflow)
+	dict := map[string]bool{}
+
+	for _, a := range wf.BaseWorkflow.Auth {
+		if !dict[a.Name] {
+			dict[a.Name] = true
+		} else {
+			structLevel.ReportError(reflect.ValueOf(a.Name), "[]Auth.Name", "name", "reqnameunique", "")
+		}
+	}
+
+	// start state name exists in states list
+	startExists := false
+	for _, state := range wf.States {
+		if state.Name == wf.BaseWorkflow.Start.StateName {
+			startExists = true
+			break
+		}
+	}
+	if !startExists {
+		structLevel.ReportError(reflect.ValueOf(wf.BaseWorkflow.Start.StateName), "Start", "start", "startnotexists", "")
+	}
+}
+
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type BaseWorkflow struct {
 	// Workflow unique identifier
-	ID string `json:"id" validate:"omitempty,min=1"`
+	ID string `json:"id,omitempty" validate:"required_without=Key"`
 	// Key Domain-specific workflow identifier
-	Key string `json:"key,omitempty" validate:"omitempty,min=1"`
+	Key string `json:"key,omitempty" validate:"required_without=ID"`
 	// Workflow name
 	Name string `json:"name,omitempty"`
 	// Workflow description
 	Description string `json:"description,omitempty"`
 	// Workflow version
 	Version string `json:"version" validate:"omitempty,min=1"`
-	Start   *Start `json:"start,omitempty"`
+	Start   *Start `json:"start,omitempty" validate:"required"`
 	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important qualities
 	Annotations []string `json:"annotations,omitempty"`
 	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
@@ -110,22 +139,6 @@ type BaseWorkflow struct {
 	// property of function definitions. It is not used as authentication information for the function invocation,
 	// but just to access the resource containing the function invocation information.
 	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
-}
-
-// BaseWorkflowStructLevelValidation custom validator for unique name of the auth methods
-func BaseWorkflowStructLevelValidation(structLevel validator.StructLevel) {
-	// NOTE: we cannot add the custom validation of auth to AuthArray
-	// because `RegisterStructValidation` only works with struct type
-	wf := structLevel.Current().Interface().(BaseWorkflow)
-	dict := map[string]bool{}
-
-	for _, a := range wf.Auth {
-		if !dict[a.Name] {
-			dict[a.Name] = true
-		} else {
-			structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
-		}
-	}
 }
 
 type AuthArray []Auth
@@ -186,14 +199,23 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	}
 
 	var rawStates []json.RawMessage
-	if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
-		return err
+	if _, ok := workflowMap["states"]; ok {
+		if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
+			return err
+		}
 	}
 
 	w.States = make([]State, len(rawStates))
 	for i, rawState := range rawStates {
 		if err := json.Unmarshal(rawState, &w.States[i]); err != nil {
 			return err
+		}
+	}
+
+	// if the start is not defined, use the first state
+	if w.BaseWorkflow.Start == nil && len(w.States) > 0 {
+		w.BaseWorkflow.Start = &Start{
+			StateName: w.States[0].Name,
 		}
 	}
 
@@ -508,11 +530,12 @@ type End struct {
 
 // UnmarshalJSON ...
 func (e *End) UnmarshalJSON(data []byte) error {
-
 	endMap := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(data, &endMap); err != nil {
-		e.Terminate = false
-		e.Compensate = false
+		e.Terminate, err = unmarshalBool(data)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 

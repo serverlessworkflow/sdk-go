@@ -380,7 +380,7 @@ func TestFromFile(t *testing.T) {
 				// Workflow "name" no longer a required property
 				assert.Empty(t, w.Name)
 				// 	Workflow "start" no longer a required property
-				assert.Empty(t, w.Start)
+				assert.Equal(t, w.States[0].Name, w.Start.StateName)
 
 				// Functions:
 				assert.NotEmpty(t, w.Functions[0])
@@ -610,7 +610,7 @@ states:
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
+  "start": "Hello State",
   "specVersion": "0.8",
   "auth": [
     {
@@ -653,7 +653,7 @@ states:
 		assert.NotNil(t, workflow.Auth)
 
 		b, _ := json.Marshal(workflow)
-		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"transition\":{\"nextState\":\"Next Hello State\"},\"data\":{\"result\":\"Hello World!\"}},{\"name\":\"Next Hello State\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Next Hello World!\"}}]}",
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"Hello State\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"transition\":{\"nextState\":\"Next Hello State\"},\"data\":{\"result\":\"Hello World!\"}},{\"name\":\"Next Hello State\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Next Hello World!\"}}]}",
 			string(b))
 
 	})
@@ -665,7 +665,7 @@ states:
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
+  "start": "Hello State",
   "specVersion": "0.8",
   "auth": "./testdata/workflows/urifiles/auth.json",
   "states": [
@@ -684,7 +684,7 @@ states:
 		assert.NotNil(t, workflow.Auth)
 
 		b, _ := json.Marshal(workflow)
-		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"CheckApplication\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Hello World!\"}}]}",
+		assert.Equal(t, "{\"id\":\"applicantrequest\",\"name\":\"Applicant Request Decision Workflow\",\"description\":\"Determine if applicant request is valid\",\"version\":\"1.0\",\"start\":{\"stateName\":\"Hello State\"},\"specVersion\":\"0.8\",\"expressionLang\":\"jq\",\"auth\":[{\"name\":\"testAuth\",\"scheme\":\"bearer\",\"properties\":{\"token\":\"test_token\"}},{\"name\":\"testAuth2\",\"scheme\":\"basic\",\"properties\":{\"username\":\"test_user\",\"password\":\"test_pwd\"}}],\"states\":[{\"name\":\"Hello State\",\"type\":\"inject\",\"end\":{\"terminate\":true},\"data\":{\"result\":\"Hello World!\"}}]}",
 			string(b))
 
 	})
@@ -696,7 +696,7 @@ states:
   "version": "1.0",
   "name": "Applicant Request Decision Workflow",
   "description": "Determine if applicant request is valid",
-  "start": "CheckApplication",
+  "start": "Hello State",
   "specVersion": "0.7",
   "auth": 123,
   "states": [
@@ -726,7 +726,7 @@ version: '1.0.0'
 specVersion: '0.8'
 name: WorkflowStatesTest
 description: Inject Hello World
-start: Hello State
+start: GreetDelay
 metadata:
   metadata1: metadata1
   metadata2: metadata2

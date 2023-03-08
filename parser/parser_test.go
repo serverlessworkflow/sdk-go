@@ -644,9 +644,7 @@ states:
 		"data": {
 		  "result": "Next Hello World!"
 		},
-		"end": {
-			"terminate": true
-		}
+		"end": true
 	  }
   ]
 }

@@ -85,6 +85,7 @@ func requiresNotNilOrEmpty(value interface{}) string {
 	return value.(string)
 }
 
+// TODO: check the places that use unmarshalString if the case changes for primitiveOrMapType.
 func unmarshalString(data []byte) (string, error) {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {
@@ -93,12 +94,13 @@ func unmarshalString(data []byte) (string, error) {
 	return value, nil
 }
 
-func unmarshalBool(data []byte) (bool, error) {
-	var value bool
-	if err := json.Unmarshal(data, &value); err != nil {
-		return false, err
+func primitiveOrMapType[T any](data []byte) (valMap map[string]json.RawMessage, val T, err error) {
+	if data[0] == '{' {
+		err = json.Unmarshal(data, &valMap)
+	} else {
+		err = json.Unmarshal(data, &val)
 	}
-	return value, nil
+	return
 }
 
 func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {

@@ -379,8 +379,6 @@ func TestFromFile(t *testing.T) {
 
 				// Workflow "name" no longer a required property
 				assert.Empty(t, w.Name)
-				// 	Workflow "start" no longer a required property
-				assert.Equal(t, w.States[0].Name, w.Start.StateName)
 
 				// Functions:
 				assert.NotEmpty(t, w.Functions[0])

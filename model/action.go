@@ -21,28 +21,44 @@ import (
 )
 
 // Action specify invocations of services or other workflows during workflow execution.
+// +optional
 type Action struct {
-	// ID defines Unique action identifier
+	// Defines Unique action identifier
+	// +optional
 	ID string `json:"id,omitempty"`
-	// Name defines Unique action definition name
+	// Defines Unique action definition name
+	// +optional
 	Name string `json:"name,omitempty"`
-	// FunctionRef references a reusable function definition
+	// References a reusable function definition
+	// +optional
 	FunctionRef *FunctionRef `json:"functionRef,omitempty"`
-	// EventRef references a 'trigger' and 'result' reusable event definitions
+	// References a 'trigger' and 'result' reusable event definitions
+	// +optional
 	EventRef *EventRef `json:"eventRef,omitempty"`
 	// References a sub-workflow to be executed
+	// +optional
 	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
-	// Sleep Defines time period workflow execution should sleep before / after function execution
+	// Defines time period workflow execution should sleep before / after function execution
+	// +optional
 	Sleep *Sleep `json:"sleep,omitempty"`
-	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
+	// References a defined workflow retry definition. If not defined the default retry policy is assumed
+	// +optional
 	RetryRef string `json:"retryRef,omitempty"`
 	// List of unique references to defined workflow errors for which the action should not be retried. Used only when `autoRetries` is set to `true`
+	// +optional
+	// +listType=atomic
 	NonRetryableErrors []string `json:"nonRetryableErrors,omitempty" validate:"omitempty,min=1"`
 	// List of unique references to defined workflow errors for which the action should be retried. Used only when `autoRetries` is set to `false`
+	// +listType=atomic
+	// +optional
 	RetryableErrors []string `json:"retryableErrors,omitempty" validate:"omitempty,min=1"`
-	// Action data filter
+	// Filter the state data to select only the data that can be used within function definition arguments using its fromStateData property.
+	// Filter the action results to select only the result data that should be added/merged back into the state data using its results property.
+	// Select the part of state data which the action data results should be added/merged to using the toStateData property.
+	// +optional
 	ActionDataFilter ActionDataFilter `json:"actionDataFilter,omitempty"`
-	// Workflow expression evaluated against state data. Must evaluate to true or false
+	// workflow expression evaluated against state data. Must evaluate to true or false
+	// +optional
 	Condition string `json:"condition,omitempty"`
 }
 

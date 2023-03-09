@@ -83,6 +83,7 @@ type EventRef struct {
 	ResultEventTimeout string `json:"resultEventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 	// If string type, an expression which selects parts of the states data output to become the data (payload) of the event referenced by 'triggerEventRef'.
 	// If object type, a custom object to become the data (payload) of the event referenced by 'triggerEventRef'.
+	// +optional
 	Data *Object `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event
 	ContextAttributes map[string]Object `json:"contextAttributes,omitempty"`

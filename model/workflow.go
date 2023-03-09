@@ -505,6 +505,7 @@ type ContinueAs struct {
 	Version string `json:"version,omitempty"`
 	// If string type, an expression which selects parts of the states data output to become the workflow data input of
 	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
+	// +optional
 	Data Object `json:"data,omitempty"`
 	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
@@ -544,6 +545,7 @@ type ProduceEvent struct {
 	// TODO: add object or string data type
 	// If String, expression which selects parts of the states data output to become the data of the produced event.
 	// If object a custom object to become the data of produced event.
+	// +optional
 	Data string `json:"data,omitempty"`
 	// Add additional event extension context attributes
 	ContextAttributes map[string]string `json:"contextAttributes,omitempty"`

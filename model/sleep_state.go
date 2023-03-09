@@ -21,6 +21,7 @@ import (
 // SleepState suspends workflow execution for a given time duration.
 type SleepState struct {
 	// Duration (ISO 8601 duration format) to sleep
+	// +optional
 	Duration string `json:"duration" validate:"required,iso8601duration"`
 	// Timeouts State specific timeouts
 	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`

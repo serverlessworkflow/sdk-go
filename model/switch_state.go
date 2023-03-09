@@ -24,10 +24,13 @@ type SwitchState struct {
 
 	// Default transition of the workflow if there is no matching data conditions. Can include a transition or end definition
 	// Required
+	// +optional
 	DefaultCondition DefaultCondition `json:"defaultCondition"`
 	// Defines conditions evaluated against events
+	// +optional
 	EventConditions []EventCondition `json:"eventConditions" validate:"omitempty,min=1,dive"`
 	// Defines conditions evaluated against data
+	// +optional
 	DataConditions []DataCondition `json:"dataConditions" validate:"omitempty,min=1,dive"`
 	// SwitchState specific timeouts
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`

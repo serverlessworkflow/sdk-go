@@ -28,6 +28,7 @@ type EventState struct {
 	// Defaults to true
 	Exclusive bool `json:"exclusive,omitempty"`
 	// Define the events to be consumed and optional actions to be performed
+	// +optional
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
 	// State specific timeouts
 	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
@@ -69,6 +70,8 @@ type OnEvents struct {
 	// Defaults to sequential
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
 	// Actions to be performed if expression matches
+	// +listType=atomic
+	// +optional
 	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
 	// Event data filter
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`

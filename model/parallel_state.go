@@ -35,6 +35,7 @@ const (
 // ParallelState Consists of a number of states that are executed in parallel
 type ParallelState struct {
 	// Branch Definitions
+	// +optional
 	Branches []Branch `json:"branches" validate:"required,min=1,dive"`
 	// Option types on how to complete branch execution.
 	// Defaults to `allOf`
@@ -85,6 +86,7 @@ type Branch struct {
 	// Branch name
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
+	// +optional
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
 	// Timeouts State specific timeouts
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`

@@ -26,6 +26,7 @@ type EventDataFilter struct {
 	// should be ignored. Defaults to true.
 	UseData bool `json:"useData,omitempty"`
 	// Workflow expression that filters of the event data (payload)
+	// +optional
 	Data string `json:"data,omitempty"`
 	// Workflow expression that selects a state data element to which the event payload should be added/merged into.
 	// If not specified, denotes, the top-level state data element.

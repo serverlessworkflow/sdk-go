@@ -23,6 +23,8 @@ type OperationState struct {
 	// Specifies whether actions are performed in sequence or in parallel, defaults to sequential
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
 	// Actions to be performed
+	// +listType=atomic
+	// +optional
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
 	// State specific timeouts
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`

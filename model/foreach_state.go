@@ -34,6 +34,7 @@ const (
 // ForEachState used to execute actions for each element of a data set.
 type ForEachState struct {
 	// Workflow expression selecting an array element of the states data
+	// +optional
 	InputCollection string `json:"inputCollection" validate:"required"`
 	// Workflow expression specifying an array element of the states data to add the results of each iteration
 	OutputCollection string `json:"outputCollection,omitempty"`
@@ -41,11 +42,11 @@ type ForEachState struct {
 	IterationParam string `json:"iterationParam,omitempty"`
 	// Specifies how upper bound on how many iterations may run in parallel
 	BatchSize *intstr.IntOrString `json:"batchSize,omitempty"`
-	// Actions to be executed for each of the elements of inputCollection
+	// actions to be executed for each of the elements of inputCollection
 	Actions []Action `json:"actions,omitempty" validate:"required,min=1,dive"`
-	// State specific timeout
+	// state specific timeout
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
-	// Mode Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel
+	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 

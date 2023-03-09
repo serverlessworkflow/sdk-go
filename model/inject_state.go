@@ -21,6 +21,7 @@ import (
 // InjectState used to inject static data into state data input.
 type InjectState struct {
 	// JSON object which can be set as states data input and can be manipulated via filters
+	// +optional
 	Data map[string]Object `json:"data" validate:"required,min=1"`
 	// State specific timeouts
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`

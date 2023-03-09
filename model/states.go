@@ -51,6 +51,7 @@ type BaseState struct {
 	// State name
 	Name string `json:"name" validate:"required"`
 	// State type
+	// +kubebuilder:validation:Enum:=delay;callback;event;foreach;inject;operation;parallel;sleep;switch
 	Type StateType `json:"type" validate:"required"`
 	// States error handling and retries definitions
 	OnErrors []OnError `json:"onErrors,omitempty" validate:"omitempty,dive"`
@@ -115,21 +116,30 @@ func (b *BaseState) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("metadata", baseState, &b.Metadata); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 type State struct {
-	BaseState       `json:",omitempty"`
-	*DelayState     `json:",omitempty"`
-	*EventState     `json:",omitempty"`
-	*OperationState `json:",omitempty"`
-	*ParallelState  `json:",omitempty"`
-	*SwitchState    `json:",omitempty"`
-	*ForEachState   `json:",omitempty"`
-	*InjectState    `json:",omitempty"`
-	*CallbackState  `json:",omitempty"`
-	*SleepState     `json:",omitempty"`
+	// +optional
+	BaseState `json:",inline"`
+	// +optional
+	*DelayState `json:",inline"`
+	// +optional
+	*EventState `json:",inline"`
+	// +optional
+	*OperationState `json:",inline"`
+	// +optional
+	*ParallelState `json:",inline"`
+	// +optional
+	*SwitchState `json:",inline"`
+	// +optional
+	*ForEachState `json:",inline"`
+	// +optional
+	*InjectState `json:",inline"`
+	// +optional
+	*CallbackState `json:",inline"`
+	// +optional
+	*SleepState `json:",inline"`
 }
 
 func (s *State) MarshalJSON() ([]byte, error) {

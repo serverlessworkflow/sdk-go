@@ -20,10 +20,13 @@ import (
 
 // CallbackState executes a function and waits for callback event that indicates
 // completion of the task.
+// +optional
 type CallbackState struct {
 	// Defines the action to be executed
+	// +optional
 	Action Action `json:"action" validate:"required"`
 	// References a unique callback event name in the defined workflow events
+	// +optional
 	EventRef string `json:"eventRef" validate:"required"`
 	// Time period to wait for incoming events (ISO 8601 format)
 	Timeouts *CallbackStateTimeout `json:"timeouts,omitempty"`

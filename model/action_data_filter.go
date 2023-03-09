@@ -21,17 +21,23 @@ import (
 )
 
 // ActionDataFilter used to filter action data results.
+// +optional
+// +optional
 type ActionDataFilter struct {
-	// Workflow expression that selects state data that the state action can use
+	// Workflow expression that filters state data that can be used by the action
+	// +optional
+	// +optional
 	FromStateData string `json:"fromStateData,omitempty"`
-
-	// UseResults represent where action data results is added/merged to state data. If it's false, results & toStateData should be ignored.
-	// Defaults to true.
+	// If set to false, action data results are not added/merged to state data. In this case 'results'
+	// and 'toStateData' should be ignored. Default is true
+	// +optional
 	UseResults bool `json:"useResults,omitempty"`
-
-	// Workflow expression that filters the actions' data results
+	// Workflow expression that filters the actions data results
+	// +optional
 	Results string `json:"results,omitempty"`
-	// Workflow expression that selects a state data element to which the action results should be added/merged into. If not specified, denote, the top-level state data element
+	// Workflow expression that selects a state data element to which the action results should be
+	// added/merged into. If not specified denotes the top-level state data element
+	// +optional
 	ToStateData string `json:"toStateData,omitempty"`
 }
 

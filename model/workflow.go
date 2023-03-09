@@ -508,28 +508,17 @@ type End struct {
 
 // UnmarshalJSON ...
 func (e *End) UnmarshalJSON(data []byte) error {
-	endMap, endBool, err := primitiveOrMapType[bool](data)
+	type endUnmarshal End
+	end, endBool, err := primitiveOrStruct[bool, endUnmarshal](data)
 	if err != nil {
 		return err
 	}
 
-	if endMap == nil {
+	if end == nil {
 		e.Terminate = endBool
 		e.Compensate = false
-		return nil
-	}
-
-	if err := unmarshalKey("compensate", endMap, &e.Compensate); err != nil {
-		return err
-	}
-	if err := unmarshalKey("terminate", endMap, &e.Terminate); err != nil {
-		return err
-	}
-	if err := unmarshalKey("produceEvents", endMap, &e.ProduceEvents); err != nil {
-		return err
-	}
-	if err := unmarshalKey("continueAs", endMap, &e.ContinueAs); err != nil {
-		return err
+	} else {
+		*e = End(*end)
 	}
 
 	return nil

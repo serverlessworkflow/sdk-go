@@ -148,3 +148,57 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestEndUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect End
+		err    string
+	}
+	testCases := []testCase{
+		{
+			desp: "bool success",
+			data: `true`,
+			expect: End{
+				Terminate: true,
+			},
+			err: ``,
+		},
+		{
+			desp:   "string fail",
+			data:   `"true"`,
+			expect: End{},
+			err:    `json: cannot unmarshal string into Go value of type bool`,
+		},
+		{
+			desp: `object success`,
+			data: `{"terminate": true}`,
+			expect: End{
+				Terminate: true,
+			},
+			err: ``,
+		},
+		{
+			desp:   `object key invalid`,
+			data:   `{"terminate_parameter_invalid": true}`,
+			expect: End{},
+			err:    ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v End
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}

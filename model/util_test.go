@@ -15,6 +15,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,4 +33,49 @@ func TestIncludePaths(t *testing.T) {
 	assert.PanicsWithError(t, "1 must be an absolute file path", assert.PanicTestFunc(func() {
 		SetIncludePaths([]string{"1"})
 	}))
+}
+
+func Test_primitiveOrMapType(t *testing.T) {
+	type dataMap map[string]json.RawMessage
+	data := []byte(`"value":true`)
+	_, _, err := primitiveOrStruct[bool, dataMap](data)
+	assert.Error(t, err)
+
+	data = []byte(`{value":true}`)
+	_, _, err = primitiveOrStruct[bool, dataMap](data)
+	assert.Error(t, err)
+
+	data = []byte(`value":true}`)
+	_, _, err = primitiveOrStruct[bool, dataMap](data)
+	assert.Error(t, err)
+
+	data = []byte(`"true"`)
+	_, _, err = primitiveOrStruct[bool, dataMap](data)
+	assert.Error(t, err)
+
+	data = []byte(`true`)
+	valMap, valBool, err := primitiveOrStruct[bool, dataMap](data)
+	assert.NoError(t, err)
+	assert.Nil(t, valMap)
+	assert.True(t, valBool)
+
+	data = []byte(`"true"`)
+	valMap, valString, err := primitiveOrStruct[string, dataMap](data)
+	assert.NoError(t, err)
+	assert.Nil(t, valMap)
+	assert.Equal(t, `true`, valString)
+
+	data = []byte(`{"value":true}`)
+	valMap, valBool, err = primitiveOrStruct[bool, dataMap](data)
+	assert.NoError(t, err)
+	assert.NotNil(t, valMap)
+	assert.Equal(t, valMap, &dataMap{"value": []byte("true")})
+	assert.False(t, valBool)
+
+	data = []byte(`{"value": "true"}`)
+	valMap, valBool, err = primitiveOrStruct[bool, dataMap](data)
+	assert.NoError(t, err)
+	assert.NotNil(t, valMap)
+	assert.Equal(t, valMap, &dataMap{"value": []byte(`"true"`)})
+	assert.False(t, valBool)
 }

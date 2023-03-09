@@ -36,21 +36,41 @@ var workflowStructDefault = Workflow{
 			StateName: "name state",
 		},
 	},
-	States: []State{{
-		BaseState: BaseState{
-			Name: "name state",
-			Type: StateTypeOperation,
-		},
-		OperationState: &OperationState{
-			ActionMode: "sequential",
-			Actions: []Action{
-				{},
+	States: []State{
+		{
+			BaseState: BaseState{
+				Name: "name state",
+				Type: StateTypeOperation,
+				Transition: &Transition{
+					NextState: "next name state",
+				},
+			},
+			OperationState: &OperationState{
+				ActionMode: "sequential",
+				Actions: []Action{
+					{},
+				},
 			},
 		},
-	}},
+		{
+			BaseState: BaseState{
+				Name: "next name state",
+				Type: StateTypeOperation,
+				End: &End{
+					Terminate: true,
+				},
+			},
+			OperationState: &OperationState{
+				ActionMode: "sequential",
+				Actions: []Action{
+					{},
+				},
+			},
+		},
+	},
 }
 
-func TestValidationAsStructLevelValidation(t *testing.T) {
+func TestWorkflowStructLevelValidation(t *testing.T) {
 	type testCase[T any] struct {
 		name     string
 		instance T
@@ -120,7 +140,7 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				}
 				return w
 			}(),
-			err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexists' tag`,
+			err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexist' tag`,
 		},
 		{
 			name: "valid ContinueAs",

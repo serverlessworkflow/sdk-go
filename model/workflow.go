@@ -86,17 +86,17 @@ func workflowStructLevelValidation(structLevel validator.StructLevel) {
 		}
 	}
 
-	// start state name exists in states list
+	// start state name exist in workflow states list
 	if wf.BaseWorkflow.Start.StateName != "" {
-		startExists := false
+		startExist := false
 		for _, state := range wf.States {
 			if state.Name == wf.BaseWorkflow.Start.StateName {
-				startExists = true
+				startExist = true
 				break
 			}
 		}
-		if !startExists {
-			structLevel.ReportError(reflect.ValueOf(wf.BaseWorkflow.Start.StateName), "Start", "start", "startnotexists", "")
+		if !startExist {
+			structLevel.ReportError(reflect.ValueOf(wf.BaseWorkflow.Start.StateName), "Start", "start", "startnotexist", "")
 		}
 	}
 }

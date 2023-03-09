@@ -18,7 +18,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	validator "github.com/go-playground/validator/v10"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
+
+func init() {
+	val.GetValidator().RegisterStructValidation(stateStructLevelValidation, State{})
+}
+
+func stateStructLevelValidation(structLevel validator.StructLevel) {
+	state := structLevel.Current().Interface().(State)
+
+	hasTransition := state.Transition != nil
+	isEnd := state.End != nil && state.End.Terminate
+
+	// TODO: Improve message errors
+	if !hasTransition && !isEnd {
+		structLevel.ReportError(nil, "State.Transition,State.End", "transition,end", "required", "")
+	} else if hasTransition && isEnd {
+		structLevel.ReportError(nil, "State.Transition", "transition", "required_without", "end")
+	}
+}
 
 // StateType ...
 type StateType string
@@ -53,7 +74,7 @@ type BaseState struct {
 	// State type
 	Type StateType `json:"type" validate:"required"`
 	// States error handling and retries definitions
-	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
+	OnErrors []OnError `json:"onErrors,omitempty" validate:"omitempty,dive"`
 	// Next transition of the workflow after the time delay
 	Transition *Transition `json:"transition,omitempty"`
 	// State data filter

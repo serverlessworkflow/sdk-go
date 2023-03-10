@@ -16,7 +16,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -741,7 +740,7 @@ states:
   type: delay
   timeDelay: PT5S
   transition:
-    nextState: Hello State
+    nextState: StoreCarAuctionBid
 - name: StoreCarAuctionBid
   type: event
   exclusive: true
@@ -912,7 +911,6 @@ states:
     terminate: true
 `))
 		assert.Nil(t, err)
-		fmt.Println(err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
 
@@ -929,7 +927,7 @@ states:
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"HandleApprovedVisa\",\"type\":\"operation\",\"end\":{\"terminate\":true},\"actionMode\":\"sequential\",\"actions\":[{\"name\":\"subFlowRefName\",\"subFlowRef\":{\"workflowId\":\"handleApprovedVisaWorkflowID\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"eventRefName\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .customer }\",\"time\":50},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT123M\",\"total\":\"PT33M\"},\"actionExecTimeout\":\"PT777S\"}}"))
 
 		// Delay State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"GreetDelay\",\"type\":\"delay\",\"transition\":{\"nextState\":\"Hello State\"},\"timeDelay\":\"PT5S\"}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"GreetDelay\",\"type\":\"delay\",\"transition\":{\"nextState\":\"StoreCarAuctionBid\"},\"timeDelay\":\"PT5S\"}"))
 
 		// Event State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"StoreCarAuctionBid\",\"type\":\"event\",\"transition\":{\"nextState\":\"ParallelExec\"},\"exclusive\":true,\"onEvents\":[{\"eventRefs\":[\"CarBidEvent\"],\"actionMode\":\"parallel\",\"actions\":[{\"name\":\"bidFunctionRef\",\"functionRef\":{\"refName\":\"StoreBidFunction\",\"arguments\":{\"bid\":\"${ .bid }\"},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"bidEventRef\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .thatBid }\",\"time\":32},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"eventDataFilter\":{\"useData\":true,\"data\":\"test\",\"toStateData\":\"testing\"}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"actionExecTimeout\":\"PT3S\",\"eventTimeout\":\"PT1H\"}}"))

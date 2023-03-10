@@ -55,11 +55,6 @@ func workflowStructLevelValidation(structLevel validator.StructLevel) {
 	startAndStatesTransitionValidator(structLevel, wf.BaseWorkflow.Start, wf.States)
 }
 
-type statesGraphValidator struct {
-	state State
-	next  map[string]*statesGraphValidator
-}
-
 func startAndStatesTransitionValidator(structLevel validator.StructLevel, start *Start, states []State) {
 	statesMap := make(map[string]State, len(states))
 	for _, state := range states {
@@ -78,21 +73,14 @@ func startAndStatesTransitionValidator(structLevel validator.StructLevel, start 
 		return
 	}
 
-	// Many unit tests fail
+	// Naive check if transitions exist
+	for _, state := range statesMap {
+		if state.Transition != nil {
+			if _, ok := statesMap[state.Transition.NextState]; !ok {
+				structLevel.ReportError(reflect.ValueOf(state), "Transition", "transition", "transitionnotexists", state.Transition.NextState)
+			}
+		}
+	}
 
-	// // Simple check if transition exists
-	// fail := false
-	// for _, state := range statesMap {
-	// 	if state.Transition != nil {
-	// 		if _, ok := statesMap[""]; !ok {
-	// 			structLevel.ReportError(nil, "", "", "transitionnotexists", state.Transition.NextState)
-	// 			fail = true
-	// 		}
-	// 	}
-	// }
-	// if fail {
-	// 	return
-	// }
-
-	// // TODO: create states graph to complex check
+	// TODO: create states graph to complex check
 }

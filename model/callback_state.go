@@ -18,17 +18,16 @@ import (
 	"encoding/json"
 )
 
-// CallbackState executes a function and waits for callback event that indicates
-// completion of the task.
-// +optional
+// CallbackState executes a function and waits for callback event that indicates completion of the task.
 type CallbackState struct {
-	// Defines the action to be executed
-	// +optional
+	// Defines the action to be executed.
+	// +kubebuilder:validation:Required
 	Action Action `json:"action" validate:"required"`
-	// References a unique callback event name in the defined workflow events
-	// +optional
+	// References a unique callback event name in the defined workflow events.
+	// +kubebuilder:validation:Required
 	EventRef string `json:"eventRef" validate:"required"`
 	// Time period to wait for incoming events (ISO 8601 format)
+	// +optional
 	Timeouts *CallbackStateTimeout `json:"timeouts,omitempty"`
 	// Event data filter
 	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
@@ -48,7 +47,13 @@ func (c *CallbackState) MarshalJSON() ([]byte, error) {
 
 // CallbackStateTimeout defines timeout settings for callback state
 type CallbackStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	EventTimeout      string            `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	// Default single actions definition execution timeout (ISO 8601 duration format)
+	// +optional
+	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default timeout for consuming defined events (ISO 8601 duration format)
+	// +optional
+	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }

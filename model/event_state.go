@@ -19,18 +19,19 @@ import (
 	"fmt"
 )
 
-// EventState used to wait for events from event sources, then consumes them and invoke one or more actions to run in sequence or parallel
+// EventState await one or more events and perform actions when they are received. If defined as the
+// workflow starting state, the event state definition controls when the workflow instances should be created.
 type EventState struct {
 	// TODO: EventState doesn't have usedForCompensation field.
 
-	// If true consuming one of the defined events causes its associated actions to be performed.
-	// If false all the defined events must be consumed in order for actions to be performed
-	// Defaults to true
+	// If true consuming one of the defined events causes its associated actions to be performed. If false all
+	// the defined events must be consumed in order for actions to be performed. Defaults to true.
 	Exclusive bool `json:"exclusive,omitempty"`
-	// Define the events to be consumed and optional actions to be performed
-	// +optional
+	// Define the events to be consumed and optional actions to be performed.
+	// +kubebuilder:validation:MinItems=1
 	OnEvents []OnEvents `json:"onEvents" validate:"required,min=1,dive"`
-	// State specific timeouts
+	// State specific timeouts.
+	// +optional
 	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
 }
 
@@ -64,16 +65,18 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 
 // OnEvents define which actions are be performed for the one or more events.
 type OnEvents struct {
-	// References one or more unique event names in the defined workflow events
+	// References one or more unique event names in the defined workflow events.
+	// +kubebuilder:validation:MinItems=1
 	EventRefs []string `json:"eventRefs" validate:"required,min=1"`
-	// Specifies how actions are to be performed (in sequence or parallel)
-	// Defaults to sequential
+	// Should actions be performed sequentially or in parallel. Default is sequential.
+	// +kubebuilder:validation:Enum=sequential;parallel
+	// +kubebuilder:default=sequential
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
 	// Actions to be performed if expression matches
-	// +listType=atomic
 	// +optional
 	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
-	// Event data filter
+	// eventDataFilter defines the callback event data filter definition
+	// +optional
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
@@ -97,7 +100,13 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 
 // EventStateTimeout defines timeout settings for event state
 type EventStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	EventTimeout      string            `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	// Default single actions definition execution timeout (ISO 8601 duration format)
+	// +optional
+	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default timeout for consuming defined events (ISO 8601 duration format)
+	// +optional
+	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }

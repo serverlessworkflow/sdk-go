@@ -33,18 +33,24 @@ const (
 
 // ForEachState used to execute actions for each element of a data set.
 type ForEachState struct {
-	// Workflow expression selecting an array element of the states data
-	// +optional
+	// Workflow expression selecting an array element of the states' data.
+	// +kubebuilder:validation:Required
 	InputCollection string `json:"inputCollection" validate:"required"`
-	// Workflow expression specifying an array element of the states data to add the results of each iteration
+	// Workflow expression specifying an array element of the states data to add the results of each iteration.
+	// +optional
 	OutputCollection string `json:"outputCollection,omitempty"`
-	// Name of the iteration parameter that can be referenced in actions/workflow. For each parallel iteration, this param should contain an unique element of the inputCollection array
+	// Name of the iteration parameter that can be referenced in actions/workflow. For each parallel iteration,
+	// this param should contain a unique element of the inputCollection array
+	// +optional
 	IterationParam string `json:"iterationParam,omitempty"`
-	// Specifies how upper bound on how many iterations may run in parallel
+	// Specifies how many iterations may run in parallel at the same time. Used if mode property is set to
+	// parallel (default). If not specified, its value should be the size of the inputCollection
+	// +optional
 	BatchSize *intstr.IntOrString `json:"batchSize,omitempty"`
 	// actions to be executed for each of the elements of inputCollection
+	// +kubebuilder:validation:MinItems=1
 	Actions []Action `json:"actions,omitempty" validate:"required,min=1,dive"`
-	// state specific timeout
+	// state specific timeout.
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
 	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
@@ -79,6 +85,10 @@ func (f *ForEachState) UnmarshalJSON(data []byte) error {
 
 // ForEachStateTimeout defines timeout settings for foreach state
 type ForEachStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	ActionExecTimeout string            `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	// Default single actions definition execution timeout (ISO 8601 duration format)
+	// +optional
+	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }

@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-// AuthType ...
+// AuthType can be "basic", "bearer", or "oauth2". Default is "basic"
 type AuthType string
 
 const (
@@ -44,13 +44,21 @@ const (
 	GrantTypeTokenExchange GrantType = "tokenExchange"
 )
 
-// Auth ...
+// Auth definitions can be used to define authentication information that should be applied to resources
+// defined in the operation property of function definitions. It is not used as authentication information
+// for the function invocation, but just to access the resource containing the function invocation information.
 type Auth struct {
-	// Name Unique auth definition name
+	// Unique auth definition name.
+	// +kubebuilder:validation:Required
 	Name string `json:"name" validate:"required"`
-	// Scheme Defines the auth type
-	Scheme AuthType `json:"scheme,omitempty" validate:"omitempty,min=1"`
-	// Properties ...
+	// Auth scheme, can be "basic", "bearer", or "oauth2". Default is "basic"
+	// +kubebuilder:validation:Enum=basic;bearer;oauth2
+	// +kubebuilder:default=basic
+	// +kubebuilder:validation:Required
+	Scheme AuthType `json:"scheme" validate:"min=1"`
+	// Auth scheme properties. Can be one of "Basic properties definition", "Bearer properties definition",
+	// or "OAuth2 properties definition"
+	// +kubebuilder:validation:Required
 	Properties AuthProperties `json:"properties" validate:"required"`
 }
 
@@ -145,10 +153,13 @@ type AuthProperties struct {
 type BasicAuthProperties struct {
 	Common `json:",inline"`
 	// Secret Expression referencing a workflow secret that contains all needed auth info
+	// +optional
 	Secret string `json:"secret,omitempty"`
 	// Username String or a workflow expression. Contains the username
+	// +kubebuilder:validation:Required
 	Username string `json:"username" validate:"required"`
 	// Password String or a workflow expression. Contains the user password
+	// +kubebuilder:validation:Required
 	Password string `json:"password" validate:"required"`
 }
 
@@ -177,8 +188,10 @@ func (b *BasicAuthProperties) UnmarshalJSON(data []byte) error {
 type BearerAuthProperties struct {
 	Common `json:",inline"`
 	// Secret Expression referencing a workflow secret that contains all needed auth info
+	// +optional
 	Secret string `json:"secret,omitempty"`
 	// Token String or a workflow expression. Contains the token
+	// +kubebuilder:validation:Required
 	Token string `json:"token" validate:"required"`
 }
 
@@ -203,29 +216,42 @@ func (b *BearerAuthProperties) UnmarshalJSON(data []byte) error {
 // OAuth2AuthProperties OAuth2 information
 type OAuth2AuthProperties struct {
 	Common `json:",inline"`
-	// Secret Expression referencing a workflow secret that contains all needed auth info
+	// Expression referencing a workflow secret that contains all needed auth info.
+	// +optional
 	Secret string `json:"secret,omitempty"`
-	// Authority String or a workflow expression. Contains the authority information
+	// String or a workflow expression. Contains the authority information.
+	// +optional
 	Authority string `json:"authority,omitempty" validate:"omitempty,min=1"`
-	// GrantType Defines the grant type
+	// 	Defines the grant type. Can be "password", "clientCredentials", or "tokenExchange"
+	// +kubebuilder:validation:Enum=password;clientCredentials;tokenExchange
+	// +kubebuilder:validation:Required
 	GrantType GrantType `json:"grantType" validate:"required"`
-	// ClientID String or a workflow expression. Contains the client identifier
+	// String or a workflow expression. Contains the client identifier.
+	// +kubebuilder:validation:Required
 	ClientID string `json:"clientId" validate:"required"`
-	// ClientSecret Workflow secret or a workflow expression. Contains the client secret
+	// Workflow secret or a workflow expression. Contains the client secret.
+	// +optional
 	ClientSecret string `json:"clientSecret,omitempty" validate:"omitempty,min=1"`
-	// Scopes Array containing strings or workflow expressions. Contains the OAuth2 scopes
+	// Array containing strings or workflow expressions. Contains the OAuth2 scopes.
+	// +optional
 	Scopes []string `json:"scopes,omitempty" validate:"omitempty,min=1"`
-	// Username String or a workflow expression. Contains the username. Used only if grantType is 'resourceOwner'
+	// String or a workflow expression. Contains the username. Used only if grantType is 'resourceOwner'.
+	// +optional
 	Username string `json:"username,omitempty" validate:"omitempty,min=1"`
-	// Password String or a workflow expression. Contains the user password. Used only if grantType is 'resourceOwner'
+	// String or a workflow expression. Contains the user password. Used only if grantType is 'resourceOwner'.
+	// +optional
 	Password string `json:"password,omitempty" validate:"omitempty,min=1"`
-	// Audiences Array containing strings or workflow expressions. Contains the OAuth2 audiences
+	// Array containing strings or workflow expressions. Contains the OAuth2 audiences.
+	// +optional
 	Audiences []string `json:"audiences,omitempty" validate:"omitempty,min=1"`
-	// SubjectToken String or a workflow expression. Contains the subject token
+	// String or a workflow expression. Contains the subject token.
+	// +optional
 	SubjectToken string `json:"subjectToken,omitempty" validate:"omitempty,min=1"`
-	// RequestedSubject String or a workflow expression. Contains the requested subject
+	// String or a workflow expression. Contains the requested subject.
+	// +optional
 	RequestedSubject string `json:"requestedSubject,omitempty" validate:"omitempty,min=1"`
-	// RequestedIssuer String or a workflow expression. Contains the requested issuer
+	// String or a workflow expression. Contains the requested issuer.
+	// +optional
 	RequestedIssuer string `json:"requestedIssuer,omitempty" validate:"omitempty,min=1"`
 }
 

@@ -84,3 +84,14 @@ func startAndStatesTransitionValidator(structLevel validator.StructLevel, start 
 
 	// TODO: create states graph to complex check
 }
+
+func validTransitionAndEnd(structLevel validator.StructLevel, field interface{}, transition *Transition, end *End) {
+	hasTransition := transition != nil
+	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
+
+	if !hasTransition && !isEnd {
+		structLevel.ReportError(field, "Transition", "transition", "required", "must have one of transition, end")
+	} else if hasTransition && isEnd {
+		structLevel.ReportError(field, "Transition", "transition", "exclusive", "must have one of transition, end")
+	}
+}

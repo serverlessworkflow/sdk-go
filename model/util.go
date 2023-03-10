@@ -101,11 +101,10 @@ func primitiveOrStruct[T any, U any](parameterName string, data []byte) (valStru
 		err = json.Unmarshal(data, &valPrimitive)
 	}
 
-	switch err.(type) {
+	switch jsonErr := err.(type) {
 	case *json.SyntaxError:
-		err = fmt.Errorf("%s value '%s' is not supported, it has a syntax error \"%s\"", parameterName, data, err.Error())
+		err = fmt.Errorf("%s value '%s' is not supported, it has a syntax error \"%s\"", parameterName, data, jsonErr.Error())
 	case *json.UnmarshalTypeError:
-		jsonErr := err.(*json.UnmarshalTypeError)
 		if isObject {
 			err = fmt.Errorf("%s value '%s' is not supported, the value field %s must be %s", parameterName, data, jsonErr.Field, jsonErr.Type)
 		} else {

@@ -53,6 +53,28 @@ var stateEndDefault = State{
 	},
 }
 
+var switchStateTransitionDefault = State{
+	BaseState: BaseState{
+		Name: "name state",
+		Type: StateTypeSwitch,
+	},
+	SwitchState: &SwitchState{
+		DataConditions: []DataCondition{
+			{
+				Condition: "${ .applicant | .age >= 18 }",
+				Transition: &Transition{
+					NextState: "nex state",
+				},
+			},
+		},
+		DefaultCondition: DefaultCondition{
+			Transition: &Transition{
+				NextState: "nex state",
+			},
+		},
+	},
+}
+
 func TestStateStructLevelValidation(t *testing.T) {
 	type testCase struct {
 		name     string
@@ -72,22 +94,27 @@ func TestStateStructLevelValidation(t *testing.T) {
 			err:      ``,
 		},
 		{
+			name:     "switch state success",
+			instance: switchStateTransitionDefault,
+			err:      ``,
+		},
+		{
 			name: "state end and transition",
 			instance: func() State {
 				s := stateTransitionDefault
 				s.End = stateEndDefault.End
 				return s
 			}(),
-			err: `Key: 'State.State.Transition' Error:Field validation for 'State.Transition' failed on the 'required_without' tag`,
+			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'exclusive' tag`,
 		},
 		{
-			name: "state without end and transition",
+			name: "basestate without end and transition",
 			instance: func() State {
 				s := stateTransitionDefault
 				s.Transition = nil
 				return s
 			}(),
-			err: `Key: 'State.State.Transition,State.End' Error:Field validation for 'State.Transition,State.End' failed on the 'required' tag`,
+			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'required' tag`,
 		},
 	}
 

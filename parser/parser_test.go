@@ -39,9 +39,10 @@ func TestBasicValidation(t *testing.T) {
 
 	for _, file := range files {
 		if !file.IsDir() {
-			workflow, err := FromFile(filepath.Join(rootPath, file.Name()))
+			path := filepath.Join(rootPath, file.Name())
+			workflow, err := FromFile(path)
 
-			if assert.NoError(t, err, "Test File %s", file.Name()) {
+			if assert.NoError(t, err, "Test File %s", path) {
 				assert.NotEmpty(t, workflow.ID, "Test File %s", file.Name())
 				assert.NotEmpty(t, workflow.States, "Test File %s", file.Name())
 			}
@@ -555,7 +556,6 @@ func TestFromFile(t *testing.T) {
 				assert.NotNil(t, w.States[9].SleepState.Timeouts)
 				assert.Equal(t, "PT100S", w.States[9].SleepState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT200S", w.States[9].SleepState.Timeouts.StateExecTimeout.Single)
-				assert.Equal(t, &model.Transition{NextState: "GetJobStatus"}, w.States[9].Transition)
 				assert.Equal(t, true, w.States[9].End.Terminate)
 			},
 		},
@@ -773,6 +773,7 @@ states:
     stateExecTimeout:
       total: PT1S
       single: PT2S
+  transition: ParallelExec
 - name: ParallelExec
   type: parallel
   completionType: atLeast
@@ -792,6 +793,7 @@ states:
       total: PT1S
       single: PT2S
   numCompleted: 13
+  transition: CheckVisaStatusSwitchEventBased
 - name: CheckVisaStatusSwitchEventBased
   type: switch
   eventConditions:
@@ -838,6 +840,7 @@ states:
     stateExecTimeout:
       total: PT11S
       single: PT22S
+  transition: HelloInject
 - name: HelloInject
   type: inject
   data:
@@ -846,10 +849,10 @@ states:
     stateExecTimeout:
       total: PT11M
       single: PT22M
+  transition: WaitForCompletionSleep
 - name: WaitForCompletionSleep
   type: sleep
   duration: PT5S
-  transition: GetJobStatus
   timeouts:
     stateExecTimeout:
       total: PT100S
@@ -885,6 +888,7 @@ states:
     stateExecTimeout:
       total: PT115M
       single: PT22M
+  transition: HandleApprovedVisa
 - name: HandleApprovedVisa
   type: operation
   actions:
@@ -919,7 +923,7 @@ states:
 		assert.True(t, strings.Contains(string(b), ":{\"metadata\":{\"auth1\":\"auth1\",\"auth2\":\"auth2\"}"))
 
 		// Callback state
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckCreditCallback\",\"type\":\"callback\",\"action\":{\"functionRef\":{\"refName\":\"callCreditCheckMicroservice\",\"arguments\":{\"argsObj\":{\"age\":{\"final\":32,\"initial\":10},\"name\":\"hi\"},\"customer\":\"${ .customer }\",\"time\":48},\"invoke\":\"sync\"},\"sleep\":{\"before\":\"PT10S\",\"after\":\"PT20S\"},\"actionDataFilter\":{\"useResults\":true}},\"eventRef\":\"CreditCheckCompletedEvent\",\"eventDataFilter\":{\"useData\":true,\"data\":\"test data\",\"toStateData\":\"${ .customer }\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT115M\"},\"actionExecTimeout\":\"PT199M\",\"eventTimeout\":\"PT348S\"}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckCreditCallback\",\"type\":\"callback\",\"transition\":{\"nextState\":\"HandleApprovedVisa\"},\"action\":{\"functionRef\":{\"refName\":\"callCreditCheckMicroservice\",\"arguments\":{\"argsObj\":{\"age\":{\"final\":32,\"initial\":10},\"name\":\"hi\"},\"customer\":\"${ .customer }\",\"time\":48},\"invoke\":\"sync\"},\"sleep\":{\"before\":\"PT10S\",\"after\":\"PT20S\"},\"actionDataFilter\":{\"useResults\":true}},\"eventRef\":\"CreditCheckCompletedEvent\",\"eventDataFilter\":{\"useData\":true,\"data\":\"test data\",\"toStateData\":\"${ .customer }\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT115M\"},\"actionExecTimeout\":\"PT199M\",\"eventTimeout\":\"PT348S\"}}"))
 
 		// Operation State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"HandleApprovedVisa\",\"type\":\"operation\",\"end\":{\"terminate\":true},\"actionMode\":\"sequential\",\"actions\":[{\"name\":\"subFlowRefName\",\"subFlowRef\":{\"workflowId\":\"handleApprovedVisaWorkflowID\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"eventRefName\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .customer }\",\"time\":50},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT123M\",\"total\":\"PT33M\"},\"actionExecTimeout\":\"PT777S\"}}"))
@@ -928,22 +932,22 @@ states:
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"GreetDelay\",\"type\":\"delay\",\"transition\":{\"nextState\":\"Hello State\"},\"timeDelay\":\"PT5S\"}"))
 
 		// Event State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"StoreCarAuctionBid\",\"type\":\"event\",\"exclusive\":true,\"onEvents\":[{\"eventRefs\":[\"CarBidEvent\"],\"actionMode\":\"parallel\",\"actions\":[{\"name\":\"bidFunctionRef\",\"functionRef\":{\"refName\":\"StoreBidFunction\",\"arguments\":{\"bid\":\"${ .bid }\"},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"bidEventRef\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .thatBid }\",\"time\":32},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"eventDataFilter\":{\"useData\":true,\"data\":\"test\",\"toStateData\":\"testing\"}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"actionExecTimeout\":\"PT3S\",\"eventTimeout\":\"PT1H\"}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"StoreCarAuctionBid\",\"type\":\"event\",\"transition\":{\"nextState\":\"ParallelExec\"},\"exclusive\":true,\"onEvents\":[{\"eventRefs\":[\"CarBidEvent\"],\"actionMode\":\"parallel\",\"actions\":[{\"name\":\"bidFunctionRef\",\"functionRef\":{\"refName\":\"StoreBidFunction\",\"arguments\":{\"bid\":\"${ .bid }\"},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"bidEventRef\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .thatBid }\",\"time\":32},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"eventDataFilter\":{\"useData\":true,\"data\":\"test\",\"toStateData\":\"testing\"}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"actionExecTimeout\":\"PT3S\",\"eventTimeout\":\"PT1H\"}}"))
 
 		// Parallel State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"ParallelExec\",\"type\":\"parallel\",\"branches\":[{\"name\":\"ShortDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"shortdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"actionExecTimeout\":\"PT5H\",\"branchExecTimeout\":\"PT6M\"}},{\"name\":\"LongDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"longdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}]}],\"completionType\":\"atLeast\",\"numCompleted\":13,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"branchExecTimeout\":\"PT6M\"}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"ParallelExec\",\"type\":\"parallel\",\"transition\":{\"nextState\":\"CheckVisaStatusSwitchEventBased\"},\"branches\":[{\"name\":\"ShortDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"shortdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"actionExecTimeout\":\"PT5H\",\"branchExecTimeout\":\"PT6M\"}},{\"name\":\"LongDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"longdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}]}],\"completionType\":\"atLeast\",\"numCompleted\":13,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"branchExecTimeout\":\"PT6M\"}}"))
 
 		// Switch State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckVisaStatusSwitchEventBased\",\"type\":\"switch\",\"defaultCondition\":{\"transition\":{\"nextState\":\"CheckCreditCallback\"}},\"eventConditions\":[{\"name\":\"visaApprovedEvent\",\"eventRef\":\"visaApprovedEventRef\",\"metadata\":{\"mastercard\":\"disallowed\",\"visa\":\"allowed\"},\"end\":null,\"transition\":{\"nextState\":\"HandleApprovedVisa\"}},{\"eventRef\":\"visaRejectedEvent\",\"metadata\":{\"test\":\"tested\"},\"end\":null,\"transition\":{\"nextState\":\"HandleRejectedVisa\"}}],\"dataConditions\":null,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT20S\",\"total\":\"PT10S\"},\"eventTimeout\":\"PT10H\"}}"))
 
 		// Foreach State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"SendTextForHighPriority\",\"type\":\"foreach\",\"inputCollection\":\"${ .messages }\",\"outputCollection\":\"${ .outputMessages }\",\"iterationParam\":\"${ .this }\",\"batchSize\":45,\"actions\":[{\"name\":\"test\",\"functionRef\":{\"refName\":\"sendTextFunction\",\"arguments\":{\"message\":\"${ .singlemessage }\"},\"invoke\":\"sync\"},\"eventRef\":{\"triggerEventRef\":\"example1\",\"resultEventRef\":\"example2\",\"resultEventTimeout\":\"PT12H\",\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"mode\":\"sequential\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22S\",\"total\":\"PT11S\"},\"actionExecTimeout\":\"PT11H\"}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"SendTextForHighPriority\",\"type\":\"foreach\",\"transition\":{\"nextState\":\"HelloInject\"},\"inputCollection\":\"${ .messages }\",\"outputCollection\":\"${ .outputMessages }\",\"iterationParam\":\"${ .this }\",\"batchSize\":45,\"actions\":[{\"name\":\"test\",\"functionRef\":{\"refName\":\"sendTextFunction\",\"arguments\":{\"message\":\"${ .singlemessage }\"},\"invoke\":\"sync\"},\"eventRef\":{\"triggerEventRef\":\"example1\",\"resultEventRef\":\"example2\",\"resultEventTimeout\":\"PT12H\",\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"mode\":\"sequential\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22S\",\"total\":\"PT11S\"},\"actionExecTimeout\":\"PT11H\"}}"))
 
 		// Inject State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloInject\",\"type\":\"inject\",\"data\":{\"result\":\"Hello World, another state!\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT11M\"}}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloInject\",\"type\":\"inject\",\"transition\":{\"nextState\":\"WaitForCompletionSleep\"},\"data\":{\"result\":\"Hello World, another state!\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT11M\"}}}"))
 
 		// Sleep State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"WaitForCompletionSleep\",\"type\":\"sleep\",\"transition\":{\"nextState\":\"GetJobStatus\"},\"end\":{\"terminate\":true},\"duration\":\"PT5S\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT200S\",\"total\":\"PT100S\"}}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"WaitForCompletionSleep\",\"type\":\"sleep\",\"end\":{\"terminate\":true},\"duration\":\"PT5S\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT200S\",\"total\":\"PT100S\"}}}"))
 
 		workflow = nil
 		err = json.Unmarshal(b, &workflow)

@@ -16,11 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"reflect"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-
-	validator "github.com/go-playground/validator/v10"
 )
 
 // EventKind defines this event as either `consumed` or `produced`
@@ -33,18 +28,6 @@ const (
 	// EventKindProduced means the event was created during workflow instance execution
 	EventKindProduced EventKind = "produced"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidation(EventStructLevelValidation, Event{})
-}
-
-// EventStructLevelValidation custom validator for event kind consumed
-func EventStructLevelValidation(structLevel validator.StructLevel) {
-	event := structLevel.Current().Interface().(Event)
-	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
-		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
-	}
-}
 
 // Event used to define events and their correlations
 type Event struct {

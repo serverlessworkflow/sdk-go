@@ -18,11 +18,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"reflect"
-
-	validator "github.com/go-playground/validator/v10"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 // InvokeKind defines how the target is invoked.
@@ -54,52 +49,6 @@ const (
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
-	val.GetValidator().RegisterStructValidation(workflowStructLevelValidation, Workflow{})
-}
-
-func continueAsStructLevelValidation(structLevel validator.StructLevel) {
-	continueAs := structLevel.Current().Interface().(ContinueAs)
-	if len(continueAs.WorkflowExecTimeout.Duration) > 0 {
-		if err := val.ValidateISO8601TimeDuration(continueAs.WorkflowExecTimeout.Duration); err != nil {
-			structLevel.ReportError(reflect.ValueOf(continueAs.WorkflowExecTimeout.Duration),
-				"workflowExecTimeout", "duration", "iso8601duration", "")
-		}
-	}
-}
-
-// WorkflowStructLevelValidation custom validator
-func workflowStructLevelValidation(structLevel validator.StructLevel) {
-	// unique name of the auth methods
-	// NOTE: we cannot add the custom validation of auth to AuthArray
-	// because `RegisterStructValidation` only works with struct type
-	wf := structLevel.Current().Interface().(Workflow)
-	dict := map[string]bool{}
-
-	for _, a := range wf.BaseWorkflow.Auth {
-		if !dict[a.Name] {
-			dict[a.Name] = true
-		} else {
-			structLevel.ReportError(reflect.ValueOf(a.Name), "[]Auth.Name", "name", "reqnameunique", "")
-		}
-	}
-
-	// start state name exist in workflow states list
-	if wf.BaseWorkflow.Start.StateName != "" {
-		startExist := false
-		for _, state := range wf.States {
-			if state.Name == wf.BaseWorkflow.Start.StateName {
-				startExist = true
-				break
-			}
-		}
-		if !startExist {
-			structLevel.ReportError(reflect.ValueOf(wf.BaseWorkflow.Start.StateName), "Start", "start", "startnotexist", "")
-		}
-	}
-}
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.

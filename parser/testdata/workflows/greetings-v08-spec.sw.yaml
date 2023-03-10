@@ -65,6 +65,7 @@ states:
       stateExecTimeout:
         total: PT1S
         single: PT2S
+    transition: ParallelExec
   - name: ParallelExec
     type: parallel
     completionType: atLeast
@@ -84,6 +85,7 @@ states:
         total: PT1S
         single: PT2S
     numCompleted: 13
+    transition: CheckVisaStatusSwitchEventBased
   - name: CheckVisaStatusSwitchEventBased
     type: switch
     eventConditions:
@@ -163,6 +165,7 @@ states:
       stateExecTimeout:
         total: PT11S
         single: PT22S
+    transition: HelloInject
   - name: HelloInject
     type: inject
     data:
@@ -171,6 +174,7 @@ states:
       stateExecTimeout:
         total: PT11M
         single: PT22M
+    transition: CheckCreditCallback
   - name: CheckCreditCallback
     type: callback
     action:
@@ -197,10 +201,10 @@ states:
       stateExecTimeout:
         total: PT115M
         single: PT22M
+    transition: WaitForCompletionSleep
   - name: WaitForCompletionSleep
     type: sleep
     duration: PT5S
-    transition: GetJobStatus
     timeouts:
       stateExecTimeout:
         total: PT100S

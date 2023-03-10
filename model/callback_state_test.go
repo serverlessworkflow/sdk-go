@@ -35,6 +35,9 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 				BaseState: BaseState{
 					Name: "callbackTest",
 					Type: StateTypeCallback,
+					End: &End{
+						Terminate: true,
+					},
 				},
 				CallbackState: &CallbackState{
 					Action: Action{

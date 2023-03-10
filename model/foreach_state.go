@@ -15,21 +15,11 @@
 package model
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"strconv"
 
-	validator "github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidationCtx(ForEachStateStructLevelValidation, ForEachState{})
-}
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
@@ -84,36 +74,6 @@ func (f *ForEachState) UnmarshalJSON(data []byte) error {
 
 	*f = ForEachState(v)
 	return nil
-}
-
-// ForEachStateStructLevelValidation custom validator for ForEachState
-func ForEachStateStructLevelValidation(_ context.Context, structLevel validator.StructLevel) {
-	stateObj := structLevel.Current().Interface().(ForEachState)
-
-	if stateObj.Mode != ForEachModeTypeParallel {
-		return
-	}
-
-	if stateObj.BatchSize == nil {
-		return
-	}
-
-	switch stateObj.BatchSize.Type {
-	case intstr.Int:
-		if stateObj.BatchSize.IntVal <= 0 {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", "")
-		}
-	case intstr.String:
-		v, err := strconv.Atoi(stateObj.BatchSize.StrVal)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", err.Error())
-			return
-		}
-
-		if v <= 0 {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", "")
-		}
-	}
 }
 
 // ForEachStateTimeout defines timeout settings for foreach state

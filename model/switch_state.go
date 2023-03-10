@@ -15,21 +15,8 @@
 package model
 
 import (
-	"context"
 	"encoding/json"
-	"reflect"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-
-	validator "github.com/go-playground/validator/v10"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidationCtx(SwitchStateStructLevelValidation, SwitchState{})
-	val.GetValidator().RegisterStructValidationCtx(DefaultConditionStructLevelValidation, DefaultCondition{})
-	val.GetValidator().RegisterStructValidationCtx(EventConditionStructLevelValidation, EventCondition{})
-	val.GetValidator().RegisterStructValidationCtx(DataConditionStructLevelValidation, DataCondition{})
-}
 
 // SwitchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
 type SwitchState struct {
@@ -58,32 +45,10 @@ func (s *SwitchState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-// SwitchStateStructLevelValidation custom validator for SwitchState
-func SwitchStateStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
-	switchState := structLevel.Current().Interface().(SwitchState)
-	switch {
-	case len(switchState.DataConditions) == 0 && len(switchState.EventConditions) == 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "required", "must have one of dataConditions, eventConditions")
-	case len(switchState.DataConditions) > 0 && len(switchState.EventConditions) > 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "exclusive", "must have one of dataConditions, eventConditions")
-	}
-}
-
 // DefaultCondition Can be either a transition or end definition
 type DefaultCondition struct {
 	Transition *Transition `json:"transition,omitempty"`
 	End        *End        `json:"end,omitempty"`
-}
-
-// DefaultConditionStructLevelValidation custom validator for DefaultCondition
-func DefaultConditionStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
-	defaultCondition := structLevel.Current().Interface().(DefaultCondition)
-	switch {
-	case defaultCondition.End == nil && defaultCondition.Transition == nil:
-		structLevel.ReportError(reflect.ValueOf(defaultCondition), "Transition", "transition", "required", "must have one of transition, end")
-	case defaultCondition.Transition != nil && defaultCondition.End != nil:
-		structLevel.ReportError(reflect.ValueOf(defaultCondition), "Transition", "transition", "exclusive", "must have one of transition, end")
-	}
 }
 
 // SwitchStateTimeout defines the specific timeout settings for switch state
@@ -111,17 +76,6 @@ type EventCondition struct {
 	Transition *Transition `json:"transition" validate:"omitempty"`
 }
 
-// EventConditionStructLevelValidation custom validator for EventCondition
-func EventConditionStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
-	eventCondition := structLevel.Current().Interface().(EventCondition)
-	switch {
-	case eventCondition.End == nil && eventCondition.Transition == nil:
-		structLevel.ReportError(reflect.ValueOf(eventCondition), "Transition", "transition", "required", "must have one of transition, end")
-	case eventCondition.Transition != nil && eventCondition.End != nil:
-		structLevel.ReportError(reflect.ValueOf(eventCondition), "Transition", "transition", "exclusive", "must have one of transition, end")
-	}
-}
-
 // DataCondition specify a data-based condition statement which causes a transition to another workflow state
 // if evaluated to true.
 type DataCondition struct {
@@ -135,15 +89,4 @@ type DataCondition struct {
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true
 	Transition *Transition `json:"transition" validate:"omitempty"`
-}
-
-// DataConditionStructLevelValidation custom validator for DataCondition
-func DataConditionStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
-	dataCondition := structLevel.Current().Interface().(DataCondition)
-	switch {
-	case dataCondition.End == nil && dataCondition.Transition == nil:
-		structLevel.ReportError(reflect.ValueOf(dataCondition), "Transition", "transition", "required", "must have one of transition, end")
-	case dataCondition.Transition != nil && dataCondition.End != nil:
-		structLevel.ReportError(reflect.ValueOf(dataCondition), "Transition", "transition", "exclusive", "must have one of transition, end")
-	}
 }

@@ -19,7 +19,7 @@ import (
 )
 
 func validTransitionAndEnd(structLevel validator.StructLevel, field interface{}, transition *Transition, end *End) {
-	hasTransition := transition != nil && transition.NextState != ""
+	hasTransition := transition != nil
 	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
 
 	if !hasTransition && !isEnd {

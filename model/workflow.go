@@ -15,7 +15,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -358,26 +357,22 @@ type WorkflowExecTimeout struct {
 
 // UnmarshalJSON ...
 func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
-	execTimeout := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &execTimeout); err != nil {
-		w.Duration, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-	} else {
-		if err := unmarshalKey("duration", execTimeout, &w.Duration); err != nil {
-			return err
-		}
-		if err := unmarshalKey("interrupt", execTimeout, &w.Interrupt); err != nil {
-			return err
-		}
-		if err := unmarshalKey("runBefore", execTimeout, &w.RunBefore); err != nil {
-			return err
-		}
+	type WorkflowExecTimeoutForUnmarshal WorkflowExecTimeout
+	workflowExecTimeout, duration, err := primitiveOrStruct[string, WorkflowExecTimeoutForUnmarshal]("workflowExecTimeout", data)
+	if err != nil {
+		return err
 	}
-	if len(w.Duration) == 0 {
+
+	if workflowExecTimeout == nil {
+		w.Duration = duration
+	} else {
+		*w = WorkflowExecTimeout(*workflowExecTimeout)
+	}
+
+	if w.Duration == "" {
 		w.Duration = UnlimitedTimeout
 	}
+
 	return nil
 }
 
@@ -408,19 +403,16 @@ type Start struct {
 
 // UnmarshalJSON ...
 func (s *Start) UnmarshalJSON(data []byte) error {
-	startMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &startMap); err != nil {
-		s.StateName, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("stateName", startMap, &s.StateName); err != nil {
+	type startForUnmarshal Start
+	start, stateName, err := primitiveOrStruct[string, startForUnmarshal]("start", data)
+	if err != nil {
 		return err
 	}
-	if err := unmarshalKey("schedule", startMap, &s.Schedule); err != nil {
-		return err
+
+	if start == nil {
+		s.StateName = stateName
+	} else {
+		*s = Start(*start)
 	}
 
 	return nil
@@ -444,23 +436,16 @@ type Schedule struct {
 
 // UnmarshalJSON ...
 func (s *Schedule) UnmarshalJSON(data []byte) error {
-	scheduleMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &scheduleMap); err != nil {
-		s.Interval, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
+	type scheduleForUnmarshal Schedule
+	schedule, interval, err := primitiveOrStruct[string, scheduleForUnmarshal]("schedule", data)
+	if err != nil {
+		return err
 	}
 
-	if err := unmarshalKey("interval", scheduleMap, &s.Interval); err != nil {
-		return err
-	}
-	if err := unmarshalKey("cron", scheduleMap, &s.Cron); err != nil {
-		return err
-	}
-	if err := unmarshalKey("timezone", scheduleMap, &s.Timezone); err != nil {
-		return err
+	if schedule == nil {
+		s.Interval = interval
+	} else {
+		*s = Schedule(*schedule)
 	}
 
 	return nil
@@ -478,17 +463,17 @@ type Cron struct {
 
 // UnmarshalJSON custom unmarshal function for Cron
 func (c *Cron) UnmarshalJSON(data []byte) error {
-	cron := make(map[string]interface{})
-	if err := json.Unmarshal(data, &cron); err != nil {
-		c.Expression, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
+	type cronForUnmarshal Cron
+	cron, expression, err := primitiveOrStruct[string, cronForUnmarshal]("cron", data)
+	if err != nil {
+		return err
 	}
 
-	c.Expression = requiresNotNilOrEmpty(cron["expression"])
-	c.ValidUntil = requiresNotNilOrEmpty(cron["validUntil"])
+	if cron == nil {
+		c.Expression = expression
+	} else {
+		*c = Cron(*cron)
+	}
 
 	return nil
 }
@@ -509,19 +494,19 @@ type Transition struct {
 }
 
 // UnmarshalJSON ...
-func (e *Transition) UnmarshalJSON(data []byte) error {
-	type defTransitionUnmarshal Transition
-
-	obj, str, err := primitiveOrStruct[string, defTransitionUnmarshal](data)
+func (t *Transition) UnmarshalJSON(data []byte) error {
+	type transitionForUnmarshal Transition
+	transition, nextState, err := primitiveOrStruct[string, transitionForUnmarshal]("transition", data)
 	if err != nil {
 		return err
 	}
 
-	if obj == nil {
-		e.NextState = str
+	if transition == nil {
+		t.NextState = nextState
 	} else {
-		*e = Transition(*obj)
+		*t = Transition(*transition)
 	}
+
 	return nil
 }
 
@@ -565,7 +550,7 @@ type End struct {
 // UnmarshalJSON ...
 func (e *End) UnmarshalJSON(data []byte) error {
 	type endUnmarshal End
-	end, endBool, err := primitiveOrStruct[bool, endUnmarshal](data)
+	end, endBool, err := primitiveOrStruct[bool, endUnmarshal]("end", data)
 	if err != nil {
 		return err
 	}
@@ -598,31 +583,20 @@ type ContinueAs struct {
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }
 
-type continueAsForUnmarshal ContinueAs
-
 func (c *ContinueAs) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
-
-	var err error
-	switch data[0] {
-	case '"':
-		c.WorkflowID, err = unmarshalString(data)
+	type continueAsForUnmarshal ContinueAs
+	continueAs, workflowID, err := primitiveOrStruct[string, continueAsForUnmarshal]("continueAs", data)
+	if err != nil {
 		return err
-	case '{':
-		v := continueAsForUnmarshal{}
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			return err
-		}
-
-		*c = ContinueAs(v)
-		return nil
 	}
 
-	return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
+	if continueAs == nil {
+		c.WorkflowID = workflowID
+	} else {
+		*c = ContinueAs(*continueAs)
+	}
+
+	return nil
 }
 
 // ProduceEvent Defines the event (CloudEvent format) to be produced when workflow execution completes or during a
@@ -659,20 +633,20 @@ type DataInputSchema struct {
 
 // UnmarshalJSON ...
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
-	dataInSchema := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &dataInSchema); err != nil {
-		d.Schema, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
+	type dataInputSchemaForUnmarshal DataInputSchema
+	dataInputSchema, schema, err := primitiveOrStruct[string, dataInputSchemaForUnmarshal]("dataInputSchema", data)
+	if err != nil {
+		return err
+	}
+
+	if dataInputSchema == nil {
+		d.Schema = schema
+	} else {
+		*d = DataInputSchema(*dataInputSchema)
+	}
+
+	if d.FailOnValidationErrors == nil {
 		d.FailOnValidationErrors = &TRUE
-		return nil
-	}
-	if err := unmarshalKey("schema", dataInSchema, &d.Schema); err != nil {
-		return err
-	}
-	if err := unmarshalKey("failOnValidationErrors", dataInSchema, &d.FailOnValidationErrors); err != nil {
-		return err
 	}
 
 	return nil

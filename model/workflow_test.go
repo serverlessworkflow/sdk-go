@@ -153,7 +153,7 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 			desp:   "invalid object format",
 			data:   `{"workflowId": 1}`,
 			expect: ContinueAs{},
-			err:    `json: cannot unmarshal number into Go struct field continueAsForUnmarshal.workflowId of type string`,
+			err:    `continueAs value '{"workflowId": 1}' is not supported, the value field workflowId must be string`,
 		},
 	}
 	for _, tc := range testCases {
@@ -193,7 +193,7 @@ func TestEndUnmarshalJSON(t *testing.T) {
 			desp:   "string fail",
 			data:   `"true"`,
 			expect: End{},
-			err:    `json: cannot unmarshal string into Go value of type bool`,
+			err:    `end value '"true"' is not supported, it must be an object or bool`,
 		},
 		{
 			desp: `object success`,
@@ -202,6 +202,14 @@ func TestEndUnmarshalJSON(t *testing.T) {
 				Terminate: true,
 			},
 			err: ``,
+		},
+		{
+			desp: `object success`,
+			data: `{"terminate": "true"}`,
+			expect: End{
+				Terminate: true,
+			},
+			err: `end value '{"terminate": "true"}' is not supported, the value field terminate must be bool`,
 		},
 		{
 			desp:   `object key invalid`,
@@ -213,6 +221,262 @@ func TestEndUnmarshalJSON(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desp, func(t *testing.T) {
 			var v End
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestWorkflowExecTimeoutUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect WorkflowExecTimeout
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp: "string success",
+			data: `"PT15M"`,
+			expect: WorkflowExecTimeout{
+				Duration: "PT15M",
+			},
+			err: ``,
+		},
+		{
+			desp: "string fail",
+			data: `PT15M`,
+			expect: WorkflowExecTimeout{
+				Duration: "PT15M",
+			},
+			err: `invalid character 'P' looking for beginning of value`,
+		},
+		{
+			desp: `object success`,
+			data: `{"duration": "PT15M"}`,
+			expect: WorkflowExecTimeout{
+				Duration: "PT15M",
+			},
+			err: ``,
+		},
+		{
+			desp: `object fail`,
+			data: `{"duration": PT15M}`,
+			expect: WorkflowExecTimeout{
+				Duration: "PT15M",
+			},
+			err: `invalid character 'P' looking for beginning of value`,
+		},
+		{
+			desp: `object key invalid`,
+			data: `{"duration_invalid": "PT15M"}`,
+			expect: WorkflowExecTimeout{
+				Duration: "unlimited",
+			},
+			err: ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v WorkflowExecTimeout
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestStartUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect Start
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp: "string success",
+			data: `"start state"`,
+			expect: Start{
+				StateName: "start state",
+			},
+			err: ``,
+		},
+		{
+			desp: "string fail",
+			data: `start state`,
+			expect: Start{
+				StateName: "start state",
+			},
+			err: `invalid character 's' looking for beginning of value`,
+		},
+		{
+			desp: `object success`,
+			data: `{"stateName": "start state"}`,
+			expect: Start{
+				StateName: "start state",
+			},
+			err: ``,
+		},
+		{
+			desp: `object fail`,
+			data: `{"stateName": start state}`,
+			expect: Start{
+				StateName: "start state",
+			},
+			err: `invalid character 's' looking for beginning of value`,
+		},
+		{
+			desp: `object key invalid`,
+			data: `{"stateName_invalid": "start state"}`,
+			expect: Start{
+				StateName: "",
+			},
+			err: ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Start
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestCronUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect Cron
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp: "string success",
+			data: `"0 15,30,45 * ? * *"`,
+			expect: Cron{
+				Expression: "0 15,30,45 * ? * *",
+			},
+			err: ``,
+		},
+		{
+			desp: "string fail",
+			data: `0 15,30,45 * ? * *`,
+			expect: Cron{
+				Expression: "0 15,30,45 * ? * *",
+			},
+			err: `invalid character '1' after top-level value`,
+		},
+		{
+			desp: `object success`,
+			data: `{"expression": "0 15,30,45 * ? * *"}`,
+			expect: Cron{
+				Expression: "0 15,30,45 * ? * *",
+			},
+			err: ``,
+		},
+		{
+			desp: `object fail`,
+			data: `{"expression": "0 15,30,45 * ? * *}`,
+			expect: Cron{
+				Expression: "0 15,30,45 * ? * *",
+			},
+			err: `unexpected end of JSON input`,
+		},
+		{
+			desp:   `object key invalid`,
+			data:   `{"expression_invalid": "0 15,30,45 * ? * *"}`,
+			expect: Cron{},
+			err:    ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Cron
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestTransitionUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect Transition
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp: "string success",
+			data: `"next state"`,
+			expect: Transition{
+				NextState: "next state",
+			},
+			err: ``,
+		},
+		{
+			desp: `object success`,
+			data: `{"nextState": "next state"}`,
+			expect: Transition{
+				NextState: "next state",
+			},
+			err: ``,
+		},
+		{
+			desp: `object fail`,
+			data: `{"nextState": "next state}`,
+			expect: Transition{
+				NextState: "next state",
+			},
+			err: `unexpected end of JSON input`,
+		},
+		{
+			desp:   `object key invalid`,
+			data:   `{"nextState_invalid": "next state"}`,
+			expect: Transition{},
+			err:    ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Transition
 			err := json.Unmarshal([]byte(tc.data), &v)
 
 			if tc.err != "" {

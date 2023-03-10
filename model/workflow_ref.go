@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-)
-
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
@@ -41,37 +35,28 @@ type WorkflowRef struct {
 	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
 }
 
-type workflowRefForUnmarshal WorkflowRef
-
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
+	type workflowRefForUnmarshal WorkflowRef
+
+	v, workflowID, err := primitiveOrStruct[string, workflowRefForUnmarshal]("subFlowRef", data)
+	if err != nil {
+		return err
 	}
 
-	var err error
-	switch data[0] {
-	case '"':
-		s.WorkflowID, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		s.Invoke, s.OnParentComplete = InvokeKindSync, "terminate"
-		return nil
-	case '{':
-		v := workflowRefForUnmarshal{
-			Invoke:           InvokeKindSync,
-			OnParentComplete: "terminate",
-		}
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			// TODO: replace the error message with correct type's name
-			return err
-		}
-		*s = WorkflowRef(v)
-		return nil
+	if v == nil {
+		s.WorkflowID = workflowID
+	} else {
+		*s = WorkflowRef(*v)
 	}
 
-	return fmt.Errorf("subFlowRef value '%s' is not supported, it must be an object or string", string(data))
+	if s.Invoke == "" {
+		s.Invoke = InvokeKindSync
+	}
+
+	if s.OnParentComplete == "" {
+		s.OnParentComplete = "terminate"
+	}
+
+	return nil
 }

@@ -80,7 +80,7 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"workflowId": 1, "version": "2", "invoke": "async", "onParentComplete": "continue"}`,
 			expect: WorkflowRef{},
-			err:    `json: cannot unmarshal number into Go struct field workflowRefForUnmarshal.workflowId of type string`,
+			err:    `subFlowRef value '{"workflowId": 1, "version": "2", "invoke": "async", "onParentComplete": "continue"}' is not supported, the value field workflowId must be string`,
 		},
 		{
 			desp:   "invalid string or object",

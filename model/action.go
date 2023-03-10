@@ -15,7 +15,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -66,7 +65,6 @@ type actionForUnmarshal Action
 
 // UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
-
 	v := actionForUnmarshal{
 		ActionDataFilter: ActionDataFilter{UseResults: true},
 	}
@@ -98,37 +96,25 @@ type FunctionRef struct {
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
-type functionRefForUnmarshal FunctionRef
-
 // UnmarshalJSON implements json.Unmarshaler
 func (f *FunctionRef) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
+	type functionRefForUnmarshal FunctionRef
+	functionRef, refName, err := primitiveOrStruct[string, functionRefForUnmarshal]("functionRef", data)
+	if err != nil {
+		return err
 	}
 
-	var err error
-	switch data[0] {
-	case '"':
-		f.RefName, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
+	if functionRef == nil {
+		f.RefName = refName
+	} else {
+		*f = FunctionRef(*functionRef)
+	}
+
+	if f.Invoke == "" {
 		f.Invoke = InvokeKindSync
-		return nil
-	case '{':
-		v := functionRefForUnmarshal{
-			Invoke: InvokeKindSync,
-		}
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			return fmt.Errorf("functionRef value '%s' is not supported, it must be an object or string", string(data))
-		}
-		*f = FunctionRef(v)
-		return nil
 	}
 
-	return fmt.Errorf("functionRef value '%s' is not supported, it must be an object or string", string(data))
+	return nil
 }
 
 // Sleep defines time periods workflow execution should sleep before & after function execution

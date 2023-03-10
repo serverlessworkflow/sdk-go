@@ -78,14 +78,6 @@ func getBytesFromFile(s string) (b []byte, err error) {
 	return b, nil
 }
 
-func requiresNotNilOrEmpty(value interface{}) string {
-	if value == nil {
-		return ""
-	}
-	return value.(string)
-}
-
-// TODO: check the places that use unmarshalString if the case changes for primitiveOrStruct.
 func unmarshalString(data []byte) (string, error) {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {
@@ -94,12 +86,33 @@ func unmarshalString(data []byte) (string, error) {
 	return value, nil
 }
 
-func primitiveOrStruct[T any, U any](data []byte) (valStruct *U, valPrimitive T, err error) {
-	if data[0] == '{' {
+func primitiveOrStruct[T any, U any](parameterName string, data []byte) (valStruct *U, valPrimitive T, err error) {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		// TODO: Normalize error messages
+		err = fmt.Errorf("%s no bytes to unmarshal", parameterName)
+		return
+	}
+
+	isObject := data[0] == '{'
+	if isObject {
 		err = json.Unmarshal(data, &valStruct)
 	} else {
 		err = json.Unmarshal(data, &valPrimitive)
 	}
+
+	switch err.(type) {
+	case *json.SyntaxError:
+		err = fmt.Errorf("%s value '%s' is not supported, it has a syntax error \"%s\"", parameterName, data, err.Error())
+	case *json.UnmarshalTypeError:
+		jsonErr := err.(*json.UnmarshalTypeError)
+		if isObject {
+			err = fmt.Errorf("%s value '%s' is not supported, the value field %s must be %s", parameterName, data, jsonErr.Field, jsonErr.Type)
+		} else {
+			err = fmt.Errorf("%s value '%s' is not supported, it must be an object or %T", parameterName, data, valPrimitive)
+		}
+	}
+
 	return
 }
 

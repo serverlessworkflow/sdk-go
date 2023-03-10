@@ -15,6 +15,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -89,6 +90,67 @@ func TestSleepValidate(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestFunctionRefUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect FunctionRef
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp:   "invalid object refName",
+			data:   `{"refName": 1}`,
+			expect: FunctionRef{},
+			err:    `functionRef value '{"refName": 1}' is not supported, the value field refName must be string`,
+		},
+		{
+			desp: "object with refName",
+			data: `{"refName": "function name"}`,
+			expect: FunctionRef{
+				RefName: "function name",
+				Invoke:  InvokeKindSync,
+			},
+			err: ``,
+		},
+		{
+			desp: "object with refName and Invoke",
+			data: `{"refName": "function name", "invoke": "async"}`,
+			expect: FunctionRef{
+				RefName: "function name",
+				Invoke:  InvokeKindAsync,
+			},
+			err: ``,
+		},
+		{
+			desp: "refName string",
+			data: `"function name"`,
+			expect: FunctionRef{
+				RefName: "function name",
+				Invoke:  InvokeKindSync,
+			},
+			err: ``,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v FunctionRef
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
 		})
 	}
 }

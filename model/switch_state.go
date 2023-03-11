@@ -51,25 +51,6 @@ type DefaultCondition struct {
 	End *End `json:"end,omitempty"`
 }
 
-// UnmarshalJSON ...
-func (e *DefaultCondition) UnmarshalJSON(data []byte) error {
-	type defCondUnmarshal DefaultCondition
-
-	obj, str, err := primitiveOrStruct[string, defCondUnmarshal](data)
-	if err != nil {
-		return err
-	}
-
-	if obj == nil {
-		transition := &Transition{NextState: str}
-		e.Transition = transition
-	} else {
-		*e = DefaultCondition(*obj)
-	}
-
-	return nil
-}
-
 func (s *SwitchState) MarshalJSON() ([]byte, error) {
 	type Alias SwitchState
 	custom, err := json.Marshal(&struct {

@@ -59,7 +59,7 @@ func TestEventDataFilterUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"data": 1, "toStateData": "2"}`,
 			expect: EventDataFilter{},
-			err:    `json: cannot unmarshal number into Go struct field eventDataFilterForUnmarshal.data of type string`,
+			err:    `eventDataFilter.data must be an string`,
 		},
 	}
 

@@ -19,124 +19,243 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sync/atomic"
+	"time"
 
 	"sigs.k8s.io/yaml"
-
-	"strings"
-	"sync/atomic"
 )
 
 // +k8s:deepcopy-gen=false
 
-const prefix = "file:/"
+// TODO: Remove global variable
+var httpClient = http.Client{Timeout: time.Duration(1) * time.Second}
 
-// TRUE used by bool fields that needs a boolean pointer
-var TRUE = true
+type UnmarshalError struct {
+	err           error
+	parameterName string
+	primitiveType reflect.Kind
+	objectType    reflect.Kind
+}
 
-// FALSE used by bool fields that needs a boolean pointer
-var FALSE = false
+func (e *UnmarshalError) Error() (message string) {
+	if e.err == nil {
+		panic("unmarshalError fail")
+	}
 
-func getBytesFromFile(s string) (b []byte, err error) {
-	// #nosec
-	if resp, err := http.Get(s); err == nil {
+	switch wrapErr := e.err.(type) {
+	case *json.SyntaxError:
+		message = fmt.Sprintf("%s has a syntax error \"%s\"", e.parameterName, wrapErr.Error())
+	case *json.UnmarshalTypeError:
+		var primitiveTypeName string
+		var objectTypeName string
+
+		if e.primitiveType != 0 {
+			primitiveTypeName = e.primitiveType.String()
+		}
+		if e.objectType != 0 {
+			switch e.objectType {
+			case reflect.Struct:
+				objectTypeName = "object"
+			case reflect.Map:
+				objectTypeName = "object"
+			case reflect.Slice:
+				objectTypeName = "array"
+			default:
+				objectTypeName = e.objectType.String()
+			}
+		}
+
+		if wrapErr.Struct == "" && wrapErr.Field == "" {
+			message = fmt.Sprintf("%s must be an %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
+		} else if wrapErr.Struct != "" && wrapErr.Field != "" {
+
+			switch wrapErr.Type {
+			case reflect.TypeOf(InvokeKindSync):
+				primitiveTypeName = fmt.Sprintf("%s,%s", InvokeKindSync, InvokeKindAsync)
+			case reflect.TypeOf(ForEachModeTypeSequential):
+				primitiveTypeName = fmt.Sprintf("%s,%s", ForEachModeTypeSequential, ForEachModeTypeParallel)
+			default:
+				primitiveTypeName = wrapErr.Type.Name()
+			}
+
+			message = fmt.Sprintf("%s.%s must be an %s", e.parameterName, wrapErr.Field, primitiveTypeName)
+		} else {
+			message = wrapErr.Error()
+		}
+
+	default:
+		message = wrapErr.Error()
+	}
+
+	return message
+}
+
+func getBytesFromFile(uri string) (b []byte, err error) {
+	refUrl, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	if refUrl.Scheme == "file" {
+		path := filepath.Join(refUrl.Host, refUrl.Path)
+		if !filepath.IsAbs(path) {
+			// The import file is an non-absolute path, we join it with include path
+			// TODO: if the file didn't find in any include path, we should report an error
+			for _, p := range IncludePaths() {
+				sn := filepath.Join(p, path)
+				if _, err := os.Stat(sn); err == nil {
+					path = sn
+					break
+				}
+			}
+		}
+
+		b, err = os.ReadFile(filepath.Clean(path))
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		// #nosec
+		req, err := http.NewRequest(http.MethodGet, refUrl.String(), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
 		defer resp.Body.Close()
+
 		buf := new(bytes.Buffer)
 		if _, err = buf.ReadFrom(resp.Body); err != nil {
 			return nil, err
 		}
-		return buf.Bytes(), nil
-	}
-	s = strings.TrimPrefix(s, prefix)
 
-	if !filepath.IsAbs(s) {
-		// The import file is an non-absolute path, we join it with include path
-		// TODO: if the file didn't find in any include path, we should report an error
-		for _, p := range IncludePaths() {
-			sn := filepath.Join(p, s)
-			if _, err := os.Stat(sn); err == nil {
-				s = sn
-				break
-			}
-		}
-	}
-
-	if b, err = os.ReadFile(filepath.Clean(s)); err != nil {
-		return nil, err
+		b = buf.Bytes()
 	}
 
 	// TODO: optimize this
 	// NOTE: In specification, we can declare independent definitions with another file format, so
 	// we must convert independently yaml source to json format data before unmarshal.
-	if strings.HasSuffix(s, ".yaml") || strings.HasSuffix(s, ".yml") {
+	if !json.Valid(b) {
 		b, err = yaml.YAMLToJSON(b)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	return b, nil
 }
 
-func unmarshalString(data []byte) (string, error) {
-	var value string
-	if err := json.Unmarshal(data, &value); err != nil {
-		return "", err
+func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
+	var valString string
+	err := unmarshalPrimitiveOrObject(parameterName, data, &valString, valObject)
+	if err != nil || valString == "" {
+		return err
 	}
-	return value, nil
+
+	// Assumes that the value inside `data` is a path to a known location.
+	// Returns the content of the file or a not nil error reference.
+	data, err = getBytesFromFile(valString)
+	if err != nil {
+		return err
+	}
+
+	return unmarshalObject(parameterName, data, valObject)
 }
 
-func primitiveOrStruct[T any, U any](parameterName string, data []byte) (valStruct *U, valPrimitive T, err error) {
+func unmarshalArrayOrFile[U any](parameterName string, data []byte, valObject *U) error {
+	var valString string
+	err := unmarshalPrimitiveOrArray(parameterName, data, &valString, valObject)
+	if err != nil || valString == "" {
+		return err
+	}
+
+	// Assumes that the value inside `data` is a path to a known location.
+	// Returns the content of the file or a not nil error reference.
+	data, err = getBytesFromFile(valString)
+	if err != nil {
+		return err
+	}
+
+	return unmarshalObject(parameterName, data, valObject)
+}
+
+func unmarshalPrimitiveOrArray[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
+	return unmarshalExlucivePrimitiveOrObject(parameterName, data, valPrimitive, valStruct, '[')
+}
+
+func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
+	return unmarshalExlucivePrimitiveOrObject(parameterName, data, valPrimitive, valStruct, '{')
+}
+
+func unmarshalExlucivePrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U, detectObject byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {
 		// TODO: Normalize error messages
-		err = fmt.Errorf("%s no bytes to unmarshal", parameterName)
-		return
+		return fmt.Errorf("%s no bytes to unmarshal", parameterName)
 	}
 
-	isObject := data[0] == '{'
+	isObject := data[0] == detectObject
+	var err error
 	if isObject {
-		err = json.Unmarshal(data, &valStruct)
-	} else {
-		err = json.Unmarshal(data, &valPrimitive)
-	}
+		err = unmarshalObject(parameterName, data, valStruct)
+		if err != nil {
+			err.(*UnmarshalError).primitiveType = reflect.TypeOf(*valPrimitive).Kind()
+		}
 
-	switch jsonErr := err.(type) {
-	case *json.SyntaxError:
-		err = fmt.Errorf("%s value '%s' is not supported, it has a syntax error \"%s\"", parameterName, data, jsonErr.Error())
-	case *json.UnmarshalTypeError:
-		if isObject {
-			err = fmt.Errorf("%s value '%s' is not supported, the value field %s must be %s", parameterName, data, jsonErr.Field, jsonErr.Type)
-		} else {
-			err = fmt.Errorf("%s value '%s' is not supported, it must be an object or %T", parameterName, data, valPrimitive)
+	} else {
+		err = unmarshalPrimitive(parameterName, data, valPrimitive)
+		if err != nil {
+			err.(*UnmarshalError).objectType = reflect.TypeOf(*valStruct).Kind()
 		}
 	}
 
-	return
+	return err
 }
 
-func unmarshalKey(key string, data map[string]json.RawMessage, output interface{}) error {
-	if _, found := data[key]; found {
-		if err := json.Unmarshal(data[key], output); err != nil {
-			return fmt.Errorf("failed to  unmarshall key '%s' with data'%s'", key, data[key])
+func unmarshalPrimitive[T string | bool](parameterName string, data []byte, value *T) error {
+	if value == nil {
+		return nil
+	}
+
+	err := json.Unmarshal(data, value)
+	if err != nil {
+		return &UnmarshalError{
+			err:           err,
+			parameterName: parameterName,
+			primitiveType: reflect.TypeOf(*value).Kind(),
 		}
 	}
+
 	return nil
 }
 
-// unmarshalFile same as calling unmarshalString following by getBytesFromFile.
-// Assumes that the value inside `data` is a path to a known location.
-// Returns the content of the file or a not nil error reference.
-func unmarshalFile(data []byte) (b []byte, err error) {
-	filePath, err := unmarshalString(data)
-	if err != nil {
-		return nil, err
+func unmarshalObject[U any](parameterName string, data []byte, value *U) error {
+	if value == nil {
+		return nil
 	}
-	file, err := getBytesFromFile(filePath)
+
+	// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
+	type forUnmarshal *U
+	valueForUnmarshal := new(forUnmarshal)
+	*valueForUnmarshal = value
+	err := json.Unmarshal(data, valueForUnmarshal)
 	if err != nil {
-		return nil, err
+		return &UnmarshalError{
+			err:           err,
+			parameterName: parameterName,
+			objectType:    reflect.TypeOf(*value).Kind(),
+		}
 	}
-	return file, nil
+
+	return nil
 }
 
 var defaultIncludePaths atomic.Value

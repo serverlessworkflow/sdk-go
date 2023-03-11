@@ -71,7 +71,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			data: `PT10S`,
 
 			expect: &StateExecTimeout{},
-			err:    `stateExecTimeout value 'PT10S' is not supported, it has a syntax error "invalid character 'P' looking for beginning of value"`,
+			err:    `stateExecTimeout has a syntax error "invalid character 'P' looking for beginning of value"`,
 		},
 		{
 			desp: "invalid total type",
@@ -81,10 +81,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			}`,
 
 			expect: &StateExecTimeout{},
-			err: `stateExecTimeout value '{
-				"single": "PT1S",
-				"total": 10
-			}' is not supported, the value field total must be string`,
+			err:    `stateExecTimeout.total must be an string`,
 		},
 		{
 			desp: "invalid single type",
@@ -97,10 +94,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 				Single: "",
 				Total:  "PT10S",
 			},
-			err: `stateExecTimeout value '{
-				"single": 1,
-				"total": "PT10S"
-			}' is not supported, the value field single must be string`,
+			err: `stateExecTimeout.single must be an string`,
 		},
 	}
 	for _, tc := range testCases {

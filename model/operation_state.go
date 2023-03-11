@@ -44,21 +44,14 @@ func (a *OperationState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-type operationStateForUnmarshal OperationState
-
 // UnmarshalJSON unmarshal OperationState object from json bytes
 func (o *OperationState) UnmarshalJSON(data []byte) error {
+	o.ApplyDefault()
+	return unmarshalObject("operationState", data, o)
+}
 
-	v := operationStateForUnmarshal{
-		ActionMode: ActionModeSequential,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-
-	*o = OperationState(v)
-	return nil
+func (o *OperationState) ApplyDefault() {
+	o.ActionMode = ActionModeSequential
 }
 
 // OperationStateTimeout defines the specific timeout settings for operation state

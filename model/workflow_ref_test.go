@@ -80,13 +80,13 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"workflowId": 1, "version": "2", "invoke": "async", "onParentComplete": "continue"}`,
 			expect: WorkflowRef{},
-			err:    `subFlowRef value '{"workflowId": 1, "version": "2", "invoke": "async", "onParentComplete": "continue"}' is not supported, the value field workflowId must be string`,
+			err:    "subFlowRef.workflowId must be an string",
 		},
 		{
 			desp:   "invalid string or object",
 			data:   `1`,
 			expect: WorkflowRef{},
-			err:    `subFlowRef value '1' is not supported, it must be an object or string`,
+			err:    `subFlowRef must be an string or object`,
 		},
 	}
 	for _, tc := range testCases {

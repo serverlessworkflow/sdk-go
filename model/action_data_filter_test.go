@@ -61,7 +61,7 @@ func TestActionDataFilterUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"fromStateData": 1, "results": "2", "toStateData": "3"}`,
 			expect: ActionDataFilter{},
-			err:    `json: cannot unmarshal number into Go struct field actionDataFilterForUnmarshal.fromStateData of type string`,
+			err:    `actionDataFilter.fromStateData must be an string`,
 		},
 	}
 

@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -71,19 +70,13 @@ func (f *ForEachState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-type forEachStateForUnmarshal ForEachState
-
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
-	v := forEachStateForUnmarshal{
-		Mode: ForEachModeTypeParallel,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("forEachState value '%s' is not supported, it must be an object or string", string(data))
-	}
+	f.ApplyDefault()
+	return unmarshalObject("forEachState", data, f)
+}
 
-	*f = ForEachState(v)
-	return nil
+func (f *ForEachState) ApplyDefault() {
+	f.Mode = ForEachModeTypeParallel
 }
 
 // ForEachStateTimeout defines timeout settings for foreach state

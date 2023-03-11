@@ -24,19 +24,19 @@ import (
 func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
 	t.Run("BearerAuthProperties", func(t *testing.T) {
 		a1JSON := `{
-		"name": "a1",
-		"scheme": "bearer",
-		"properties": {
-			"token": "token1"
-		}
-	}`
+			"name": "a1",
+			"scheme": "bearer",
+			"properties": {
+				"token": "token1"
+			}
+		}`
 		a2JSON := `{
-		"name": "a2",
-		"scheme": "bearer",
-		"properties": {
-			"token": "token2"
-		}
-	}`
+			"name": "a2",
+			"scheme": "bearer",
+			"properties": {
+				"token": "token2"
+			}
+		}`
 
 		var a1 Auth
 		err := json.Unmarshal([]byte(a1JSON), &a1)

@@ -14,10 +14,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
 
@@ -54,21 +50,11 @@ type Event struct {
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
 
-type eventForUnmarshal Event
-
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
-	v := eventForUnmarshal{
-		DataOnly: true,
-		Kind:     EventKindConsumed,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-
-	*e = Event(v)
-	return nil
+	e.DataOnly = true
+	e.Kind = EventKindConsumed
+	return unmarshalObject("event", data, e)
 }
 
 // Correlation define event correlation rules for an event. Only used for `consumed` events
@@ -107,18 +93,12 @@ type EventRef struct {
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
-type eventRefForUnmarshal EventRef
-
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
-	v := eventRefForUnmarshal{
-		Invoke: InvokeKindSync,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
+	e.ApplyDefault()
+	return unmarshalObject("eventRef", data, e)
+}
 
-	*e = EventRef(v)
-	return nil
+func (e *EventRef) ApplyDefault() {
+	e.Invoke = InvokeKindSync
 }

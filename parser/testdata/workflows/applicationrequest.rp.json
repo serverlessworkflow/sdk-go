@@ -7,8 +7,8 @@
   "start": {
     "stateName": "CheckApplication"
   },
-  "functions": "testdata/applicationrequestfunctions.json",
-  "retries": "testdata/applicationrequestretries.json",
+  "functions": "file://testdata/applicationrequestfunctions.json",
+  "retries": "file://testdata/applicationrequestretries.json",
   "states": [
     {
       "name": "CheckApplication",

@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-)
-
 // EventDataFilter used to filter consumed event payloads.
 type EventDataFilter struct {
 	// If set to false, event payload is not added/merged to state data. In this case 'data' and 'toStateData'
@@ -35,23 +29,11 @@ type EventDataFilter struct {
 	ToStateData string `json:"toStateData,omitempty"`
 }
 
-type eventDataFilterForUnmarshal EventDataFilter
-
 func (f *EventDataFilter) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
+	f.ApplyDefault()
+	return unmarshalObject("eventDataFilter", data, f)
+}
 
-	v := eventDataFilterForUnmarshal{
-		UseData: true,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		// TODO: replace the error message with correct type's name
-		return err
-	}
-
-	*f = EventDataFilter(v)
-	return nil
+func (f *EventDataFilter) ApplyDefault() {
+	f.UseData = true
 }

@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-)
-
 // ActionDataFilter used to filter action data results.
 // +optional
 // +optional
@@ -41,24 +35,12 @@ type ActionDataFilter struct {
 	ToStateData string `json:"toStateData,omitempty"`
 }
 
-type actionDataFilterForUnmarshal ActionDataFilter
-
 // UnmarshalJSON implements json.Unmarshaler
-func (f *ActionDataFilter) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
+func (a *ActionDataFilter) UnmarshalJSON(data []byte) error {
+	a.ApplyDefault()
+	return unmarshalObject("actionDataFilter", data, a)
+}
 
-	v := actionDataFilterForUnmarshal{
-		UseResults: true,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		// TODO: replace the error message with correct type's name
-		return err
-	}
-
-	*f = ActionDataFilter(v)
-	return nil
+func (a *ActionDataFilter) ApplyDefault() {
+	a.UseResults = true
 }

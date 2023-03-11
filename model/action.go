@@ -14,11 +14,6 @@
 
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 // Action specify invocations of services or other workflows during workflow execution.
 type Action struct {
 	// Defines Unique action identifier.
@@ -61,20 +56,14 @@ type Action struct {
 	Condition string `json:"condition,omitempty"`
 }
 
-type actionForUnmarshal Action
-
 // UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
-	v := actionForUnmarshal{
-		ActionDataFilter: ActionDataFilter{UseResults: true},
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("action value '%s' is not supported, it must be an object or string", string(data))
-	}
-	*a = Action(v)
+	a.ApplyDefault()
+	return unmarshalObject("action", data, a)
+}
 
-	return nil
+func (a *Action) ApplyDefault() {
+	a.ActionDataFilter.ApplyDefault()
 }
 
 // FunctionRef defines the reference to a reusable function definition
@@ -98,23 +87,12 @@ type FunctionRef struct {
 
 // UnmarshalJSON implements json.Unmarshaler
 func (f *FunctionRef) UnmarshalJSON(data []byte) error {
-	type functionRefForUnmarshal FunctionRef
-	functionRef, refName, err := primitiveOrStruct[string, functionRefForUnmarshal]("functionRef", data)
-	if err != nil {
-		return err
-	}
+	f.ApplyDefault()
+	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, f)
+}
 
-	if functionRef == nil {
-		f.RefName = refName
-	} else {
-		*f = FunctionRef(*functionRef)
-	}
-
-	if f.Invoke == "" {
-		f.Invoke = InvokeKindSync
-	}
-
-	return nil
+func (f *FunctionRef) ApplyDefault() {
+	f.Invoke = InvokeKindSync
 }
 
 // Sleep defines time periods workflow execution should sleep before & after function execution
@@ -127,4 +105,8 @@ type Sleep struct {
 	// Does not apply if 'eventRef' is defined.
 	// +optional
 	After string `json:"after,omitempty" validate:"omitempty,iso8601duration"`
+}
+
+func (s *Sleep) UnmarshalJSON(data []byte) error {
+	return unmarshalObject("sleep", data, s)
 }

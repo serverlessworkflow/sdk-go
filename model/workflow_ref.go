@@ -37,26 +37,11 @@ type WorkflowRef struct {
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
-	type workflowRefForUnmarshal WorkflowRef
+	s.ApplyDefault()
+	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, s)
+}
 
-	v, workflowID, err := primitiveOrStruct[string, workflowRefForUnmarshal]("subFlowRef", data)
-	if err != nil {
-		return err
-	}
-
-	if v == nil {
-		s.WorkflowID = workflowID
-	} else {
-		*s = WorkflowRef(*v)
-	}
-
-	if s.Invoke == "" {
-		s.Invoke = InvokeKindSync
-	}
-
-	if s.OnParentComplete == "" {
-		s.OnParentComplete = "terminate"
-	}
-
-	return nil
+func (s *WorkflowRef) ApplyDefault() {
+	s.Invoke = InvokeKindSync
+	s.OnParentComplete = "terminate"
 }

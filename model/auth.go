@@ -64,57 +64,31 @@ type Auth struct {
 
 // UnmarshalJSON Auth definition
 func (a *Auth) UnmarshalJSON(data []byte) error {
-	auth := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &auth); err != nil {
-		// it's a file
-		file, err := unmarshalFile(data)
-		if err != nil {
-			return err
-		}
-		// call us recursively
-		if err := json.Unmarshal(file, &a); err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("scheme", auth, &a.Scheme); err != nil {
-		return err
-	}
-	if err := unmarshalKey("name", auth, &a.Name); err != nil {
+	authTmp := struct {
+		Auth
+		PropertiesRaw json.RawMessage `json:"properties"`
+	}{}
+
+	err := unmarshalObjectOrFile("auth", data, &authTmp)
+	if err != nil {
 		return err
 	}
 
+	*a = authTmp.Auth
 	if len(a.Scheme) == 0 {
 		a.Scheme = AuthTypeBasic
 	}
 
 	switch a.Scheme {
 	case AuthTypeBasic:
-		authProperties := &BasicAuthProperties{}
-
-		if err := unmarshalKey("properties", auth, authProperties); err != nil {
-			return err
-		}
-		a.Properties.Basic = authProperties
-
-		return nil
-
+		a.Properties.Basic = &BasicAuthProperties{}
+		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Basic)
 	case AuthTypeBearer:
-		authProperties := &BearerAuthProperties{}
-		if err := unmarshalKey("properties", auth, authProperties); err != nil {
-			return err
-		}
-		a.Properties.Bearer = authProperties
-		return nil
-
+		a.Properties.Bearer = &BearerAuthProperties{}
+		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Bearer)
 	case AuthTypeOAuth2:
-		authProperties := &OAuth2AuthProperties{}
-		if err := unmarshalKey("properties", auth, authProperties); err != nil {
-			return err
-		}
-		a.Properties.OAuth2 = authProperties
-		return nil
-
+		a.Properties.OAuth2 = &OAuth2AuthProperties{}
+		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.OAuth2)
 	default:
 		return fmt.Errorf("failed to parse auth properties")
 	}
@@ -163,27 +137,6 @@ type BasicAuthProperties struct {
 	Password string `json:"password" validate:"required"`
 }
 
-// UnmarshalJSON ...
-func (b *BasicAuthProperties) UnmarshalJSON(data []byte) error {
-	properties := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &properties); err != nil {
-		return err
-	}
-	if err := unmarshalKey("username", properties, &b.Username); err != nil {
-		return err
-	}
-	if err := unmarshalKey("password", properties, &b.Password); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
-		return err
-	}
-	if err := unmarshalKey("secret", properties, &b.Secret); err != nil {
-		return err
-	}
-	return nil
-}
-
 // BearerAuthProperties Bearer auth information
 type BearerAuthProperties struct {
 	Common `json:",inline"`
@@ -193,24 +146,6 @@ type BearerAuthProperties struct {
 	// Token String or a workflow expression. Contains the token
 	// +kubebuilder:validation:Required
 	Token string `json:"token" validate:"required"`
-}
-
-// UnmarshalJSON ...
-func (b *BearerAuthProperties) UnmarshalJSON(data []byte) error {
-	properties := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &properties); err != nil {
-		return err
-	}
-	if err := unmarshalKey("token", properties, &b.Token); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
-		return err
-	}
-	if err := unmarshalKey("secret", properties, &b.Secret); err != nil {
-		return err
-	}
-	return nil
 }
 
 // OAuth2AuthProperties OAuth2 information
@@ -256,51 +191,3 @@ type OAuth2AuthProperties struct {
 }
 
 // TODO: use reflection to unmarshal the keys and think on a generic approach to handle them
-
-// UnmarshalJSON ...
-func (b *OAuth2AuthProperties) UnmarshalJSON(data []byte) error {
-	properties := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &properties); err != nil {
-		return err
-	}
-	if err := unmarshalKey("authority", properties, &b.Authority); err != nil {
-		return err
-	}
-	if err := unmarshalKey("grantType", properties, &b.GrantType); err != nil {
-		return err
-	}
-	if err := unmarshalKey("clientId", properties, &b.ClientID); err != nil {
-		return err
-	}
-	if err := unmarshalKey("clientSecret", properties, &b.ClientSecret); err != nil {
-		return err
-	}
-	if err := unmarshalKey("scopes", properties, &b.Scopes); err != nil {
-		return err
-	}
-	if err := unmarshalKey("username", properties, &b.Username); err != nil {
-		return err
-	}
-	if err := unmarshalKey("password", properties, &b.Password); err != nil {
-		return err
-	}
-	if err := unmarshalKey("audiences", properties, &b.Audiences); err != nil {
-		return err
-	}
-	if err := unmarshalKey("subjectToken", properties, &b.SubjectToken); err != nil {
-		return err
-	}
-	if err := unmarshalKey("requestedSubject", properties, &b.RequestedSubject); err != nil {
-		return err
-	}
-	if err := unmarshalKey("requestedIssuer", properties, &b.RequestedIssuer); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", properties, &b.Metadata); err != nil {
-		return err
-	}
-	if err := unmarshalKey("secret", properties, &b.Secret); err != nil {
-		return err
-	}
-	return nil
-}

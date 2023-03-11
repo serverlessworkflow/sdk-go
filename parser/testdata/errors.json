@@ -1,13 +1,11 @@
-{
-  "errors": [
-    {
-      "name": "Missing order id"
-    },
-    {
-      "name": "Missing order item"
-    },
-    {
-      "name": "Missing order quantity"
-    }
-  ]
-}
+[
+  {
+    "name": "Missing order id"
+  },
+  {
+    "name": "Missing order item"
+  },
+  {
+    "name": "Missing order quantity"
+  }
+]

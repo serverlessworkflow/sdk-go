@@ -5,7 +5,7 @@
   "description": "Determine if applicant request is valid",
   "start": "CheckApplication",
   "specVersion": "0.7",
-  "auth": "./testdata/workflows/urifiles/auth.yaml",
+  "auth": "file://testdata/workflows/urifiles/auth.yaml",
   "functions": [
     {
       "name": "sendRejectionEmailFunction",

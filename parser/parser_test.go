@@ -257,7 +257,7 @@ func TestFromFile(t *testing.T) {
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
 				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
-				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
+				assert.Equal(t, "default", w.Retries[0].Name)
 			},
 		}, {
 			"./testdata/workflows/checkinbox.sw.yaml", func(t *testing.T, w *model.Workflow) {
@@ -673,7 +673,7 @@ states:
   "description": "Determine if applicant request is valid",
   "start": "Hello State",
   "specVersion": "0.8",
-  "auth": "./testdata/workflows/urifiles/auth.json",
+  "auth": "file://testdata/workflows/urifiles/auth.json",
   "states": [
     {
 	  "name": "Hello State",
@@ -719,7 +719,7 @@ states:
 `))
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
+		assert.Equal(t, "auth must be an string or array", err.Error())
 		assert.Nil(t, workflow)
 	})
 }

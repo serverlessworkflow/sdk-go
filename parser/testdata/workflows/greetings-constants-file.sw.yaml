@@ -19,7 +19,7 @@ description: Greet Someone
 specVersion: "0.8"
 start:
   stateName: Greet
-constants: "testdata/constantsDogs.json"
+constants: "file://testdata/constantsDogs.json"
 functions:
   - name: greetingFunction
     operation: file://myapis/greetingapis.json#greeting

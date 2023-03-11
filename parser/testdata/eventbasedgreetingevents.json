@@ -1,9 +1,7 @@
-{
-  "events": [
-    {
-      "name": "GreetingEvent",
-      "type": "greetingEventType",
-      "source": "greetingEventSource"
-    }
-  ]
-}
+[
+  {
+    "name": "GreetingEvent",
+    "type": "greetingEventType",
+    "source": "greetingEventSource"
+  }
+]

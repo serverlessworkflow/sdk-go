@@ -49,7 +49,7 @@ func TestEventRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"invoke": 1}`,
 			expect: EventRef{},
-			err:    `json: cannot unmarshal number into Go struct field eventRefForUnmarshal.invoke of type model.InvokeKind`,
+			err:    `eventRef.invoke must be an sync,async`,
 		},
 	}
 	for _, tc := range testCases {
@@ -59,7 +59,7 @@ func TestEventRefUnmarshalJSON(t *testing.T) {
 
 			if tc.err != "" {
 				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
+				assert.Equal(t, tc.err, err.Error())
 				return
 			}
 
@@ -99,7 +99,7 @@ func TestEventUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"dataOnly": "false", "kind": "produced"}`,
 			expect: Event{},
-			err:    `json: cannot unmarshal string into Go struct field eventForUnmarshal.dataOnly of type bool`,
+			err:    `event.dataOnly must be an bool`,
 		},
 	}
 	for _, tc := range testCases {

@@ -16,6 +16,9 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -153,7 +156,7 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 			desp:   "invalid object format",
 			data:   `{"workflowId": 1}`,
 			expect: ContinueAs{},
-			err:    `continueAs value '{"workflowId": 1}' is not supported, the value field workflowId must be string`,
+			err:    `continueAs.workflowId must be an string`,
 		},
 	}
 	for _, tc := range testCases {
@@ -193,7 +196,7 @@ func TestEndUnmarshalJSON(t *testing.T) {
 			desp:   "string fail",
 			data:   `"true"`,
 			expect: End{},
-			err:    `end value '"true"' is not supported, it must be an object or bool`,
+			err:    `end must be an bool or object`,
 		},
 		{
 			desp: `object success`,
@@ -204,12 +207,12 @@ func TestEndUnmarshalJSON(t *testing.T) {
 			err: ``,
 		},
 		{
-			desp: `object success`,
+			desp: `object fail`,
 			data: `{"terminate": "true"}`,
 			expect: End{
 				Terminate: true,
 			},
-			err: `end value '{"terminate": "true"}' is not supported, the value field terminate must be bool`,
+			err: `end.terminate must be an bool`,
 		},
 		{
 			desp:   `object key invalid`,
@@ -482,6 +485,157 @@ func TestTransitionUnmarshalJSON(t *testing.T) {
 			if tc.err != "" {
 				assert.Error(t, err)
 				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
+	type testCase struct {
+		desp   string
+		data   string
+		expect DataInputSchema
+		err    string
+	}
+
+	testCases := []testCase{
+		{
+			desp: "string success",
+			data: `"schema name"`,
+			expect: DataInputSchema{
+				Schema:                 "schema name",
+				FailOnValidationErrors: true,
+			},
+			err: ``,
+		},
+		{
+			desp: `object success`,
+			data: `{"schema": "schema name"}`,
+			expect: DataInputSchema{
+				Schema:                 "schema name",
+				FailOnValidationErrors: true,
+			},
+			err: ``,
+		},
+		{
+			desp: `object fail`,
+			data: `{"schema": "schema name}`,
+			expect: DataInputSchema{
+				Schema:                 "schema name",
+				FailOnValidationErrors: true,
+			},
+			err: `unexpected end of JSON input`,
+		},
+		{
+			desp: `object key invalid`,
+			data: `{"schema_invalid": "schema name"}`,
+			expect: DataInputSchema{
+				FailOnValidationErrors: true,
+			},
+			err: ``,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v DataInputSchema
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
+		})
+	}
+}
+
+func TestConstantsUnmarshalJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/test.json":
+			rw.Write([]byte(`{"testkey":"testvalue"}`))
+		default:
+			t.Failed()
+		}
+	}))
+	defer server.Close()
+	httpClient = *server.Client()
+
+	type testCase struct {
+		desp   string
+		data   string
+		expect Constants
+		err    string
+	}
+	testCases := []testCase{
+		{
+			desp: "object success",
+			data: `{"testkey":"testvalue}`,
+			expect: Constants{
+				Data: ConstantsData{
+					"testkey": []byte(`"testvalue"`),
+				},
+			},
+			err: `unexpected end of JSON input`,
+		},
+		{
+			desp: "object success",
+			data: `[]`,
+			expect: Constants{
+				Data: ConstantsData{
+					"testkey": []byte(`"testvalue"`),
+				},
+			},
+			// TODO: improve message: field is empty
+			err: `constants must be an string or object`,
+		},
+		{
+			desp: "object success",
+			data: `{"testkey":"testvalue"}`,
+			expect: Constants{
+				Data: ConstantsData{
+					"testkey": []byte(`"testvalue"`),
+				},
+			},
+			err: ``,
+		},
+		{
+			desp: "file success",
+			data: fmt.Sprintf(`"%s/test.json"`, server.URL),
+			expect: Constants{
+				Data: ConstantsData{
+					"testkey": []byte(`"testvalue"`),
+				},
+			},
+			err: ``,
+		},
+		{
+			desp: "file success",
+			data: `"uri_invalid"`,
+			expect: Constants{
+				Data: ConstantsData{
+					"testkey": []byte(`"testvalue"`),
+				},
+			},
+			err: `Get "uri_invalid": unsupported protocol scheme ""`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Constants
+			err := json.Unmarshal([]byte(tc.data), &v)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Equal(t, tc.err, err.Error())
 				return
 			}
 

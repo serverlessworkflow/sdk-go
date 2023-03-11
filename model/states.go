@@ -96,44 +96,6 @@ func (b *BaseState) MarshalJSON() ([]byte, error) {
 	return cus, err
 }
 
-func (b *BaseState) UnmarshalJSON(data []byte) error {
-	baseState := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &baseState); err != nil {
-		return err
-	}
-	if err := unmarshalKey("id", baseState, &b.ID); err != nil {
-		return err
-	}
-	if err := unmarshalKey("name", baseState, &b.Name); err != nil {
-		return err
-	}
-	if err := unmarshalKey("type", baseState, &b.Type); err != nil {
-		return err
-	}
-	if err := unmarshalKey("onErrors", baseState, &b.OnErrors); err != nil {
-		return err
-	}
-	if err := unmarshalKey("transition", baseState, &b.Transition); err != nil {
-		return err
-	}
-	if err := unmarshalKey("stateDataFilter", baseState, &b.StateDataFilter); err != nil {
-		return err
-	}
-	if err := unmarshalKey("compensatedBy", baseState, &b.CompensatedBy); err != nil {
-		return err
-	}
-	if err := unmarshalKey("usedForCompensation", baseState, &b.UsedForCompensation); err != nil {
-		return err
-	}
-	if err := unmarshalKey("end", baseState, &b.End); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", baseState, &b.Metadata); err != nil {
-		return err
-	}
-	return nil
-}
-
 type State struct {
 	BaseState `json:",inline"`
 	// delayState Causes the workflow execution to delay for a specified duration.

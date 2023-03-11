@@ -26,18 +26,5 @@ type StateExecTimeout struct {
 
 // UnmarshalJSON unmarshal StateExecTimeout object from json bytes
 func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
-	// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
-	type stateExecTimeoutForUnmarshal StateExecTimeout
-	v, total, err := primitiveOrStruct[string, stateExecTimeoutForUnmarshal]("stateExecTimeout", data)
-	if err != nil {
-		return err
-	}
-
-	if v == nil {
-		s.Total = total
-	} else {
-		*s = StateExecTimeout(*v)
-	}
-
-	return nil
+	return unmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, s)
 }

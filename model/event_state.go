@@ -26,6 +26,8 @@ type EventState struct {
 
 	// If true consuming one of the defined events causes its associated actions to be performed. If false all
 	// the defined events must be consumed in order for actions to be performed. Defaults to true.
+	// +kubebuilder:default=true
+	// +optional
 	Exclusive bool `json:"exclusive,omitempty"`
 	// Define the events to be consumed and optional actions to be performed.
 	// +kubebuilder:validation:MinItems=1

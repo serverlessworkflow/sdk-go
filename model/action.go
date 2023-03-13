@@ -39,7 +39,7 @@ type Action struct {
 	// +optional
 	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
 	// Defines time period workflow execution should sleep before / after function execution.
-	// +optional//TODO parei aqui
+	// +optional
 	Sleep *Sleep `json:"sleep,omitempty"`
 	// References a defined workflow retry definition. If not defined uses the default runtime retry definition.
 	// +optional

@@ -29,7 +29,8 @@ type CallbackState struct {
 	// Time period to wait for incoming events (ISO 8601 format)
 	// +optional
 	Timeouts *CallbackStateTimeout `json:"timeouts,omitempty"`
-	// Event data filter
+	// Event data filter definition.
+	// +optional
 	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 

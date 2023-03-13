@@ -40,19 +40,22 @@ type ForEachState struct {
 	// +optional
 	OutputCollection string `json:"outputCollection,omitempty"`
 	// Name of the iteration parameter that can be referenced in actions/workflow. For each parallel iteration,
-	// this param should contain a unique element of the inputCollection array
+	// this param should contain a unique element of the inputCollection array.
 	// +optional
 	IterationParam string `json:"iterationParam,omitempty"`
 	// Specifies how many iterations may run in parallel at the same time. Used if mode property is set to
-	// parallel (default). If not specified, its value should be the size of the inputCollection
+	// parallel (default). If not specified, its value should be the size of the inputCollection.
 	// +optional
 	BatchSize *intstr.IntOrString `json:"batchSize,omitempty"`
-	// actions to be executed for each of the elements of inputCollection
+	// Actions to be executed for each of the elements of inputCollection.
 	// +kubebuilder:validation:MinItems=1
 	Actions []Action `json:"actions,omitempty" validate:"required,min=1,dive"`
-	// state specific timeout.
+	// State specific timeout.
+	// +optional
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`
-	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel
+	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel.
+	// +kubebuilder:validation:Enum=sequential;parallel
+	// +kubebuilder:default=parallel
 	Mode ForEachModeType `json:"mode,omitempty"`
 }
 

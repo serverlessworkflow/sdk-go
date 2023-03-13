@@ -42,7 +42,8 @@ type Event struct {
 	// +kubebuilder:validation:Required
 	Type string `json:"type" validate:"required"`
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Defaults to `consumed`.
-	// +optional
+	// +kubebuilder:validation:Enum=consumed;produced
+	// +kubebuilder:default=consumed
 	Kind EventKind `json:"kind,omitempty"`
 	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload
 	// and context attributes should be accessible. Defaults to true.

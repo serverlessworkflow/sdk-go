@@ -15,21 +15,10 @@
 package model
 
 import (
-	"reflect"
-
-	validator "github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
-
-func init() {
-	val.GetValidator().RegisterStructValidation(
-		RetryStructLevelValidation,
-		Retry{},
-	)
-}
 
 // Retry ...
 type Retry struct {
@@ -48,16 +37,4 @@ type Retry struct {
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
 	// TODO: make iso8601duration compatible this type
 	Jitter floatstr.Float32OrString `json:"jitter,omitempty" validate:"omitempty,min=0,max=1"`
-}
-
-// RetryStructLevelValidation custom validator for Retry Struct
-func RetryStructLevelValidation(structLevel validator.StructLevel) {
-	retryObj := structLevel.Current().Interface().(Retry)
-
-	if retryObj.Jitter.Type == floatstr.String && retryObj.Jitter.StrVal != "" {
-		err := val.ValidateISO8601TimeDuration(retryObj.Jitter.StrVal)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(retryObj.Jitter.StrVal), "Jitter", "jitter", "iso8601duration", "")
-		}
-	}
 }

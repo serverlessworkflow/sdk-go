@@ -19,53 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
-
-func TestEventRefStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		name     string
-		eventRef EventRef
-		err      string
-	}
-
-	testCases := []testCase{
-		{
-			name: "valid resultEventTimeout",
-			eventRef: EventRef{
-				TriggerEventRef:    "example valid",
-				ResultEventRef:     "example valid",
-				ResultEventTimeout: "PT1H",
-				Invoke:             InvokeKindSync,
-			},
-			err: ``,
-		},
-		{
-			name: "invalid resultEventTimeout",
-			eventRef: EventRef{
-				TriggerEventRef:    "example invalid",
-				ResultEventRef:     "example invalid red",
-				ResultEventTimeout: "10hs",
-				Invoke:             InvokeKindSync,
-			},
-			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.eventRef)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-			assert.NoError(t, err)
-		})
-	}
-}
 
 func TestEventRefUnmarshalJSON(t *testing.T) {
 	type testCase struct {

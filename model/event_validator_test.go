@@ -1,4 +1,4 @@
-// Copyright 2022 The Serverless Workflow Specification Authors
+// Copyright 2021 The Serverless Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,56 +15,52 @@
 package model
 
 import (
-	"encoding/json"
 	"testing"
 
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestForEachStateUnmarshalJSON(t *testing.T) {
+func TestEventRefStructLevelValidation(t *testing.T) {
 	type testCase struct {
-		desp   string
-		data   string
-		expect *ForEachState
-		err    string
+		name     string
+		eventRef EventRef
+		err      string
 	}
+
 	testCases := []testCase{
 		{
-			desp: "all field",
-			data: `{"mode": "sequential"}`,
-			expect: &ForEachState{
-				Mode: ForEachModeTypeSequential,
+			name: "valid resultEventTimeout",
+			eventRef: EventRef{
+				TriggerEventRef:    "example valid",
+				ResultEventRef:     "example valid",
+				ResultEventTimeout: "PT1H",
+				Invoke:             InvokeKindSync,
 			},
 			err: ``,
 		},
 		{
-			desp: "mode unset",
-			data: `{}`,
-			expect: &ForEachState{
-				Mode: ForEachModeTypeParallel,
+			name: "invalid resultEventTimeout",
+			eventRef: EventRef{
+				TriggerEventRef:    "example invalid",
+				ResultEventRef:     "example invalid red",
+				ResultEventTimeout: "10hs",
+				Invoke:             InvokeKindSync,
 			},
-			err: ``,
-		},
-		{
-			desp:   "invalid json format",
-			data:   `{"mode": 1}`,
-			expect: nil,
-			err:    `forEachState value '{"mode": 1}' is not supported, it must be an object or string`,
+			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
 		},
 	}
+
 	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			var v ForEachState
-			err := json.Unmarshal([]byte(tc.data), &v)
+		t.Run(tc.name, func(t *testing.T) {
+			err := val.GetValidator().Struct(tc.eventRef)
 
 			if tc.err != "" {
 				assert.Error(t, err)
 				assert.Regexp(t, tc.err, err)
 				return
 			}
-
 			assert.NoError(t, err)
-			assert.Equal(t, tc.expect, &v)
 		})
 	}
 }

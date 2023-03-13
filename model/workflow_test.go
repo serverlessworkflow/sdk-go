@@ -19,56 +19,80 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-func TestContinueAsStructLevelValidation(t *testing.T) {
+func TestWorkflowStartUnmarshalJSON(t *testing.T) {
 	type testCase struct {
-		name       string
-		continueAs ContinueAs
-		err        string
+		desp   string
+		data   string
+		expect Workflow
+		err    string
 	}
-
 	testCases := []testCase{
 		{
-			name: "valid ContinueAs",
-			continueAs: ContinueAs{
-				WorkflowID: "another-test",
-				Version:    "2",
-				Data:       FromString("${ del(.customerCount) }"),
-				WorkflowExecTimeout: WorkflowExecTimeout{
-					Duration:  "PT1H",
-					Interrupt: false,
-					RunBefore: "test",
+			desp: "start string",
+			data: `{"start": "start state name"}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
+					Start: &Start{
+						StateName: "start state name",
+					},
+				},
+				States: []State{},
+			},
+			err: ``,
+		},
+		{
+			desp: "start empty and use the first state",
+			data: `{"states": [{"name": "start state name", "type": "operation"}]}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
+					Start: &Start{
+						StateName: "start state name",
+					},
+				},
+				States: []State{
+					{
+						BaseState: BaseState{
+							Name: "start state name",
+							Type: StateTypeOperation,
+						},
+						OperationState: &OperationState{
+							ActionMode: "sequential",
+						},
+					},
 				},
 			},
 			err: ``,
 		},
 		{
-			name: "invalid WorkflowExecTimeout",
-			continueAs: ContinueAs{
-				WorkflowID: "test",
-				Version:    "1",
-				Data:       FromString("${ del(.customerCount) }"),
-				WorkflowExecTimeout: WorkflowExecTimeout{
-					Duration: "invalid",
+			desp: "start empty, and states empty",
+			data: `{"states": []}`,
+			expect: Workflow{
+				BaseWorkflow: BaseWorkflow{
+					ExpressionLang: "jq",
 				},
+				States: []State{},
 			},
-			err: `Key: 'ContinueAs.workflowExecTimeout' Error:Field validation for 'workflowExecTimeout' failed on the 'iso8601duration' tag`,
+			err: ``,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.continueAs)
+	for _, tc := range testCases[1:] {
+		t.Run(tc.desp, func(t *testing.T) {
+			var v Workflow
+			err := json.Unmarshal([]byte(tc.data), &v)
 
 			if tc.err != "" {
 				assert.Error(t, err)
 				assert.Regexp(t, tc.err, err)
 				return
 			}
+
 			assert.NoError(t, err)
+			assert.Equal(t, tc.expect, v)
 		})
 	}
 }

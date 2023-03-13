@@ -35,6 +35,9 @@ func TestSleepStateStructLevelValidation(t *testing.T) {
 				BaseState: BaseState{
 					Name: "1",
 					Type: "sleep",
+					End: &End{
+						Terminate: true,
+					},
 				},
 				SleepState: &SleepState{
 					Duration: "PT10S",

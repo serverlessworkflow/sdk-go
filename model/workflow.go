@@ -18,11 +18,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"reflect"
-
-	validator "github.com/go-playground/validator/v10"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 // InvokeKind defines how the target is invoked.
@@ -55,28 +50,13 @@ const (
 	UnlimitedTimeout = "unlimited"
 )
 
-func init() {
-	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
-	val.GetValidator().RegisterStructValidation(BaseWorkflowStructLevelValidation, BaseWorkflow{})
-}
-
-func continueAsStructLevelValidation(structLevel validator.StructLevel) {
-	continueAs := structLevel.Current().Interface().(ContinueAs)
-	if len(continueAs.WorkflowExecTimeout.Duration) > 0 {
-		if err := val.ValidateISO8601TimeDuration(continueAs.WorkflowExecTimeout.Duration); err != nil {
-			structLevel.ReportError(reflect.ValueOf(continueAs.WorkflowExecTimeout.Duration),
-				"workflowExecTimeout", "duration", "iso8601duration", "")
-		}
-	}
-}
-
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type BaseWorkflow struct {
 	// Workflow unique identifier
-	ID string `json:"id" validate:"omitempty,min=1"`
+	ID string `json:"id,omitempty" validate:"required_without=Key"`
 	// Key Domain-specific workflow identifier
-	Key string `json:"key,omitempty" validate:"omitempty,min=1"`
+	Key string `json:"key,omitempty" validate:"required_without=ID"`
 	// Workflow name
 	Name string `json:"name,omitempty"`
 	// Workflow description
@@ -110,22 +90,6 @@ type BaseWorkflow struct {
 	// property of function definitions. It is not used as authentication information for the function invocation,
 	// but just to access the resource containing the function invocation information.
 	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
-}
-
-// BaseWorkflowStructLevelValidation custom validator for unique name of the auth methods
-func BaseWorkflowStructLevelValidation(structLevel validator.StructLevel) {
-	// NOTE: we cannot add the custom validation of auth to AuthArray
-	// because `RegisterStructValidation` only works with struct type
-	wf := structLevel.Current().Interface().(BaseWorkflow)
-	dict := map[string]bool{}
-
-	for _, a := range wf.Auth {
-		if !dict[a.Name] {
-			dict[a.Name] = true
-		} else {
-			structLevel.ReportError(reflect.ValueOf(a.Name), "Name", "name", "reqnameunique", "")
-		}
-	}
 }
 
 type AuthArray []Auth
@@ -186,14 +150,23 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	}
 
 	var rawStates []json.RawMessage
-	if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
-		return err
+	if _, ok := workflowMap["states"]; ok {
+		if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
+			return err
+		}
 	}
 
 	w.States = make([]State, len(rawStates))
 	for i, rawState := range rawStates {
 		if err := json.Unmarshal(rawState, &w.States[i]); err != nil {
 			return err
+		}
+	}
+
+	// if the start is not defined, use the first state
+	if w.BaseWorkflow.Start == nil && len(w.States) > 0 {
+		w.BaseWorkflow.Start = &Start{
+			StateName: w.States[0].Name,
 		}
 	}
 

@@ -53,7 +53,7 @@ type BaseState struct {
 	// State type
 	Type StateType `json:"type" validate:"required"`
 	// States error handling and retries definitions
-	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
+	OnErrors []OnError `json:"onErrors,omitempty" validate:"omitempty,dive"`
 	// Next transition of the workflow after the time delay
 	Transition *Transition `json:"transition,omitempty"`
 	// State data filter
@@ -187,7 +187,6 @@ func (s *State) MarshalJSON() ([]byte, error) {
 }
 
 func (s *State) UnmarshalJSON(data []byte) error {
-
 	if err := json.Unmarshal(data, &s.BaseState); err != nil {
 		return err
 	}
@@ -204,7 +203,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.DelayState = state
-		return nil
 
 	case string(StateTypeEvent):
 		state := &EventState{}
@@ -212,7 +210,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.EventState = state
-		return nil
 
 	case string(StateTypeOperation):
 		state := &OperationState{}
@@ -220,7 +217,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.OperationState = state
-		return nil
 
 	case string(StateTypeParallel):
 		state := &ParallelState{}
@@ -228,7 +224,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.ParallelState = state
-		return nil
 
 	case string(StateTypeSwitch):
 		state := &SwitchState{}
@@ -236,7 +231,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.SwitchState = state
-		return nil
 
 	case string(StateTypeForEach):
 		state := &ForEachState{}
@@ -244,7 +238,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.ForEachState = state
-		return nil
 
 	case string(StateTypeInject):
 		state := &InjectState{}
@@ -252,7 +245,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.InjectState = state
-		return nil
 
 	case string(StateTypeCallback):
 		state := &CallbackState{}
@@ -260,7 +252,6 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.CallbackState = state
-		return nil
 
 	case string(StateTypeSleep):
 		state := &SleepState{}
@@ -268,9 +259,10 @@ func (s *State) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		s.SleepState = state
-		return nil
-
+	case nil:
+		return fmt.Errorf("state parameter 'type' not defined")
 	default:
 		return fmt.Errorf("state type %v not supported", mapState["type"])
 	}
+	return nil
 }

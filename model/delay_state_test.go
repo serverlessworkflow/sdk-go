@@ -35,6 +35,9 @@ func TestDelayStateStructLevelValidation(t *testing.T) {
 				BaseState: BaseState{
 					Name: "1",
 					Type: "delay",
+					End: &End{
+						Terminate: true,
+					},
 				},
 				DelayState: &DelayState{
 					TimeDelay: "PT5S",

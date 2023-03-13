@@ -52,7 +52,7 @@ type Function struct {
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Enum=rest;rpc;expression
 	// +kubebuilder:validation:Required
-	Operation string `json:"operation" validate:"required"`
+	Operation string `json:"operation" validate:"required,oneof=rest rpc expression"`
 	// Defines the function type. Is either `rest`, `rpc`, `expression`, `graphql`, `asyncapi`, `asyncapi` or `asyncapi`.
 	// Default is `rest`.
 	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;asyncapi;asyncapi;asyncapi

@@ -21,7 +21,6 @@ import (
 )
 
 // Action specify invocations of services or other workflows during workflow execution.
-// +optional
 type Action struct {
 	// Defines Unique action identifier.
 	// +optional

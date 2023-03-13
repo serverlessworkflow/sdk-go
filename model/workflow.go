@@ -43,11 +43,18 @@ const (
 )
 
 const (
-	// DefaultExpressionLang ...
-	DefaultExpressionLang = "jq"
-
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
+)
+
+type ExpressionLangType string
+
+const (
+	//JqExpressionLang ...
+	JqExpressionLang ExpressionLangType = "jq"
+
+	// JsonPathExpressionLang ...
+	JsonPathExpressionLang ExpressionLangType = "jsonpath"
 )
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
@@ -92,7 +99,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Enum=jq;jsonpath
 	// +kubebuilder:default=jq
 	// +optional
-	ExpressionLang string `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
+	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
 	// Defines the workflow default timeout settings.
 	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
@@ -269,7 +276,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 
 func (w *Workflow) setDefaults() {
 	if len(w.ExpressionLang) == 0 {
-		w.ExpressionLang = DefaultExpressionLang
+		w.ExpressionLang = JqExpressionLang
 	}
 }
 

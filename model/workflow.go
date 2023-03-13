@@ -89,8 +89,10 @@ type BaseWorkflow struct {
 	// +optional
 	Constants *Constants `json:"constants,omitempty"`
 	// Identifies the expression language used for workflow expressions. Default is 'jq'.
+	// +kubebuilder:validation:Enum=jq;jsonpath
+	// +kubebuilder:default=jq
 	// +optional
-	ExpressionLang string `json:"expressionLang,omitempty" validate:"omitempty,min=1"`
+	ExpressionLang string `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
 	// Defines the workflow default timeout settings.
 	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
@@ -456,7 +458,7 @@ type Cron struct {
 	Expression string `json:"expression" validate:"required"`
 	// Specific date and time (ISO 8601 format) when the cron expression is no longer valid.
 	// +optional
-	ValidUntil string `json:"validUntil,omitempty"`
+	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601duration"`
 }
 
 // UnmarshalJSON custom unmarshal function for Cron

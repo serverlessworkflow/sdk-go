@@ -50,7 +50,6 @@ type Function struct {
 	// If type is `rpc`, <path_to_grpc_proto_file>#<service_name>#<service_method>.
 	// If type is `expression`, defines the workflow expression. If the type is `custom`,
 	// <path_to_custom_script>#<custom_service_method>.
-	// +kubebuilder:validation:Enum=rest;rpc;expression
 	// +kubebuilder:validation:Required
 	Operation string `json:"operation" validate:"required,oneof=rest rpc expression"`
 	// Defines the function type. Is either `rest`, `rpc`, `expression`, `graphql`, `asyncapi`, `asyncapi` or `asyncapi`.

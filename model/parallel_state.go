@@ -34,15 +34,20 @@ const (
 
 // ParallelState Consists of a number of states that are executed in parallel
 type ParallelState struct {
-	// Branch Definitions
+	// List of branches for this parallel state.
+	// +kubebuilder:validation:MinItems=1
 	Branches []Branch `json:"branches" validate:"required,min=1,dive"`
-	// Option types on how to complete branch execution.
-	// Defaults to `allOf`
+	// Option types on how to complete branch execution. Defaults to `allOf`.
+	// +kubebuilder:validation:Enum=allOf;atLeast
+	// +kubebuilder:default=allOf
 	CompletionType CompletionType `json:"completionType,omitempty" validate:"required,oneof=allOf atLeast"`
-	// Used when completionType is set to 'atLeast' to specify the minimum number of branches that must complete before the state will transition."
+	// Used when branchCompletionType is set to atLeast to specify the least number of branches that must complete
+	// in order for the state to transition/end.
+	// +optional
 	// TODO: change this field to unmarshal result as int
 	NumCompleted intstr.IntOrString `json:"numCompleted,omitempty"`
 	// State specific timeouts
+	// +optional
 	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
 }
 
@@ -83,23 +88,32 @@ func (ps *ParallelState) UnmarshalJSON(b []byte) error {
 // Branch Definition
 type Branch struct {
 	// Branch name
+	// +kubebuilder:validation:Required
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
+	// +kubebuilder:validation:MinItems=1
 	Actions []Action `json:"actions" validate:"required,min=1,dive"`
-	// Timeouts State specific timeouts
+	// Branch specific timeout settings
+	// +optional
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
 }
 
 // BranchTimeouts defines the specific timeout settings for branch
 type BranchTimeouts struct {
-	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
+	// Single actions definition execution timeout duration (ISO 8601 duration format)
+	// +optional
 	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
-	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
+	// Single branch execution timeout duration (ISO 8601 duration format)
+	// +optional
 	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }
 
 // ParallelStateTimeout defines the specific timeout settings for parallel state
 type ParallelStateTimeout struct {
-	StateExecTimeout  *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	BranchExecTimeout string            `json:"branchExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
+	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
+	// Default single branch execution timeout (ISO 8601 duration format)
+	// +optional
+	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }

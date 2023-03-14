@@ -43,52 +43,83 @@ const (
 )
 
 const (
-	// DefaultExpressionLang ...
-	DefaultExpressionLang = "jq"
-
 	// UnlimitedTimeout description for unlimited timeouts
 	UnlimitedTimeout = "unlimited"
+)
+
+type ExpressionLangType string
+
+const (
+	//JqExpressionLang ...
+	JqExpressionLang ExpressionLangType = "jq"
+
+	// JsonPathExpressionLang ...
+	JsonPathExpressionLang ExpressionLangType = "jsonpath"
 )
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
 type BaseWorkflow struct {
 	// Workflow unique identifier
+	// +optional
 	ID string `json:"id,omitempty" validate:"required_without=Key"`
 	// Key Domain-specific workflow identifier
+	// +optional
 	Key string `json:"key,omitempty" validate:"required_without=ID"`
 	// Workflow name
 	Name string `json:"name,omitempty"`
-	// Workflow description
+	// Workflow description.
+	// +optional
 	Description string `json:"description,omitempty"`
-	// Workflow version
+	// Workflow version.
+	// +optional
 	Version string `json:"version" validate:"omitempty,min=1"`
-	Start   *Start `json:"start,omitempty"`
-	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important qualities
+	// Workflow start definition.
+	// +optional
+	Start *Start `json:"start,omitempty"`
+	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important
+	// qualities.
+	// +optional
 	Annotations []string `json:"annotations,omitempty"`
 	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
+	// +optional
 	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
-	SpecVersion string `json:"specVersion,omitempty" validate:"required"`
-	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your Workflow Expressions.
+	// +kubebuilder:validation:Required
+	SpecVersion string `json:"specVersion" validate:"required"`
+	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc,
+	// inside your Workflow Expressions.
+	// +optional
 	Secrets Secrets `json:"secrets,omitempty"`
-	// Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
+	// Constants Workflow constants are used to define static, and immutable, data which is available to
+	// Workflow Expressions.
+	// +optional
 	Constants *Constants `json:"constants,omitempty"`
-	// Identifies the expression language used for workflow expressions. Default is 'jq'
-	ExpressionLang string `json:"expressionLang,omitempty" validate:"omitempty,min=1"`
-	// Timeouts definition for Workflow, State, Action, Branch, and Event consumption.
+	// Identifies the expression language used for workflow expressions. Default is 'jq'.
+	// +kubebuilder:validation:Enum=jq;jsonpath
+	// +kubebuilder:default=jq
+	// +optional
+	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
+	// Defines the workflow default timeout settings.
+	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
-	// Errors declarations for this Workflow definition
+	// Defines checked errors that can be explicitly handled during workflow execution.
+	// +optional
 	Errors []Error `json:"errors,omitempty"`
-	// If 'true', workflow instances is not terminated when there are no active execution paths. Instance can be terminated via 'terminate end definition' or reaching defined 'execTimeout'
+	// If "true", workflow instances is not terminated when there are no active execution paths.
+	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
+	// +optional
 	KeepActive bool `json:"keepActive,omitempty"`
-	// Metadata custom information shared with the runtime
+	// Metadata custom information shared with the runtime.
+	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
 	// AutoRetries If set to true, actions should automatically be retried on unchecked errors. Default is false
+	// +optional
 	AutoRetries bool `json:"autoRetries,omitempty"`
-	// Auth definitions can be used to define authentication information that should be applied to resources defined in the operation
-	// property of function definitions. It is not used as authentication information for the function invocation,
-	// but just to access the resource containing the function invocation information.
+	// Auth definitions can be used to define authentication information that should be applied to resources defined
+	// in the operation property of function definitions. It is not used as authentication information for the
+	// function invocation, but just to access the resource containing the function invocation information.
+	// +optional
 	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
 }
 
@@ -132,10 +163,14 @@ func (r *AuthArray) unmarshalMany(data []byte) error {
 // Workflow base definition
 type Workflow struct {
 	BaseWorkflow
-	States    []State    `json:"states" validate:"required,min=1,dive"`
-	Events    []Event    `json:"events,omitempty"`
+	// +kubebuilder:validation:MinItems=1
+	States []State `json:"states" validate:"required,min=1,dive"`
+	// +optional
+	Events []Event `json:"events,omitempty"`
+	// +optional
 	Functions []Function `json:"functions,omitempty"`
-	Retries   []Retry    `json:"retries,omitempty" validate:"dive"`
+	// +optional
+	Retries []Retry `json:"retries,omitempty" validate:"dive"`
 }
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
@@ -241,21 +276,27 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 
 func (w *Workflow) setDefaults() {
 	if len(w.ExpressionLang) == 0 {
-		w.ExpressionLang = DefaultExpressionLang
+		w.ExpressionLang = JqExpressionLang
 	}
 }
 
 // Timeouts ...
 type Timeouts struct {
-	// WorkflowExecTimeout Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
+	// WorkflowExecTimeout Workflow execution timeout duration (ISO 8601 duration format). If not specified should
+	// be 'unlimited'.
+	// +optional
 	WorkflowExecTimeout *WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
-	// StateExecTimeout Total state execution timeout (including retries) (ISO 8601 duration format)
+	// StateExecTimeout Total state execution timeout (including retries) (ISO 8601 duration format).
+	// +optional
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format)
+	// ActionExecTimeout Single actions definition execution timeout duration (ISO 8601 duration format).
+	// +optional
 	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,min=1"`
-	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format)
+	// BranchExecTimeout Single branch execution timeout duration (ISO 8601 duration format).
+	// +optional
 	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,min=1"`
-	// EventTimeout Timeout duration to wait for consuming defined events (ISO 8601 duration format)
+	// EventTimeout Timeout duration to wait for consuming defined events (ISO 8601 duration format).
+	// +optional
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
@@ -292,14 +333,18 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// WorkflowExecTimeout ...
+// WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
+// format. If not defined, the workflow execution should be given "unlimited" amount of time to complete.
 type WorkflowExecTimeout struct {
-	// Duration Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'
-	Duration string `json:"duration,omitempty" validate:"omitempty,min=1"`
-	// If `false`, workflow instance is allowed to finish current execution. If `true`, current workflow execution is
-	// abrupted terminated.
+	// Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'.
+	// +kubebuilder:default=unlimited
+	Duration string `json:"duration" validate:"required,min=1"`
+	// If false, workflow instance is allowed to finish current execution. If true, current workflow execution
+	// is stopped immediately. Default is false.
+	// +optional
 	Interrupt bool `json:"interrupt,omitempty"`
-	// Name of a workflow state to be executed before workflow instance is terminated
+	// Name of a workflow state to be executed before workflow instance is terminated.
+	// +optional
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
 }
 
@@ -330,18 +375,27 @@ func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 
 // Error declaration for workflow definitions
 type Error struct {
-	// Name Domain-specific error name
+	// Name Domain-specific error name.
+	// +kubebuilder:validation:Required
 	Name string `json:"name" validate:"required"`
-	// Code OnError code. Can be used in addition to the name to help runtimes resolve to technical errors/exceptions. Should not be defined if error is set to '*'
+	// Code OnError code. Can be used in addition to the name to help runtimes resolve to technical errors/exceptions.
+	// Should not be defined if error is set to '*'.
+	// +optional
 	Code string `json:"code,omitempty" validate:"omitempty,min=1"`
-	// OnError description
+	// OnError description.
+	// +optional
 	Description string `json:"description,omitempty"`
 }
 
 // Start definition
 type Start struct {
-	StateName string    `json:"stateName" validate:"required"`
-	Schedule  *Schedule `json:"schedule,omitempty" validate:"omitempty"`
+	// Name of the starting workflow state
+	// +kubebuilder:validation:Required
+	StateName string `json:"stateName" validate:"required"`
+	// Define the recurring time intervals or cron expressions at which workflow instances should be automatically
+	// started.
+	// +optional
+	Schedule *Schedule `json:"schedule,omitempty" validate:"omitempty"`
 }
 
 // UnmarshalJSON ...
@@ -366,10 +420,17 @@ func (s *Start) UnmarshalJSON(data []byte) error {
 
 // Schedule ...
 type Schedule struct {
-	// Time interval (must be repeating interval) described with ISO 8601 format. Declares when workflow instances will be automatically created.
+	// TODO Interval is required if Cron is not set and vice-versa, make a exclusive validation
+	// A recurring time interval expressed in the derivative of ISO 8601 format specified below. Declares that
+	// workflow instances should be automatically created at the start of each time interval in the series.
+	// +optional
 	Interval string `json:"interval,omitempty"`
-	Cron     *Cron  `json:"cron,omitempty"`
-	// Timezone name used to evaluate the interval & cron-expression. (default: UTC)
+	// Cron expression defining when workflow instances should be automatically created.
+	// optional
+	Cron *Cron `json:"cron,omitempty"`
+	// Timezone name used to evaluate the interval & cron-expression. If the interval specifies a date-time
+	// w/ timezone then proper timezone conversion will be applied. (default: UTC).
+	// +optional
 	Timezone string `json:"timezone,omitempty"`
 }
 
@@ -399,10 +460,12 @@ func (s *Schedule) UnmarshalJSON(data []byte) error {
 
 // Cron ...
 type Cron struct {
-	// Repeating interval (cron expression) describing when the workflow instance should be created
+	// Cron expression describing when the workflow instance should be created (automatically).
+	// +kubebuilder:validation:Required
 	Expression string `json:"expression" validate:"required"`
-	// Specific date and time (ISO 8601 format) when the cron expression invocation is no longer valid
-	ValidUntil string `json:"validUntil,omitempty"`
+	// Specific date and time (ISO 8601 format) when the cron expression is no longer valid.
+	// +optional
+	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601duration"`
 }
 
 // UnmarshalJSON custom unmarshal function for Cron
@@ -422,13 +485,18 @@ func (c *Cron) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Transition ...
+// Transition Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
+// Each state can define a transition definition that is used to determine which state to transition to next.
 type Transition struct {
-	// Name of state to transition to
+	// Name of the state to transition to next.
+	// +kubebuilder:validation:Required
 	NextState string `json:"nextState" validate:"required,min=1"`
-	// Array of events to be produced before the transition happens
+	// Array of producedEvent definitions. Events to be produced before the transition takes place.
+	// +optional
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty" validate:"omitempty,dive"`
-	// If set to true, triggers workflow compensation when before this transition is taken. Default is false
+	// If set to true, triggers workflow compensation before this transition is taken. Default is false.
+	// +kubebuilder:default=false
+	// +optional
 	Compensate bool `json:"compensate,omitempty"`
 }
 
@@ -470,12 +538,18 @@ type OnError struct {
 
 // End definition
 type End struct {
-	// If true, completes all execution flows in the given workflow instance
+	// If true, completes all execution flows in the given workflow instance.
+	// +optional
 	Terminate bool `json:"terminate,omitempty"`
-	// Defines events that should be produced
+	// Array of producedEvent definitions. Defines events that should be produced.
+	// +optional
 	ProduceEvents []ProduceEvent `json:"produceEvents,omitempty"`
-	// If set to true, triggers workflow compensation. Default is false
-	Compensate bool        `json:"compensate,omitempty"`
+	// If set to true, triggers workflow compensation before workflow execution completes. Default is false.
+	// +optional
+	Compensate bool `json:"compensate,omitempty"`
+	// Defines that current workflow execution should stop, and execution should continue as a new workflow
+	// instance of the provided id
+	// +optional
 	ContinueAs *ContinueAs `json:"continueAs,omitempty"`
 }
 
@@ -500,13 +574,18 @@ func (e *End) UnmarshalJSON(data []byte) error {
 // ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
 type ContinueAs struct {
 	// Unique id of the workflow to continue execution as.
+	// +kubebuilder:validation:Required
 	WorkflowID string `json:"workflowId" validate:"required"`
 	// Version of the workflow to continue execution as.
+	// +optional
 	Version string `json:"version,omitempty"`
 	// If string type, an expression which selects parts of the states data output to become the workflow data input of
 	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
+	// +optional
 	Data Object `json:"data,omitempty"`
-	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution. Overwrites any specific settings set by that workflow
+	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution.
+	// Overwrites any specific settings set by that workflow
+	// +optional
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }
 
@@ -537,15 +616,19 @@ func (c *ContinueAs) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
 }
 
-// ProduceEvent ...
+// ProduceEvent Defines the event (CloudEvent format) to be produced when workflow execution completes or during a
+// workflow transitions. The eventRef property must match the name of one of the defined produced events in the
+// events definition.
 type ProduceEvent struct {
-	// References a name of a defined event
+	// Reference to a defined unique event name in the events definition
+	// +kubebuilder:validation:Required
 	EventRef string `json:"eventRef" validate:"required"`
-	// TODO: add object or string data type
 	// If String, expression which selects parts of the states data output to become the data of the produced event.
 	// If object a custom object to become the data of produced event.
-	Data string `json:"data,omitempty"`
-	// Add additional event extension context attributes
+	// +optional
+	Data Object `json:"data,omitempty"`
+	// Add additional event extension context attributes.
+	// +optional
 	ContextAttributes map[string]string `json:"contextAttributes,omitempty"`
 }
 
@@ -557,10 +640,12 @@ type StateDataFilter struct {
 	Output string `json:"output,omitempty"`
 }
 
-// DataInputSchema ...
+// DataInputSchema Used to validate the workflow data input against a defined JSON Schema
 type DataInputSchema struct {
-	Schema                 string `json:"schema" validate:"required"`
-	FailOnValidationErrors *bool  `json:"failOnValidationErrors" validate:"required"`
+	// +kubebuilder:validation:Required
+	Schema string `json:"schema" validate:"required"`
+	// +kubebuilder:validation:Required
+	FailOnValidationErrors *bool `json:"failOnValidationErrors" validate:"required"`
 }
 
 // UnmarshalJSON ...
@@ -584,7 +669,8 @@ func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your Workflow Expressions.
+// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your
+// Workflow Expressions.
 type Secrets []string
 
 // UnmarshalJSON ...
@@ -606,6 +692,7 @@ func (s *Secrets) UnmarshalJSON(data []byte) error {
 // Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
 type Constants struct {
 	// Data represents the generic structure of the constants value
+	// +optional
 	Data map[string]json.RawMessage `json:",omitempty"`
 }
 

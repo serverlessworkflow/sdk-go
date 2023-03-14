@@ -46,24 +46,36 @@ const (
 
 // BaseState ...
 type BaseState struct {
-	// Unique State id
+	// Unique State id.
+	// +optional
 	ID string `json:"id,omitempty"`
-	// State name
+	// State name.
+	// +kubebuilder:validation:Required
 	Name string `json:"name" validate:"required"`
-	// State type
+	// stateType can be any of delay, callback, event, foreach, inject, operation, parallel, sleep, switch
+	// +kubebuilder:validation:Enum:=delay;callback;event;foreach;inject;operation;parallel;sleep;switch
+	// +kubebuilder:validation:Required
 	Type StateType `json:"type" validate:"required"`
-	// States error handling and retries definitions
-	OnErrors []OnError `json:"onErrors,omitempty" validate:"omitempty,dive"`
-	// Next transition of the workflow after the time delay
+	// States error handling and retries definitions.
+	// +optional
+	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
+	// Next transition of the workflow after the time delay.
+	// +optional
 	Transition *Transition `json:"transition,omitempty"`
-	// State data filter
+	// State data filter.
+	// +optional
 	StateDataFilter *StateDataFilter `json:"stateDataFilter,omitempty"`
-	// Unique Name of a workflow state which is responsible for compensation of this state
+	// Unique Name of a workflow state which is responsible for compensation of this state.
+	// +optional
 	CompensatedBy string `json:"compensatedBy,omitempty"`
-	// If true, this state is used to compensate another state. Default is false
+	// If true, this state is used to compensate another state. Default is false.
+	// +optional
 	UsedForCompensation bool `json:"usedForCompensation,omitempty"`
-	// State end definition
-	End      *End      `json:"end,omitempty"`
+	// State end definition.
+	// +optional
+	End *End `json:"end,omitempty"`
+	// Metadata information.
+	// +optional
 	Metadata *Metadata `json:"metadata,omitempty"`
 }
 
@@ -115,21 +127,39 @@ func (b *BaseState) UnmarshalJSON(data []byte) error {
 	if err := unmarshalKey("metadata", baseState, &b.Metadata); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 type State struct {
-	BaseState       `json:",omitempty"`
-	*DelayState     `json:",omitempty"`
-	*EventState     `json:",omitempty"`
-	*OperationState `json:",omitempty"`
-	*ParallelState  `json:",omitempty"`
-	*SwitchState    `json:",omitempty"`
-	*ForEachState   `json:",omitempty"`
-	*InjectState    `json:",omitempty"`
-	*CallbackState  `json:",omitempty"`
-	*SleepState     `json:",omitempty"`
+	BaseState `json:",inline"`
+	// delayState Causes the workflow execution to delay for a specified duration.
+	// +optional
+	*DelayState `json:"delayState,omitempty"`
+	// event states await one or more events and perform actions when they are received. If defined as the
+	// workflow starting state, the event state definition controls when the workflow instances should be created.
+	// +optional
+	*EventState `json:"eventState,omitempty"`
+	// operationState defines a set of actions to be performed in sequence or in parallel.
+	// +optional
+	*OperationState `json:"operationState,omitempty"`
+	// parallelState Consists of a number of states that are executed in parallel.
+	// +optional
+	*ParallelState `json:"parallelState,omitempty"`
+	// switchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
+	// +optional
+	*SwitchState `json:"switchState,omitempty"`
+	// forEachState used to execute actions for each element of a data set.
+	// +optional
+	*ForEachState `json:"forEachState,omitempty"`
+	// injectState used to inject static data into state data input.
+	// +optional
+	*InjectState `json:"injectState,omitempty"`
+	// callbackState executes a function and waits for callback event that indicates completion of the task.
+	// +optional
+	*CallbackState `json:"callbackState,omitempty"`
+	// sleepState suspends workflow execution for a given time duration.
+	// +optional
+	*SleepState `json:"sleepState,omitempty"`
 }
 
 func (s *State) MarshalJSON() ([]byte, error) {

@@ -20,9 +20,11 @@ import (
 
 // InjectState used to inject static data into state data input.
 type InjectState struct {
-	// JSON object which can be set as states data input and can be manipulated via filters
+	// JSON object which can be set as state's data input and can be manipulated via filter
+	// +kubebuilder:validation:MinProperties=1
 	Data map[string]Object `json:"data" validate:"required,min=1"`
 	// State specific timeouts
+	// +optional
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
 }
 
@@ -40,5 +42,7 @@ func (i *InjectState) MarshalJSON() ([]byte, error) {
 
 // InjectStateTimeout defines timeout settings for inject state
 type InjectStateTimeout struct {
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }

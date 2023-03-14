@@ -22,13 +22,16 @@ import (
 
 // EventDataFilter used to filter consumed event payloads.
 type EventDataFilter struct {
-	// UseData represent where event payload is added/merged to state data. If it's false, data & toStateData
-	// should be ignored. Defaults to true.
+	// If set to false, event payload is not added/merged to state data. In this case 'data' and 'toStateData'
+	// should be ignored. Default is true.
+	// +optional
 	UseData bool `json:"useData,omitempty"`
-	// Workflow expression that filters of the event data (payload)
+	// Workflow expression that filters of the event data (payload).
+	// +optional
 	Data string `json:"data,omitempty"`
-	// Workflow expression that selects a state data element to which the event payload should be added/merged into.
-	// If not specified, denotes, the top-level state data element.
+	// Workflow expression that selects a state data element to which the action results should be added/merged into.
+	// If not specified denotes the top-level state data element
+	// +optional
 	ToStateData string `json:"toStateData,omitempty"`
 }
 

@@ -19,6 +19,7 @@ import "encoding/json"
 // DelayState Causes the workflow execution to delay for a specified duration
 type DelayState struct {
 	// Amount of time (ISO 8601 format) to delay
+	// +kubebuilder:validation:Required
 	TimeDelay string `json:"timeDelay" validate:"required,iso8601duration"`
 }
 

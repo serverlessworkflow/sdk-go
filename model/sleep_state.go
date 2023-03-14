@@ -21,8 +21,10 @@ import (
 // SleepState suspends workflow execution for a given time duration.
 type SleepState struct {
 	// Duration (ISO 8601 duration format) to sleep
+	// +kubebuilder:validation:Required
 	Duration string `json:"duration" validate:"required,iso8601duration"`
 	// Timeouts State specific timeouts
+	// +optional
 	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
 }
 
@@ -40,5 +42,7 @@ func (s *SleepState) MarshalJSON() ([]byte, error) {
 
 // SleepStateTimeout defines timeout settings for sleep state
 type SleepStateTimeout struct {
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
 }

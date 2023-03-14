@@ -23,16 +23,21 @@ import (
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
+	// +kubebuilder:validation:Required
 	WorkflowID string `json:"workflowId" validate:"required"`
 	// Sub-workflow version
+	// +optional
 	Version string `json:"version,omitempty"`
-
-	// Invoke specifies if the subflow should be invoked sync or async.
+	// Specifies if the subflow should be invoked sync or async.
 	// Defaults to sync.
+	// +kubebuilder:validation:Enum=async;sync
+	// +kubebuilder:default=sync
+	// +optional
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
-
-	// OnParantComplete specifies how subflow execution should behave when parent workflow completes if invoke is 'async'。
-	// Defaults to terminate.
+	// onParentComplete specifies how subflow execution should behave when parent workflow completes if invoke
+	// is 'async'. Defaults to terminate.
+	// +kubebuilder:validation:Enum=terminate;continue
+	// +kubebuilder:default=terminate
 	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
 }
 

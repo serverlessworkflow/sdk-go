@@ -23,6 +23,7 @@ import (
 // Retry ...
 type Retry struct {
 	// Unique retry strategy name
+	// +kubebuilder:validation:Required
 	Name string `json:"name" validate:"required"`
 	// Time delay between retry attempts (ISO 8601 duration format)
 	Delay string `json:"delay,omitempty" validate:"omitempty,iso8601duration"`
@@ -33,6 +34,7 @@ type Retry struct {
 	// Numeric value, if specified the delay between retries is multiplied by this value.
 	Multiplier *floatstr.Float32OrString `json:"multiplier,omitempty" validate:"omitempty,min=1"`
 	// Maximum number of retry attempts.
+	// +kubebuilder:validation:Required
 	MaxAttempts intstr.IntOrString `json:"maxAttempts" validate:"required"`
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
 	// TODO: make iso8601duration compatible this type

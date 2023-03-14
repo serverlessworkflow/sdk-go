@@ -17,6 +17,7 @@ package model
 // Common schema for Serverless Workflow specification
 type Common struct {
 	// Metadata information
+	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
 }
 

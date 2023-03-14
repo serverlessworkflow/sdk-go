@@ -22,27 +22,43 @@ import (
 
 // Action specify invocations of services or other workflows during workflow execution.
 type Action struct {
-	// ID defines Unique action identifier
+	// Defines Unique action identifier.
+	// +optional
 	ID string `json:"id,omitempty"`
-	// Name defines Unique action definition name
+	// Defines Unique action name.
+	// +optional
 	Name string `json:"name,omitempty"`
-	// FunctionRef references a reusable function definition
+	// References a reusable function definition.
+	// +optional
 	FunctionRef *FunctionRef `json:"functionRef,omitempty"`
-	// EventRef references a 'trigger' and 'result' reusable event definitions
+	// References a 'trigger' and 'result' reusable event definitions.
+	// +optional
 	EventRef *EventRef `json:"eventRef,omitempty"`
-	// References a sub-workflow to be executed
+	// References a workflow to be invoked.
+	// +optional
 	SubFlowRef *WorkflowRef `json:"subFlowRef,omitempty"`
-	// Sleep Defines time period workflow execution should sleep before / after function execution
+	// Defines time period workflow execution should sleep before / after function execution.
+	// +optional
 	Sleep *Sleep `json:"sleep,omitempty"`
-	// RetryRef References a defined workflow retry definition. If not defined the default retry policy is assumed
+	// References a defined workflow retry definition. If not defined uses the default runtime retry definition.
+	// +optional
 	RetryRef string `json:"retryRef,omitempty"`
-	// List of unique references to defined workflow errors for which the action should not be retried. Used only when `autoRetries` is set to `true`
+	// List of unique references to defined workflow errors for which the action should not be retried.
+	// Used only when `autoRetries` is set to `true`
+	// +optional
 	NonRetryableErrors []string `json:"nonRetryableErrors,omitempty" validate:"omitempty,min=1"`
-	// List of unique references to defined workflow errors for which the action should be retried. Used only when `autoRetries` is set to `false`
+	// List of unique references to defined workflow errors for which the action should be retried.
+	// Used only when `autoRetries` is set to `false`
+	// +optional
 	RetryableErrors []string `json:"retryableErrors,omitempty" validate:"omitempty,min=1"`
-	// Action data filter
+	// Filter the state data to select only the data that can be used within function definition arguments
+	// using its fromStateData property. Filter the action results to select only the result data that should
+	// be added/merged back into the state data using its results property. Select the part of state data which
+	// the action data results should be added/merged to using the toStateData property.
+	// +optional
 	ActionDataFilter ActionDataFilter `json:"actionDataFilter,omitempty"`
-	// Workflow expression evaluated against state data. Must evaluate to true or false
+	// Expression, if defined, must evaluate to true for this action to be performed. If false, action is disregarded.
+	// +optional
 	Condition string `json:"condition,omitempty"`
 }
 
@@ -65,16 +81,20 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 
 // FunctionRef defines the reference to a reusable function definition
 type FunctionRef struct {
-	// Name of the referenced function
+	// Name of the referenced function.
+	// +kubebuilder:validation:Required
 	RefName string `json:"refName" validate:"required"`
-	// Function arguments
+	// Arguments (inputs) to be passed to the referenced function
+	// +optional
 	// TODO: validate it as required if function type is graphql
 	Arguments map[string]Object `json:"arguments,omitempty"`
-	// String containing a valid GraphQL selection set
+	// Used if function type is graphql. String containing a valid GraphQL selection set.
 	// TODO: validate it as required if function type is graphql
+	// +optional
 	SelectionSet string `json:"selectionSet,omitempty"`
-	// Invoke specifies if the subflow should be invoked sync or async.
-	// Defaults to sync.
+	// Specifies if the function should be invoked sync or async. Default is sync.
+	// +kubebuilder:validation:Enum=async;sync
+	// +kubebuilder:default=sync
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
 }
 
@@ -113,8 +133,12 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 
 // Sleep defines time periods workflow execution should sleep before & after function execution
 type Sleep struct {
-	// Before defines amount of time (ISO 8601 duration format) to sleep before function/subflow invocation. Does not apply if 'eventRef' is defined.
+	// Defines amount of time (ISO 8601 duration format) to sleep before function/subflow invocation.
+	// Does not apply if 'eventRef' is defined.
+	// +optional
 	Before string `json:"before,omitempty" validate:"omitempty,iso8601duration"`
-	// After defines amount of time (ISO 8601 duration format) to sleep after function/subflow invocation. Does not apply if 'eventRef' is defined.
+	// Defines amount of time (ISO 8601 duration format) to sleep after function/subflow invocation.
+	// Does not apply if 'eventRef' is defined.
+	// +optional
 	After string `json:"after,omitempty" validate:"omitempty,iso8601duration"`
 }

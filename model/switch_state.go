@@ -22,14 +22,17 @@ import (
 type SwitchState struct {
 	// TODO: don't use BaseState for this, there are a few fields that SwitchState don't need.
 
-	// Default transition of the workflow if there is no matching data conditions. Can include a transition or end definition
-	// Required
-	DefaultCondition DefaultCondition `json:"defaultCondition"`
-	// Defines conditions evaluated against events
-	EventConditions []EventCondition `json:"eventConditions" validate:"omitempty,min=1,dive"`
+	// Default transition of the workflow if there is no matching data conditions. Can include a transition or
+	// end definition.
+	DefaultCondition DefaultCondition `json:"defaultCondition" validate:"required_without=EventConditions"`
+	// Defines conditions evaluated against events.
+	// +optional
+	EventConditions []EventCondition `json:"eventConditions" validate:"required_without=DefaultCondition"`
 	// Defines conditions evaluated against data
+	// +optional
 	DataConditions []DataCondition `json:"dataConditions" validate:"omitempty,min=1,dive"`
 	// SwitchState specific timeouts
+	// +optional
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
@@ -47,29 +50,41 @@ func (s *SwitchState) MarshalJSON() ([]byte, error) {
 
 // DefaultCondition Can be either a transition or end definition
 type DefaultCondition struct {
+	// Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
+	// Each state can define a transition definition that is used to determine which state to transition to next.
+	// +optional
 	Transition *Transition `json:"transition,omitempty"`
-	End        *End        `json:"end,omitempty"`
+	// 	If this state an end state
+	// +optional
+	End *End `json:"end,omitempty"`
 }
 
 // SwitchStateTimeout defines the specific timeout settings for switch state
 type SwitchStateTimeout struct {
+	// Default workflow state execution timeout (ISO 8601 duration format)
+	// +optional
 	StateExecTimeout *StateExecTimeout `json:"stateExecTimeout,omitempty"`
-
-	// EventTimeout specify the expire value to transitions to defaultCondition
-	// when event-based conditions do not arrive.
+	// Specify the expire value to transitions to defaultCondition. When event-based conditions do not arrive.
 	// NOTE: this is only available for EventConditions
+	// +optional
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }
 
 // EventCondition specify events which the switch state must wait for.
 type EventCondition struct {
-	// Event condition name
+	// Event condition name.
+	// +optional
 	Name string `json:"name,omitempty"`
-	// References a unique event name in the defined workflow events
+	// References a unique event name in the defined workflow events.
+	// +kubebuilder:validation:Required
 	EventRef string `json:"eventRef" validate:"required"`
-	// Event data filter definition
+	// Event data filter definition.
+	// +optional
 	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
-	Metadata        Metadata         `json:"metadata,omitempty"`
+	// Metadata information.
+	// +optional
+	Metadata Metadata `json:"metadata,omitempty"`
+	// TODO End or Transition needs to be exclusive tag, one or another should be set.
 	// Explicit transition to end
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true
@@ -79,12 +94,16 @@ type EventCondition struct {
 // DataCondition specify a data-based condition statement which causes a transition to another workflow state
 // if evaluated to true.
 type DataCondition struct {
-	// Data condition name
+	// Data condition name.
+	// +optional
 	Name string `json:"name,omitempty"`
-	// Workflow expression evaluated against state data. Must evaluate to true or false
-	Condition string   `json:"condition" validate:"required"`
-	Metadata  Metadata `json:"metadata,omitempty"`
-
+	// Workflow expression evaluated against state data. Must evaluate to true or false.
+	// +kubebuilder:validation:Required
+	Condition string `json:"condition" validate:"required"`
+	// Metadata information.
+	// +optional
+	Metadata Metadata `json:"metadata,omitempty"`
+	// TODO End or Transition needs to be exclusive tag, one or another should be set.
 	// Explicit transition to end
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true

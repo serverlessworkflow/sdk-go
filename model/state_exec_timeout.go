@@ -23,8 +23,10 @@ import (
 // StateExecTimeout defines workflow state execution timeout
 type StateExecTimeout struct {
 	// Single state execution timeout, not including retries (ISO 8601 duration format)
+	// +optional
 	Single string `json:"single,omitempty" validate:"omitempty,iso8601duration"`
 	// Total state execution timeout, including retries (ISO 8601 duration format)
+	// +kubebuilder:validation:Required
 	Total string `json:"total" validate:"required,iso8601duration"`
 }
 

@@ -54,6 +54,10 @@ func Test_getBytesFromFile(t *testing.T) {
 	data, err := getBytesFromFile(server.URL + "/test.json")
 	assert.NoError(t, err)
 	assert.Equal(t, "{}", string(data))
+
+	data, err = getBytesFromFile("../parser/testdata/eventdefs.yml")
+	assert.NoError(t, err)
+	assert.Equal(t, "[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]", string(data))
 }
 
 func Test_unmarshalObjectOrFile(t *testing.T) {

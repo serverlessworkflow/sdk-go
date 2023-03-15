@@ -95,12 +95,9 @@ func (e *UnmarshalError) Error() (message string) {
 }
 
 func getBytesFromFile(uri string) (b []byte, err error) {
-	refUrl, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
+	refUrl, _ := url.Parse(uri)
 
-	if refUrl.Scheme == "file" {
+	if refUrl.Scheme == "" || refUrl.Scheme == "file" {
 		path := filepath.Join(refUrl.Host, refUrl.Path)
 		if !filepath.IsAbs(path) {
 			// The import file is an non-absolute path, we join it with include path

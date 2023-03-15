@@ -625,7 +625,7 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 					"testkey": []byte(`"testvalue"`),
 				},
 			},
-			err: `Get "uri_invalid": unsupported protocol scheme ""`,
+			err: `open uri_invalid: no such file or directory`,
 		},
 	}
 

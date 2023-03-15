@@ -33,10 +33,10 @@ import (
 //
 // +kubebuilder:validation:Type=object
 type Object struct {
-	Type     Type            `json:",inline"`
-	IntVal   int32           `json:",inline"`
-	StrVal   string          `json:",inline"`
-	RawValue json.RawMessage `json:",inline"`
+	Type     Type            `json:"type,inline"`
+	IntVal   int32           `json:"intVal,inline"`
+	StrVal   string          `json:"strVal,inline"`
+	RawValue json.RawMessage `json:"rawValue,inline"`
 }
 
 type Type int64

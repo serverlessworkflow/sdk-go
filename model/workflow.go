@@ -86,6 +86,7 @@ type BaseWorkflow struct {
 	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
 	// +kubebuilder:validation:Required
+	// +kubebuilder:default="0.8"
 	SpecVersion string `json:"specVersion" validate:"required"`
 	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc,
 	// inside your Workflow Expressions.
@@ -501,26 +502,19 @@ type Transition struct {
 }
 
 // UnmarshalJSON ...
-func (t *Transition) UnmarshalJSON(data []byte) error {
-	transitionMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &transitionMap); err != nil {
-		t.NextState, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
+func (e *Transition) UnmarshalJSON(data []byte) error {
+	type defTransitionUnmarshal Transition
 
-	if err := unmarshalKey("compensate", transitionMap, &t.Compensate); err != nil {
-		return err
-	}
-	if err := unmarshalKey("produceEvents", transitionMap, &t.ProduceEvents); err != nil {
-		return err
-	}
-	if err := unmarshalKey("nextState", transitionMap, &t.NextState); err != nil {
+	obj, str, err := primitiveOrStruct[string, defTransitionUnmarshal](data)
+	if err != nil {
 		return err
 	}
 
+	if obj == nil {
+		e.NextState = str
+	} else {
+		*e = Transition(*obj)
+	}
 	return nil
 }
 

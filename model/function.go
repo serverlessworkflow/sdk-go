@@ -52,9 +52,9 @@ type Function struct {
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Required
 	Operation string `json:"operation" validate:"required,oneof=rest rpc expression"`
-	// Defines the function type. Is either `rest`, `rpc`, `expression`, `graphql`, `asyncapi`, `asyncapi` or `asyncapi`.
+	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `asyncapi`, `asyncapi` or `asyncapi`.
 	// Default is `rest`.
-	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;asyncapi;asyncapi;asyncapi
+	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;asyncapi;asyncapi;asyncapi;custom
 	// +kubebuilder:default=rest
 	Type FunctionType `json:"type,omitempty"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter.

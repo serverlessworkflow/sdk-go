@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"strconv"
 
-	validator "github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )

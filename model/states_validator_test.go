@@ -31,9 +31,12 @@ var stateTransitionDefault = State{
 	},
 	OperationState: &OperationState{
 		ActionMode: "sequential",
-		Actions: []Action{
-			{},
-		},
+		Actions: []Action{{
+			FunctionRef: &FunctionRef{
+				RefName: "test",
+				Invoke:  InvokeKindAsync,
+			},
+		}},
 	},
 }
 
@@ -47,9 +50,12 @@ var stateEndDefault = State{
 	},
 	OperationState: &OperationState{
 		ActionMode: "sequential",
-		Actions: []Action{
-			{},
-		},
+		Actions: []Action{{
+			FunctionRef: &FunctionRef{
+				RefName: "test",
+				Invoke:  InvokeKindAsync,
+			},
+		}},
 	},
 }
 

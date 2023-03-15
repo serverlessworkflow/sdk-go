@@ -43,9 +43,12 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					Branches: []Branch{
 						{
 							Name: "b1",
-							Actions: []Action{
-								{},
-							},
+							Actions: []Action{{
+								FunctionRef: &FunctionRef{
+									RefName: "test",
+									Invoke:  InvokeKindAsync,
+								},
+							}},
 						},
 					},
 					CompletionType: CompletionTypeAllOf,
@@ -68,9 +71,12 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					Branches: []Branch{
 						{
 							Name: "b1",
-							Actions: []Action{
-								{},
-							},
+							Actions: []Action{{
+								FunctionRef: &FunctionRef{
+									RefName: "test",
+									Invoke:  InvokeKindAsync,
+								},
+							}},
 						},
 					},
 					CompletionType: CompletionTypeAllOf + "1",
@@ -92,9 +98,12 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					Branches: []Branch{
 						{
 							Name: "b1",
-							Actions: []Action{
-								{},
-							},
+							Actions: []Action{{
+								FunctionRef: &FunctionRef{
+									RefName: "test",
+									Invoke:  InvokeKindAsync,
+								},
+							}},
 						},
 					},
 					CompletionType: CompletionTypeAtLeast,
@@ -117,9 +126,12 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					Branches: []Branch{
 						{
 							Name: "b1",
-							Actions: []Action{
-								{},
-							},
+							Actions: []Action{{
+								FunctionRef: &FunctionRef{
+									RefName: "test",
+									Invoke:  InvokeKindAsync,
+								},
+							}},
 						},
 					},
 					CompletionType: CompletionTypeAtLeast,
@@ -142,9 +154,12 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					Branches: []Branch{
 						{
 							Name: "b1",
-							Actions: []Action{
-								{},
-							},
+							Actions: []Action{{
+								FunctionRef: &FunctionRef{
+									RefName: "test",
+									Invoke:  InvokeKindAsync,
+								},
+							}},
 						},
 					},
 					CompletionType: CompletionTypeAtLeast,

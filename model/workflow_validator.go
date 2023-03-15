@@ -15,68 +15,94 @@
 package model
 
 import (
+	"context"
 	"reflect"
 
 	validator "github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
+type workflowValidator func(mapValues ValidatorContextValue, sl validator.StructLevel)
+
+type ValidatorContextValue struct {
+	MapStates    mapValues[State]
+	MapFunctions mapValues[Function]
+	MapEvents    mapValues[Event]
+	MapRetries   mapValues[Retry]
+}
+
+func validationWrap(fn1 validator.StructLevelFunc, fnCtx workflowValidator) validator.StructLevelFuncCtx {
+	return func(ctx context.Context, structLevel validator.StructLevel) {
+		if fn1 != nil {
+			fn1(structLevel)
+		}
+
+		if fnCtx != nil {
+			if mapValues, ok := ctx.Value("values").(ValidatorContextValue); ok {
+				fnCtx(mapValues, structLevel)
+			}
+		}
+	}
+}
+
+func NewValidatorContext(workflow *Workflow) context.Context {
+	contextValue := ValidatorContextValue{
+		MapStates:    newMapValues(workflow.States, "Name"),
+		MapFunctions: newMapValues(workflow.Functions, "Name"),
+		MapEvents:    newMapValues(workflow.Events, "Name"),
+		MapRetries:   newMapValues(workflow.Retries, "Name"),
+	}
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "values", contextValue)
+	return ctx
+}
+
+func newMapValues[T any](values []T, field string) mapValues[T] {
+	c := mapValues[T]{}
+	c.init(values, field)
+	return c
+}
+
+type mapValues[T any] struct {
+	ValuesMap map[string]T
+}
+
+func (c *mapValues[T]) init(values []T, field string) {
+	c.ValuesMap = make(map[string]T, len(values))
+	for _, v := range values {
+		name := reflect.ValueOf(v).FieldByName(field).String()
+		c.ValuesMap[name] = v
+	}
+}
+
+func (c *mapValues[T]) contain(name string) bool {
+	_, ok := c.ValuesMap[name]
+	return ok
+}
+
 func init() {
-	val.GetValidator().RegisterStructValidation(continueAsStructLevelValidation, ContinueAs{})
-	val.GetValidator().RegisterStructValidation(workflowStructLevelValidation, Workflow{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, workflowStructLevelValidation), Workflow{})
 }
 
-func continueAsStructLevelValidation(structLevel validator.StructLevel) {
-	continueAs := structLevel.Current().Interface().(ContinueAs)
-	if len(continueAs.WorkflowExecTimeout.Duration) > 0 {
-		if err := val.ValidateISO8601TimeDuration(continueAs.WorkflowExecTimeout.Duration); err != nil {
-			structLevel.ReportError(reflect.ValueOf(continueAs.WorkflowExecTimeout.Duration),
-				"workflowExecTimeout", "duration", "iso8601duration", "")
-		}
-	}
-}
+func workflowStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	workflow := structLevel.Current().Interface().(Workflow)
 
-// WorkflowStructLevelValidation custom validator
-func workflowStructLevelValidation(structLevel validator.StructLevel) {
-	// unique name of the auth methods
-	// NOTE: we cannot add the custom validation of auth to Auth
-	// because `RegisterStructValidation` only works with struct type
-	wf := structLevel.Current().Interface().(Workflow)
-	dict := map[string]bool{}
-
-	for _, a := range wf.BaseWorkflow.Auth {
-		if !dict[a.Name] {
-			dict[a.Name] = true
-		} else {
-			structLevel.ReportError(reflect.ValueOf(a.Name), "[]Auth.Name", "name", "reqnameunique", "")
-		}
-	}
-
-	startAndStatesTransitionValidator(structLevel, wf.BaseWorkflow.Start, wf.States)
-}
-
-func startAndStatesTransitionValidator(structLevel validator.StructLevel, start *Start, states []State) {
-	statesMap := make(map[string]State, len(states))
-	for _, state := range states {
-		statesMap[state.Name] = state
-	}
-
-	if start != nil {
+	if workflow.Start != nil {
 		// if not exists the start transtion stop the states validations
-		if _, ok := statesMap[start.StateName]; !ok {
-			structLevel.ReportError(reflect.ValueOf(start), "Start", "start", "startnotexist", "")
+		if !ctx.MapStates.contain(workflow.Start.StateName) {
+			structLevel.ReportError(reflect.ValueOf(workflow.Start), "Start", "start", "startnotexist", "")
 			return
 		}
 	}
 
-	if len(states) == 1 {
+	if len(workflow.States) == 1 {
 		return
 	}
 
 	// Naive check if transitions exist
-	for _, state := range statesMap {
+	for _, state := range ctx.MapStates.ValuesMap {
 		if state.Transition != nil {
-			if _, ok := statesMap[state.Transition.NextState]; !ok {
+			if !ctx.MapStates.contain(state.Transition.NextState) {
 				structLevel.ReportError(reflect.ValueOf(state), "Transition", "transition", "transitionnotexists", state.Transition.NextState)
 			}
 		}
@@ -85,7 +111,7 @@ func startAndStatesTransitionValidator(structLevel validator.StructLevel, start 
 	// TODO: create states graph to complex check
 }
 
-func validTransitionAndEnd(structLevel validator.StructLevel, field interface{}, transition *Transition, end *End) {
+func validTransitionAndEnd(structLevel validator.StructLevel, field any, transition *Transition, end *End) {
 	hasTransition := transition != nil
 	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
 
@@ -94,4 +120,23 @@ func validTransitionAndEnd(structLevel validator.StructLevel, field interface{},
 	} else if hasTransition && isEnd {
 		structLevel.ReportError(field, "Transition", "transition", "exclusive", "must have one of transition, end")
 	}
+}
+
+func validationNotExclusiveParamters(values []bool) bool {
+	hasOne := false
+	hasTwo := false
+
+	for i, val1 := range values {
+		if val1 {
+			hasOne = true
+			for j, val2 := range values {
+				if i != j && val2 {
+					hasTwo = true
+					break
+				}
+			}
+			break
+		}
+	}
+	return (hasOne && hasTwo) || (!hasOne && !hasTwo)
 }

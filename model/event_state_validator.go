@@ -1,4 +1,4 @@
-// Copyright 2021 The Serverless Workflow Specification Authors
+// Copyright 2022 The Serverless Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,16 @@
 package model
 
 import (
-	validator "github.com/go-playground/validator/v10"
+	"context"
+
+	"github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidation(baseStateStructLevelValidation, BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(eventStateStructLevelValidation, EventState{})
 }
 
-func baseStateStructLevelValidation(structLevel validator.StructLevel) {
-	baseState := structLevel.Current().Interface().(BaseState)
-	if baseState.Type != StateTypeSwitch {
-		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
-	}
+func eventStateStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
+
 }

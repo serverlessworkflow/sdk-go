@@ -129,11 +129,6 @@ states:
             name: "${ .greet | .name }"
         actionDataFilter:
           dataResultsPath: "${ .payload | .greeting }"
-        eventRef:
-          triggerEventRef: example
-          resultEventRef: example
-          # Added "resultEventTimeout" for action eventref
-          resultEventTimeout: PT1H
     timeouts:
       actionExecTimeout: PT1H
       stateExecTimeout:
@@ -155,11 +150,6 @@ states:
           refName: sendTextFunction
           arguments:
             message: "${ .singlemessage }"
-        eventRef:
-          triggerEventRef: example1
-          resultEventRef: example2
-          # Added "resultEventTimeout" for action eventref
-          resultEventTimeout: PT12H
     timeouts:
       actionExecTimeout: PT11H
       stateExecTimeout:

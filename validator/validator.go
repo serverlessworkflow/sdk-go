@@ -16,6 +16,7 @@ package validator
 
 import (
 	"context"
+	"reflect"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/senseyeio/duration"
@@ -43,6 +44,10 @@ func init() {
 		panic(err)
 	}
 
+	err = validate.RegisterValidation("unique_struct", uniqueStructValidation)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // GetValidator gets the default validator.Validate reference
@@ -71,4 +76,34 @@ func oneOfKind(fl validator.FieldLevel) bool {
 	}
 
 	return false
+}
+
+func uniqueStructValidation(fl validator.FieldLevel) bool {
+
+	// fmt.Println(fl.Param())
+	// paraterName string, values any, field string
+
+	field := fl.Param()
+	if field == "" {
+		panic("unique_struct: name is not defined")
+	}
+
+	reflectValues := fl.Field()
+	if reflectValues.Kind() != reflect.Slice {
+		panic("unique_struct values is not a slice")
+	}
+
+	dict := map[string]bool{}
+	for i := 0; i < reflectValues.Len(); i++ {
+		v := reflectValues.Index(i)
+		reflectName := v.FieldByName(field)
+		name := reflectName.String()
+		if !dict[name] {
+			dict[name] = true
+		} else {
+			return false
+		}
+	}
+
+	return true
 }

@@ -23,6 +23,8 @@ import (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(eventStructLevelValidation, Event{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, eventRefStructLevelValidation), EventRef{})
+
 }
 
 // eventStructLevelValidation custom validator for event kind consumed
@@ -30,5 +32,15 @@ func eventStructLevelValidation(structLevel validator.StructLevel) {
 	event := structLevel.Current().Interface().(Event)
 	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
 		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
+	}
+}
+
+func eventRefStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	model := structLevel.Current().Interface().(EventRef)
+	if !ctx.MapEvents.contain(model.TriggerEventRef) {
+		structLevel.ReportError(model.TriggerEventRef, "triggerEventRef", "TriggerEventRef", "exists", "")
+	}
+	if !ctx.MapEvents.contain(model.ResultEventRef) {
+		structLevel.ReportError(model.ResultEventRef, "triggerEventRef", "TriggerEventRef", "exists", "")
 	}
 }

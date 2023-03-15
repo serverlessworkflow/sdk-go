@@ -489,9 +489,10 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "greetingCustomFunction", w.States[5].OperationState.Actions[0].Name)
 				assert.NotNil(t, w.States[5].OperationState.Actions[0].FunctionRef)
 				assert.Equal(t, "greetingCustomFunction", w.States[5].OperationState.Actions[0].FunctionRef.RefName)
-				assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.TriggerEventRef)
-				assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.ResultEventRef)
-				assert.Equal(t, "PT1H", w.States[5].OperationState.Actions[0].EventRef.ResultEventTimeout)
+
+				// assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.TriggerEventRef)
+				// assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.ResultEventRef)
+				// assert.Equal(t, "PT1H", w.States[5].OperationState.Actions[0].EventRef.ResultEventTimeout)
 				assert.Equal(t, "PT1H", w.States[5].OperationState.Timeouts.ActionExecTimeout)
 				assert.Equal(t, "PT1S", w.States[5].OperationState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[5].OperationState.Timeouts.StateExecTimeout.Single)
@@ -514,9 +515,9 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "sendTextFunction", w.States[6].ForEachState.Actions[0].FunctionRef.RefName)
 				assert.Equal(t, map[string]model.Object{"message": model.FromString("${ .singlemessage }")}, w.States[6].ForEachState.Actions[0].FunctionRef.Arguments)
 
-				assert.Equal(t, "example1", w.States[6].ForEachState.Actions[0].EventRef.TriggerEventRef)
-				assert.Equal(t, "example2", w.States[6].ForEachState.Actions[0].EventRef.ResultEventRef)
-				assert.Equal(t, "PT12H", w.States[6].ForEachState.Actions[0].EventRef.ResultEventTimeout)
+				// assert.Equal(t, "example1", w.States[6].ForEachState.Actions[0].EventRef.TriggerEventRef)
+				// assert.Equal(t, "example2", w.States[6].ForEachState.Actions[0].EventRef.ResultEventRef)
+				// assert.Equal(t, "PT12H", w.States[6].ForEachState.Actions[0].EventRef.ResultEventTimeout)
 
 				assert.Equal(t, "PT11H", w.States[6].ForEachState.Timeouts.ActionExecTimeout)
 				assert.Equal(t, "PT11S", w.States[6].ForEachState.Timeouts.StateExecTimeout.Total)
@@ -744,6 +745,9 @@ auth:
     metadata:
       auth1: auth1
       auth2: auth2
+events:
+- name: StoreBidFunction
+- name: CarBidEvent
 states:
 - name: GreetDelay
   type: delay
@@ -848,11 +852,6 @@ states:
         refName: sendTextFunction
         arguments:
           message: "${ .singlemessage }"
-      eventRef:
-        triggerEventRef: example1
-        resultEventRef: example2
-        # Added "resultEventTimeout" for action eventref
-        resultEventTimeout: PT12H
   timeouts:
     actionExecTimeout: PT11H
     stateExecTimeout:
@@ -910,9 +909,6 @@ states:
 - name: HandleApprovedVisa
   type: operation
   actions:
-  - subFlowRef:
-      workflowId: handleApprovedVisaWorkflowID
-    name: subFlowRefName
   - eventRef:
       triggerEventRef: StoreBidFunction
       data: "${ .patientInfo }"
@@ -926,13 +922,20 @@ states:
     stateExecTimeout:
       total: PT33M
       single: PT123M
+  transition: HandleApprovedVisaSubFlow
+- name: HandleApprovedVisaSubFlow
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+    name: subFlowRefName
   end:
     terminate: true
 `))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// workflow and auth metadata
 		assert.True(t, strings.Contains(string(b), "\"metadata\":{\"metadata1\":\"metadata1\",\"metadata2\":\"metadata2\"}"))

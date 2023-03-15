@@ -43,17 +43,17 @@ func switchStateStructLevelValidation(structLevel validator.StructLevel) {
 // DefaultConditionStructLevelValidation custom validator for DefaultCondition
 func defaultConditionStructLevelValidation(structLevel validator.StructLevel) {
 	defaultCondition := structLevel.Current().Interface().(DefaultCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(defaultCondition), defaultCondition.Transition, defaultCondition.End)
+	validTransitionAndEnd(structLevel, defaultCondition, defaultCondition.Transition, defaultCondition.End)
 }
 
 // EventConditionStructLevelValidation custom validator for EventCondition
 func eventConditionStructLevelValidation(structLevel validator.StructLevel) {
 	eventCondition := structLevel.Current().Interface().(EventCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(eventCondition), eventCondition.Transition, eventCondition.End)
+	validTransitionAndEnd(structLevel, eventCondition, eventCondition.Transition, eventCondition.End)
 }
 
 // DataConditionStructLevelValidation custom validator for DataCondition
 func dataConditionStructLevelValidation(structLevel validator.StructLevel) {
 	dataCondition := structLevel.Current().Interface().(DataCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(dataCondition), dataCondition.Transition, dataCondition.End)
+	validTransitionAndEnd(structLevel, dataCondition, dataCondition.Transition, dataCondition.End)
 }

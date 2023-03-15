@@ -43,6 +43,10 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 					Action: Action{
 						ID:   "1",
 						Name: "action1",
+						FunctionRef: &FunctionRef{
+							RefName: "test",
+							Invoke:  InvokeKindAsync,
+						},
 					},
 					EventRef: "refExample",
 				},
@@ -55,11 +59,18 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 				BaseState: BaseState{
 					Name: "callbackTest",
 					Type: StateTypeCallback,
+					End: &End{
+						Terminate: true,
+					},
 				},
 				CallbackState: &CallbackState{
 					Action: Action{
 						ID:   "1",
 						Name: "action1",
+						FunctionRef: &FunctionRef{
+							RefName: "test",
+							Invoke:  InvokeKindAsync,
+						},
 					},
 				},
 			},
@@ -86,7 +97,7 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 
 			if tc.err != "" {
 				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
+				assert.Equal(t, tc.err, err.Error())
 				return
 			}
 

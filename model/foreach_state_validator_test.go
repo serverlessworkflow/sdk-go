@@ -17,21 +17,15 @@ package model
 import (
 	"testing"
 
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"github.com/stretchr/testify/assert"
+	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestForEachStateStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		desp  string
-		state State
-		err   string
-	}
-	testCases := []testCase{
+	test.StructLevelValidation(t, []test.ValidationCase[State]{
 		{
-			desp: "normal test & sequential",
-			state: State{
+			Desp: "normal test & sequential",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeForEach,
@@ -41,17 +35,20 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "function 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeSequential,
 				},
 			},
-			err: ``,
+			Err: ``,
 		},
 		{
-			desp: "normal test & parallel int",
-			state: State{
+			Desp: "normal test & parallel int",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeForEach,
@@ -61,9 +58,12 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "test 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeParallel,
 					BatchSize: &intstr.IntOrString{
 						Type:   intstr.Int,
@@ -71,11 +71,11 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					},
 				},
 			},
-			err: ``,
+			Err: ``,
 		},
 		{
-			desp: "normal test & parallel string",
-			state: State{
+			Desp: "normal test & parallel string",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeForEach,
@@ -85,9 +85,12 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "test 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeParallel,
 					BatchSize: &intstr.IntOrString{
 						Type:   intstr.String,
@@ -95,11 +98,11 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					},
 				},
 			},
-			err: ``,
+			Err: ``,
 		},
 		{
-			desp: "invalid parallel int",
-			state: State{
+			Desp: "invalid parallel int",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: StateTypeForEach,
@@ -109,9 +112,12 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "test 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeParallel,
 					BatchSize: &intstr.IntOrString{
 						Type:   intstr.Int,
@@ -119,11 +125,11 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					},
 				},
 			},
-			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
 		{
-			desp: "invalid parallel string",
-			state: State{
+			Desp: "invalid parallel string",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
@@ -133,9 +139,12 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "test 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeParallel,
 					BatchSize: &intstr.IntOrString{
 						Type:   intstr.String,
@@ -143,20 +152,26 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					},
 				},
 			},
-			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
 		{
-			desp: "invalid parallel string format",
-			state: State{
+			Desp: "invalid parallel string format",
+			Model: State{
 				BaseState: BaseState{
 					Name: "1",
 					Type: "2",
+					End: &End{
+						Terminate: true,
+					},
 				},
 				ForEachState: &ForEachState{
 					InputCollection: "3",
-					Actions: []Action{
-						{},
-					},
+					Actions: []Action{{
+						FunctionRef: &FunctionRef{
+							RefName: "test 1",
+							Invoke:  InvokeKindAsync,
+						},
+					}},
 					Mode: ForEachModeTypeParallel,
 					BatchSize: &intstr.IntOrString{
 						Type:   intstr.String,
@@ -164,20 +179,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					},
 				},
 			},
-			err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.state)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-
-			assert.NoError(t, err)
-		})
-	}
+	})
 }

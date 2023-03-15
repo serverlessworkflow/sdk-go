@@ -99,7 +99,7 @@ type BaseWorkflow struct {
 	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc,
 	// inside your Workflow Expressions.
 	// +optional
-	Secrets Secrets `json:"secrets,omitempty"`
+	Secrets Secrets `json:"secrets,omitempty" validate:"unique"`
 	// Constants Workflow constants are used to define static, and immutable, data which is available to
 	// Workflow Expressions.
 	// +optional
@@ -114,7 +114,7 @@ type BaseWorkflow struct {
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
 	// Defines checked errors that can be explicitly handled during workflow execution.
 	// +optional
-	Errors Errors `json:"errors,omitempty"`
+	Errors Errors `json:"errors,omitempty" validate:"unique_struct=Name"`
 	// If "true", workflow instances is not terminated when there are no active execution paths.
 	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
 	// +optional
@@ -133,7 +133,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth Auths `json:"auth,omitempty" validate:"omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"unique_struct=Name,omitempty"`
 }
 
 type Auths []Auth
@@ -159,13 +159,13 @@ type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:pruning:PreserveUnknownFields
-	States []State `json:"states" validate:"required,min=1,dive"`
+	States []State `json:"states" validate:"required,min=1,unique_struct=Name,dive"`
 	// +optional
-	Events Events `json:"events,omitempty"`
+	Events Events `json:"events,omitempty" validate:"unique_struct=Name,dive"`
 	// +optional
-	Functions Functions `json:"functions,omitempty"`
+	Functions Functions `json:"functions,omitempty" validate:"unique_struct=Name,dive"`
 	// +optional
-	Retries Retries `json:"retries,omitempty" validate:"dive"`
+	Retries Retries `json:"retries,omitempty" validate:"unique_struct=Name,dive"`
 }
 
 type workflowUnmarshal Workflow
@@ -260,7 +260,7 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 type WorkflowExecTimeout struct {
 	// Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'.
 	// +kubebuilder:default=unlimited
-	Duration string `json:"duration" validate:"required,min=1"`
+	Duration string `json:"duration" validate:"required,min=1,iso8601duration"`
 	// If false, workflow instance is allowed to finish current execution. If true, current workflow execution
 	// is stopped immediately. Default is false.
 	// +optional

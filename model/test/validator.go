@@ -1,4 +1,4 @@
-// Copyright 2021 The Serverless Workflow Specification Authors
+// Copyright 2022 The Serverless Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package test
 
 import (
-	validator "github.com/go-playground/validator/v10"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-func init() {
-	val.GetValidator().RegisterStructValidation(baseStateStructLevelValidation, BaseState{})
+type ValidationCase[T any] struct {
+	Desp  string
+	Model T
+	Err   string
 }
 
-func baseStateStructLevelValidation(structLevel validator.StructLevel) {
-	baseState := structLevel.Current().Interface().(BaseState)
-	if baseState.Type != StateTypeSwitch {
-		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
+func StructLevelValidation[T any](t *testing.T, testCases []ValidationCase[T]) {
+	for _, tc := range testCases {
+		t.Run(tc.Desp, func(t *testing.T) {
+			err := val.GetValidator().Struct(tc.Model)
+			if tc.Err != "" {
+				if assert.Error(t, err) {
+					assert.Equal(t, tc.Err, err.Error())
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
 	}
 }

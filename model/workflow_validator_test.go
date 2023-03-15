@@ -19,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
@@ -31,8 +32,33 @@ var workflowStructDefault = Workflow{
 				Name: "auth name",
 			},
 		},
+		Errors: []Error{
+			{
+				Name: "error1",
+			},
+		},
+		Secrets: Secrets{
+			"Secret1",
+		},
 		Start: &Start{
 			StateName: "name state",
+		},
+	},
+	Events: []Event{
+		{
+			Name: "event 1",
+			Type: "consumer",
+		},
+	},
+	Functions: []Function{
+		{
+			Name:      "function 1",
+			Operation: "rest",
+		},
+	},
+	Retries: []Retry{
+		{
+			Name: "retry 1",
 		},
 	},
 	States: []State{
@@ -47,7 +73,13 @@ var workflowStructDefault = Workflow{
 			OperationState: &OperationState{
 				ActionMode: "sequential",
 				Actions: []Action{
-					{},
+					{
+						FunctionRef: &FunctionRef{
+							RefName: "function 1",
+							Invoke:  InvokeKindSync,
+						},
+						RetryRef: "retry 1",
+					},
 				},
 			},
 		},
@@ -62,7 +94,13 @@ var workflowStructDefault = Workflow{
 			OperationState: &OperationState{
 				ActionMode: "sequential",
 				Actions: []Action{
-					{},
+					{
+						EventRef: &EventRef{
+							TriggerEventRef: "event 1",
+							ResultEventRef:  "event 1",
+							Invoke:          InvokeKindSync,
+						},
+					},
 				},
 			},
 		},
@@ -80,7 +118,14 @@ var listStateTransition1 = []State{
 		},
 		OperationState: &OperationState{
 			ActionMode: "sequential",
-			Actions:    []Action{{}},
+			Actions: []Action{
+				{
+					FunctionRef: &FunctionRef{
+						RefName: "function 1",
+						Invoke:  InvokeKindSync,
+					},
+				},
+			},
 		},
 	},
 	{
@@ -93,7 +138,14 @@ var listStateTransition1 = []State{
 		},
 		OperationState: &OperationState{
 			ActionMode: "sequential",
-			Actions:    []Action{{}},
+			Actions: []Action{
+				{
+					FunctionRef: &FunctionRef{
+						RefName: "function 1",
+						Invoke:  InvokeKindSync,
+					},
+				},
+			},
 		},
 	},
 	{
@@ -106,95 +158,205 @@ var listStateTransition1 = []State{
 		},
 		OperationState: &OperationState{
 			ActionMode: "sequential",
-			Actions:    []Action{{}},
+			Actions: []Action{
+				{
+					FunctionRef: &FunctionRef{
+						RefName: "function 1",
+						Invoke:  InvokeKindSync,
+					},
+				},
+			},
 		},
 	},
 }
 
 func TestWorkflowStructLevelValidation(t *testing.T) {
-	type testCase[T any] struct {
-		name     string
-		instance T
-		err      string
-	}
-	testCases := []testCase[any]{
+	testCases := []test.ValidationCase[Workflow]{
 		{
-			name:     "workflow success",
-			instance: workflowStructDefault,
+			Desp:  "workflow success",
+			Model: workflowStructDefault,
+		},
+
+		{
+			Desp: "workflow state.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.States = append(w.States, w.States[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.States' Error:Field validation for 'States' failed on the 'unique_struct' tag`,
 		},
 		{
-			name: "workflow auth.name repeat",
-			instance: func() Workflow {
+			Desp: "workflow event.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.Events = append(w.Events, w.Events[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.Events' Error:Field validation for 'Events' failed on the 'unique_struct' tag`,
+		},
+		{
+			Desp: "workflow function.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.Functions = append(w.Functions, w.Functions[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.Functions' Error:Field validation for 'Functions' failed on the 'unique_struct' tag`,
+		},
+		{
+			Desp: "workflow retrie.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.Retries = append(w.Retries, w.Retries[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.Retries' Error:Field validation for 'Retries' failed on the 'unique_struct' tag`,
+		},
+		{
+			Desp: "workflow auth.name repeat",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.Auth = append(w.Auth, w.Auth[0])
 				return w
 			}(),
-			err: `Key: 'Workflow.[]Auth.Name' Error:Field validation for '[]Auth.Name' failed on the 'reqnameunique' tag`,
+			Err: `Key: 'Workflow.BaseWorkflow.Auth' Error:Field validation for 'Auth' failed on the 'unique_struct' tag`,
 		},
 		{
-			name: "workflow id exclude key",
-			instance: func() Workflow {
+			Desp: "workflow error.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.Errors = append(w.Errors, w.Errors[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.BaseWorkflow.Errors' Error:Field validation for 'Errors' failed on the 'unique_struct' tag`,
+		},
+		{
+			Desp: "workflow secrets.name repeat",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				w.Secrets = append(w.Secrets, w.Secrets[0])
+				return w
+			}(),
+			Err: `Key: 'Workflow.BaseWorkflow.Secrets' Error:Field validation for 'Secrets' failed on the 'unique' tag`,
+		},
+		{
+			Desp: "function not exists",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				f := w.Functions[0]
+				f.Name = "function renamed to fail"
+				w.Functions = []Function{f}
+				return w
+			}(),
+			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].FunctionRef.refName' Error:Field validation for 'refName' failed on the 'exists' tag`,
+		},
+		{
+			Desp: "event not exists",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				e := w.Events[0]
+				e.Name = "event renamed to fail"
+				w.Events = []Event{e}
+				return w
+			}(),
+			Err: `Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Error:Field validation for 'triggerEventRef' failed on the 'exists' tag
+Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Error:Field validation for 'triggerEventRef' failed on the 'exists' tag`,
+		},
+		{
+			Desp: "retry not exists",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				r := w.Retries[0]
+				r.Name = "retry renamed to fail"
+				w.Retries = []Retry{r}
+				return w
+			}(),
+			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag`,
+		},
+		{
+			Desp: "workflow id exclude key",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.ID = "id"
 				w.Key = ""
 				return w
 			}(),
-			err: ``,
+			Err: ``,
 		},
 		{
-			name: "workflow key exclude id",
-			instance: func() Workflow {
+			Desp: "workflow key exclude id",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.ID = ""
 				w.Key = "key"
 				return w
 			}(),
-			err: ``,
+			Err: ``,
 		},
 		{
-			name: "workflow id and key",
-			instance: func() Workflow {
+			Desp: "workflow id and key",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.ID = "id"
 				w.Key = "key"
 				return w
 			}(),
-			err: ``,
+			Err: ``,
 		},
 		{
-			name: "workflow without id and key",
-			instance: func() Workflow {
+			Desp: "workflow without id and key",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.ID = ""
 				w.Key = ""
 				return w
 			}(),
-			err: `Key: 'Workflow.BaseWorkflow.ID' Error:Field validation for 'ID' failed on the 'required_without' tag
+			Err: `Key: 'Workflow.BaseWorkflow.ID' Error:Field validation for 'ID' failed on the 'required_without' tag
 Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 'required_without' tag`,
 		},
 		{
-			name: "workflow start",
-			instance: func() Workflow {
+			Desp: "workflow start",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.Start = &Start{
 					StateName: "start state not found",
 				}
 				return w
 			}(),
-			err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexist' tag`,
+			Err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexist' tag`,
 		},
 		{
-			name: "workflow states transitions",
-			instance: func() Workflow {
+			Desp: "workflow states transitions",
+			Model: func() Workflow {
 				w := workflowStructDefault
 				w.States = listStateTransition1
 				return w
 			}(),
-			err: ``,
+			Err: ``,
 		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Desp, func(t *testing.T) {
+			ctx := NewValidatorContext(&tc.Model)
+			err := val.GetValidator().StructCtx(ctx, tc.Model)
+			if tc.Err != "" {
+				if assert.Error(t, err) {
+					assert.Equal(t, tc.Err, err.Error())
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestContinueAsStructLevelValidation(t *testing.T) {
+	testCases := []test.ValidationCase[ContinueAs]{
 		{
-			name: "valid ContinueAs",
-			instance: ContinueAs{
+			Desp: "valid ContinueAs",
+			Model: ContinueAs{
 				WorkflowID: "another-test",
 				Version:    "2",
 				Data:       FromString("${ del(.customerCount) }"),
@@ -204,11 +366,11 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 					RunBefore: "test",
 				},
 			},
-			err: ``,
+			Err: ``,
 		},
 		{
-			name: "invalid WorkflowExecTimeout",
-			instance: ContinueAs{
+			Desp: "invalid WorkflowExecTimeout",
+			Model: ContinueAs{
 				WorkflowID: "test",
 				Version:    "1",
 				Data:       FromString("${ del(.customerCount) }"),
@@ -216,22 +378,9 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 					Duration: "invalid",
 				},
 			},
-			err: `Key: 'ContinueAs.workflowExecTimeout' Error:Field validation for 'workflowExecTimeout' failed on the 'iso8601duration' tag`,
+			Err: `Key: 'ContinueAs.WorkflowExecTimeout.Duration' Error:Field validation for 'Duration' failed on the 'iso8601duration' tag`,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.instance)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				if err != nil {
-					assert.Equal(t, tc.err, err.Error())
-				}
-				return
-			}
-			assert.NoError(t, err)
-		})
-	}
+	test.StructLevelValidation(t, testCases)
 }

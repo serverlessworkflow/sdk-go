@@ -52,8 +52,12 @@ type eventStateForUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
-	e.Exclusive = true
+	e.ApplyDefault()
 	return unmarshalObject("eventState", data, e)
+}
+
+func (e *EventState) ApplyDefault() {
+	e.Exclusive = true
 }
 
 // OnEvents define which actions are be performed for the one or more events.

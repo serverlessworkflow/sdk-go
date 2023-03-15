@@ -52,9 +52,13 @@ type Event struct {
 
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
+	e.ApplyDefault()
+	return unmarshalObject("event", data, e)
+}
+
+func (e *Event) ApplyDefault() {
 	e.DataOnly = true
 	e.Kind = EventKindConsumed
-	return unmarshalObject("event", data, e)
 }
 
 // Correlation define event correlation rules for an event. Only used for `consumed` events

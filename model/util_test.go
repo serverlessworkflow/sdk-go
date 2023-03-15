@@ -42,7 +42,8 @@ func Test_getBytesFromFile(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/test.json":
-			rw.Write([]byte("{}"))
+			_, err := rw.Write([]byte("{}"))
+			assert.NoError(t, err)
 		default:
 			t.Failed()
 		}
@@ -65,8 +66,8 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			switch req.URL.Path {
 			case "/test.json":
-				rw.Write([]byte(`[{"fieldValue": "value"}]`))
-
+				_, err := rw.Write([]byte(`[{"fieldValue": "value"}]`))
+				assert.NoError(t, err)
 			default:
 				t.Failed()
 			}

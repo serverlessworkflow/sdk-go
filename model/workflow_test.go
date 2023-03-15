@@ -560,7 +560,8 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/test.json":
-			rw.Write([]byte(`{"testkey":"testvalue"}`))
+			_, err := rw.Write([]byte(`{"testkey":"testvalue"}`))
+			assert.NoError(t, err)
 		default:
 			t.Failed()
 		}

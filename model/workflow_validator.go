@@ -54,9 +54,8 @@ func NewValidatorContext(workflow *Workflow) context.Context {
 		MapRetries:   newMapValues(workflow.Retries, "Name"),
 		MapErrors:    newMapValues(workflow.Errors, "Name"),
 	}
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "values", contextValue)
-	return ctx
+
+	return context.WithValue(context.Background(), "values", contextValue)
 }
 
 func newMapValues[T any](values []T, field string) mapValues[T] {

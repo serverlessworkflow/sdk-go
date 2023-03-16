@@ -29,6 +29,7 @@ type ValidatorContextValue struct {
 	MapFunctions mapValues[Function]
 	MapEvents    mapValues[Event]
 	MapRetries   mapValues[Retry]
+	MapErrors    mapValues[Error]
 }
 
 func validationWrap(fn1 validator.StructLevelFunc, fnCtx workflowValidator) validator.StructLevelFuncCtx {
@@ -51,6 +52,7 @@ func NewValidatorContext(workflow *Workflow) context.Context {
 		MapFunctions: newMapValues(workflow.Functions, "Name"),
 		MapEvents:    newMapValues(workflow.Events, "Name"),
 		MapRetries:   newMapValues(workflow.Retries, "Name"),
+		MapErrors:    newMapValues(workflow.Errors, "Name"),
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "values", contextValue)
@@ -82,6 +84,8 @@ func (c *mapValues[T]) contain(name string) bool {
 
 func init() {
 	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, workflowStructLevelValidation), Workflow{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(onErrorStructLevelValidation, onErrorStructLevelValidationCtx), OnError{})
+
 }
 
 func workflowStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
@@ -111,14 +115,41 @@ func workflowStructLevelValidation(ctx ValidatorContextValue, structLevel valida
 	// TODO: create states graph to complex check
 }
 
+func onErrorStructLevelValidation(structLevel validator.StructLevel) {
+	onError := structLevel.Current().Interface().(OnError)
+
+	hasErrorRef := onError.ErrorRef != ""
+	hasErrorRefs := len(onError.ErrorRefs) > 0
+
+	if !hasErrorRef && !hasErrorRefs {
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "required", "")
+	} else if hasErrorRef && hasErrorRefs {
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "exclusive", "")
+	}
+}
+
+func onErrorStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	onError := structLevel.Current().Interface().(OnError)
+
+	if onError.ErrorRef != "" && !ctx.MapErrors.contain(onError.ErrorRef) {
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "exists", "")
+	}
+
+	for _, errorRef := range onError.ErrorRefs {
+		if !ctx.MapErrors.contain(errorRef) {
+			structLevel.ReportError(onError.ErrorRefs, "ErrorRefs", "errorRefs", "exists", "")
+		}
+	}
+}
+
 func validTransitionAndEnd(structLevel validator.StructLevel, field any, transition *Transition, end *End) {
 	hasTransition := transition != nil
 	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
 
 	if !hasTransition && !isEnd {
-		structLevel.ReportError(field, "Transition", "transition", "required", "must have one of transition, end")
+		structLevel.ReportError(field, "Transition", "transition", "required", "")
 	} else if hasTransition && isEnd {
-		structLevel.ReportError(field, "Transition", "transition", "exclusive", "must have one of transition, end")
+		structLevel.ReportError(field, "Transition", "transition", "exclusive", "")
 	}
 }
 

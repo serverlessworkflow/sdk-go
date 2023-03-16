@@ -114,7 +114,7 @@ type BaseWorkflow struct {
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
 	// Defines checked errors that can be explicitly handled during workflow execution.
 	// +optional
-	Errors Errors `json:"errors,omitempty" validate:"unique_struct=Name"`
+	Errors Errors `json:"errors,omitempty" validate:"unique=Name"`
 	// If "true", workflow instances is not terminated when there are no active execution paths.
 	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
 	// +optional
@@ -133,7 +133,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth Auths `json:"auth,omitempty" validate:"unique_struct=Name,omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"unique=Name,omitempty"`
 }
 
 type Auths []Auth
@@ -159,13 +159,13 @@ type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:pruning:PreserveUnknownFields
-	States []State `json:"states" validate:"required,min=1,unique_struct=Name,dive"`
+	States []State `json:"states" validate:"required,min=1,unique=Name,dive"`
 	// +optional
-	Events Events `json:"events,omitempty" validate:"unique_struct=Name,dive"`
+	Events Events `json:"events,omitempty" validate:"unique=Name,dive"`
 	// +optional
-	Functions Functions `json:"functions,omitempty" validate:"unique_struct=Name,dive"`
+	Functions Functions `json:"functions,omitempty" validate:"unique=Name,dive"`
 	// +optional
-	Retries Retries `json:"retries,omitempty" validate:"unique_struct=Name,dive"`
+	Retries Retries `json:"retries,omitempty" validate:"unique=Name,dive"`
 }
 
 type workflowUnmarshal Workflow
@@ -382,7 +382,7 @@ type OnError struct {
 	// ErrorRef Reference to a unique workflow error definition. Used of errorRefs is not used
 	ErrorRef string `json:"errorRef,omitempty"`
 	// ErrorRefs References one or more workflow error definitions. Used if errorRef is not used
-	ErrorRefs []string `json:"errorRefs,omitempty"`
+	ErrorRefs []string `json:"errorRefs,omitempty" validate:"omitempty,unique"`
 	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if
 	// retries were unsuccessful.
 	// +kubebuilder:validation:Schemaless

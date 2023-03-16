@@ -17,6 +17,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -46,10 +47,13 @@ func (e *UnmarshalError) Error() (message string) {
 		panic("unmarshalError fail")
 	}
 
-	switch wrapErr := e.err.(type) {
-	case *json.SyntaxError:
-		message = fmt.Sprintf("%s has a syntax error \"%s\"", e.parameterName, wrapErr.Error())
-	case *json.UnmarshalTypeError:
+	var syntaxErr *json.SyntaxError
+	var unmarshalTypeErr *json.UnmarshalTypeError
+
+	if errors.As(e.err, &syntaxErr) {
+		message = fmt.Sprintf("%s has a syntax error \"%s\"", e.parameterName, syntaxErr.Error())
+
+	} else if errors.As(e.err, &unmarshalTypeErr) {
 		var primitiveTypeName string
 		var objectTypeName string
 
@@ -69,26 +73,25 @@ func (e *UnmarshalError) Error() (message string) {
 			}
 		}
 
-		if wrapErr.Struct == "" && wrapErr.Field == "" {
+		if unmarshalTypeErr.Struct == "" && unmarshalTypeErr.Field == "" {
 			message = fmt.Sprintf("%s must be an %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
-		} else if wrapErr.Struct != "" && wrapErr.Field != "" {
+		} else if unmarshalTypeErr.Struct != "" && unmarshalTypeErr.Field != "" {
 
-			switch wrapErr.Type {
+			switch unmarshalTypeErr.Type {
 			case reflect.TypeOf(InvokeKindSync):
 				primitiveTypeName = fmt.Sprintf("%s,%s", InvokeKindSync, InvokeKindAsync)
 			case reflect.TypeOf(ForEachModeTypeSequential):
 				primitiveTypeName = fmt.Sprintf("%s,%s", ForEachModeTypeSequential, ForEachModeTypeParallel)
 			default:
-				primitiveTypeName = wrapErr.Type.Name()
+				primitiveTypeName = unmarshalTypeErr.Type.Name()
 			}
 
-			message = fmt.Sprintf("%s.%s must be an %s", e.parameterName, wrapErr.Field, primitiveTypeName)
+			message = fmt.Sprintf("%s.%s must be an %s", e.parameterName, unmarshalTypeErr.Field, primitiveTypeName)
 		} else {
-			message = wrapErr.Error()
+			message = unmarshalTypeErr.Error()
 		}
-
-	default:
-		message = wrapErr.Error()
+	} else {
+		message = e.err.Error()
 	}
 
 	return message
@@ -201,16 +204,17 @@ func unmarshalExlucivePrimitiveOrObject[T string | bool, U any](parameterName st
 
 	isObject := data[0] == detectObject
 	var err error
+	var unmarshalError *UnmarshalError
 	if isObject {
 		err = unmarshalObject(parameterName, data, valStruct)
-		if err != nil {
-			err.(*UnmarshalError).primitiveType = reflect.TypeOf(*valPrimitive).Kind()
+		if errors.As(err, &unmarshalError) {
+			unmarshalError.primitiveType = reflect.TypeOf(*valPrimitive).Kind()
 		}
 
 	} else {
 		err = unmarshalPrimitive(parameterName, data, valPrimitive)
-		if err != nil {
-			err.(*UnmarshalError).objectType = reflect.TypeOf(*valStruct).Kind()
+		if errors.As(err, &unmarshalError) {
+			unmarshalError.objectType = reflect.TypeOf(*valStruct).Kind()
 		}
 	}
 

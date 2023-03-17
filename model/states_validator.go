@@ -20,12 +20,34 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidation(baseStateStructLevelValidation, BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(baseStateStructLevelValidation, baseStateStructLevelValidationCtx), BaseState{})
 }
 
 func baseStateStructLevelValidation(structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.Type != StateTypeSwitch {
 		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
+	}
+}
+
+func baseStateStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+
+	baseState := structLevel.Current().Interface().(BaseState)
+	if baseState.CompensatedBy != "" {
+		if baseState.UsedForCompensation {
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagRecursiveCompensation, "")
+		}
+
+		if ctx.MapStates.contain(baseState.CompensatedBy) {
+			val := ctx.MapStates.ValuesMap[baseState.CompensatedBy]
+			if !val.UsedForCompensation {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagCompensatedby, "")
+			}
+			if val.Type == StateTypeEvent {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagEventState, "")
+			}
+		} else {
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagExists, "")
+		}
 	}
 }

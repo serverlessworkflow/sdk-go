@@ -38,9 +38,9 @@ func eventStructLevelValidation(structLevel validator.StructLevel) {
 func eventRefStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
 	model := structLevel.Current().Interface().(EventRef)
 	if !ctx.MapEvents.contain(model.TriggerEventRef) {
-		structLevel.ReportError(model.TriggerEventRef, "triggerEventRef", "TriggerEventRef", "exists", "")
+		structLevel.ReportError(model.TriggerEventRef, "triggerEventRef", "TriggerEventRef", TagExists, "")
 	}
 	if !ctx.MapEvents.contain(model.ResultEventRef) {
-		structLevel.ReportError(model.ResultEventRef, "triggerEventRef", "TriggerEventRef", "exists", "")
+		structLevel.ReportError(model.ResultEventRef, "triggerEventRef", "TriggerEventRef", TagExists, "")
 	}
 }

@@ -24,6 +24,25 @@ import (
 
 type workflowValidator func(mapValues ValidatorContextValue, sl validator.StructLevel)
 
+type contextValueKey string
+
+const validatorContextValue contextValueKey = "value"
+
+const (
+	TagExists    string = "exists"
+	TagRequired  string = "required"
+	TagExclusive string = "exclusive"
+
+	TagRecursiveState string = "recursivestate"
+
+	// States referenced by compensatedBy (as well as any other states that they transition to) must obey following rules:
+	TagTransitionMainWorkflow       string = "transtionmainworkflow"         // They should not have any incoming transitions (should not be part of the main workflow control-flow logic)
+	TagEventState                   string = "eventstate"                    // They cannot be an event state
+	TagRecursiveCompensation        string = "recursivecompensation"         // They cannot themselves set their compensatedBy property to true (compensation is not recursive)
+	TagCompensatedby                string = "compensatedby"                 // They must define the usedForCompensation property and set it to true
+	TagTransitionUseForCompensation string = "transitionusedforcompensation" // They can transition only to states which also have their usedForCompensation property and set to true
+)
+
 type ValidatorContextValue struct {
 	MapStates    mapValues[State]
 	MapFunctions mapValues[Function]
@@ -39,7 +58,7 @@ func validationWrap(fn1 validator.StructLevelFunc, fnCtx workflowValidator) vali
 		}
 
 		if fnCtx != nil {
-			if mapValues, ok := ctx.Value("values").(ValidatorContextValue); ok {
+			if mapValues, ok := ctx.Value(validatorContextValue).(ValidatorContextValue); ok {
 				fnCtx(mapValues, structLevel)
 			}
 		}
@@ -47,6 +66,33 @@ func validationWrap(fn1 validator.StructLevelFunc, fnCtx workflowValidator) vali
 }
 
 func NewValidatorContext(workflow *Workflow) context.Context {
+	for i := range workflow.States {
+		s := &workflow.States[i]
+		if s.BaseState.Transition != nil {
+			s.BaseState.Transition.stateParent = s
+		}
+		for _, onError := range s.BaseState.OnErrors {
+			if onError.Transition != nil {
+				onError.Transition.stateParent = s
+			}
+		}
+		if s.Type == StateTypeSwitch {
+			if s.SwitchState.DefaultCondition.Transition != nil {
+				s.SwitchState.DefaultCondition.Transition.stateParent = s
+			}
+			for _, e := range s.SwitchState.EventConditions {
+				if e.Transition != nil {
+					e.Transition.stateParent = s
+				}
+			}
+			for _, d := range s.SwitchState.DataConditions {
+				if d.Transition != nil {
+					d.Transition.stateParent = s
+				}
+			}
+		}
+	}
+
 	contextValue := ValidatorContextValue{
 		MapStates:    newMapValues(workflow.States, "Name"),
 		MapFunctions: newMapValues(workflow.Functions, "Name"),
@@ -55,7 +101,7 @@ func NewValidatorContext(workflow *Workflow) context.Context {
 		MapErrors:    newMapValues(workflow.Errors, "Name"),
 	}
 
-	return context.WithValue(context.Background(), "values", contextValue)
+	return context.WithValue(context.Background(), validatorContextValue, contextValue)
 }
 
 func newMapValues[T any](values []T, field string) mapValues[T] {
@@ -82,36 +128,20 @@ func (c *mapValues[T]) contain(name string) bool {
 }
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, workflowStructLevelValidation), Workflow{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(onErrorStructLevelValidation, onErrorStructLevelValidationCtx), OnError{})
+	// TODO: create states graph to complex check
 
+	// val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, workflowStructLevelValidation), Workflow{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(onErrorStructLevelValidation, onErrorStructLevelValidationCtx), OnError{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, transitionStructLevelValidationCtx), Transition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, startStructLevelValidationCtx), Start{})
 }
 
-func workflowStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
-	workflow := structLevel.Current().Interface().(Workflow)
-
-	if workflow.Start != nil {
-		// if not exists the start transtion stop the states validations
-		if !ctx.MapStates.contain(workflow.Start.StateName) {
-			structLevel.ReportError(reflect.ValueOf(workflow.Start), "Start", "start", "startnotexist", "")
-			return
-		}
-	}
-
-	if len(workflow.States) == 1 {
+func startStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	start := structLevel.Current().Interface().(Start)
+	if !ctx.MapStates.contain(start.StateName) {
+		structLevel.ReportError(start.StateName, "StateName", "stateName", TagExists, "")
 		return
 	}
-
-	// Naive check if transitions exist
-	for _, state := range ctx.MapStates.ValuesMap {
-		if state.Transition != nil {
-			if !ctx.MapStates.contain(state.Transition.NextState) {
-				structLevel.ReportError(reflect.ValueOf(state), "Transition", "transition", "transitionnotexists", state.Transition.NextState)
-			}
-		}
-	}
-
-	// TODO: create states graph to complex check
 }
 
 func onErrorStructLevelValidation(structLevel validator.StructLevel) {
@@ -121,9 +151,9 @@ func onErrorStructLevelValidation(structLevel validator.StructLevel) {
 	hasErrorRefs := len(onError.ErrorRefs) > 0
 
 	if !hasErrorRef && !hasErrorRefs {
-		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "required", "")
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", TagRequired, "")
 	} else if hasErrorRef && hasErrorRefs {
-		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "exclusive", "")
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", TagExclusive, "")
 	}
 }
 
@@ -131,13 +161,37 @@ func onErrorStructLevelValidationCtx(ctx ValidatorContextValue, structLevel vali
 	onError := structLevel.Current().Interface().(OnError)
 
 	if onError.ErrorRef != "" && !ctx.MapErrors.contain(onError.ErrorRef) {
-		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", "exists", "")
+		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", TagExists, "")
 	}
 
 	for _, errorRef := range onError.ErrorRefs {
 		if !ctx.MapErrors.contain(errorRef) {
-			structLevel.ReportError(onError.ErrorRefs, "ErrorRefs", "errorRefs", "exists", "")
+			structLevel.ReportError(onError.ErrorRefs, "ErrorRefs", "errorRefs", TagExists, "")
 		}
+	}
+}
+
+func transitionStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	// Naive check if transitions exist
+	transition := structLevel.Current().Interface().(Transition)
+	if ctx.MapStates.contain(transition.NextState) {
+		if transition.stateParent != nil {
+			parentBaseState := transition.stateParent
+
+			if parentBaseState.Name == transition.NextState {
+				structLevel.ReportError(transition.NextState, "NextState", "nextState", TagRecursiveState, "")
+			}
+
+			if parentBaseState.UsedForCompensation && !ctx.MapStates.ValuesMap[transition.NextState].UsedForCompensation {
+				structLevel.ReportError(transition.NextState, "NextState", "nextState", TagTransitionUseForCompensation, "")
+
+			} else if !parentBaseState.UsedForCompensation && ctx.MapStates.ValuesMap[transition.NextState].UsedForCompensation {
+				structLevel.ReportError(transition.NextState, "NextState", "nextState", TagTransitionMainWorkflow, "")
+			}
+		}
+
+	} else {
+		structLevel.ReportError(transition.NextState, "NextState", "nextState", TagExists, "")
 	}
 }
 
@@ -146,9 +200,9 @@ func validTransitionAndEnd(structLevel validator.StructLevel, field any, transit
 	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
 
 	if !hasTransition && !isEnd {
-		structLevel.ReportError(field, "Transition", "transition", "required", "")
+		structLevel.ReportError(field, "Transition", "transition", TagRequired, "")
 	} else if hasTransition && isEnd {
-		structLevel.ReportError(field, "Transition", "transition", "exclusive", "")
+		structLevel.ReportError(field, "Transition", "transition", TagExclusive, "")
 	}
 }
 

@@ -34,9 +34,9 @@ func switchStateStructLevelValidation(structLevel validator.StructLevel) {
 
 	switch {
 	case len(switchState.DataConditions) == 0 && len(switchState.EventConditions) == 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "required", "must have one of dataConditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", TagRequired, "")
 	case len(switchState.DataConditions) > 0 && len(switchState.EventConditions) > 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "exclusive", "must have one of dataConditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", TagExclusive, "")
 	}
 }
 

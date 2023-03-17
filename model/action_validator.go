@@ -34,22 +34,22 @@ func actionExclusiveParamters(sl validator.StructLevel) {
 	}
 
 	if validationNotExclusiveParamters(values) {
-		sl.ReportError(action.FunctionRef, "FunctionRef", "functionRef", "exclusive", "")
-		sl.ReportError(action.EventRef, "EventRef", "eventRef", "exclusive", "")
-		sl.ReportError(action.SubFlowRef, "SubFlowRef", "subFlowRef", "exclusive", "")
+		sl.ReportError(action.FunctionRef, "FunctionRef", "functionRef", TagExclusive, "")
+		sl.ReportError(action.EventRef, "EventRef", "eventRef", TagExclusive, "")
+		sl.ReportError(action.SubFlowRef, "SubFlowRef", "subFlowRef", TagExclusive, "")
 	}
 }
 
 func actionStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
 	action := structLevel.Current().Interface().(Action)
 	if action.RetryRef != "" && !ctx.MapRetries.contain(action.RetryRef) {
-		structLevel.ReportError(action.RetryRef, "retryRef", "RetryRef", "exists", "")
+		structLevel.ReportError(action.RetryRef, "retryRef", "RetryRef", TagExists, "")
 	}
 }
 
 func functionRefStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
 	functionRef := structLevel.Current().Interface().(FunctionRef)
 	if !ctx.MapFunctions.contain(functionRef.RefName) {
-		structLevel.ReportError(functionRef.RefName, "refName", "RefName", "exists", "")
+		structLevel.ReportError(functionRef.RefName, "refName", "RefName", TagExists, "")
 	}
 }

@@ -58,6 +58,10 @@ var workflowStructDefault = Workflow{
 			Name:      "function 1",
 			Operation: "rest",
 		},
+		{
+			Name:      "function 2",
+			Operation: "rest",
+		},
 	},
 	Retries: []Retry{
 		{
@@ -102,6 +106,7 @@ var workflowStructDefault = Workflow{
 						ErrorRef: "error 2",
 					},
 				},
+				CompensatedBy: "compensation state",
 				End: &End{
 					Terminate: true,
 				},
@@ -119,65 +124,29 @@ var workflowStructDefault = Workflow{
 				},
 			},
 		},
-	},
-}
-
-var listStateTransition1 = []State{
-	{
-		BaseState: BaseState{
-			Name: "name state",
-			Type: StateTypeOperation,
-			Transition: &Transition{
-				NextState: "next name state",
-			},
-		},
-		OperationState: &OperationState{
-			ActionMode: "sequential",
-			Actions: []Action{
-				{
-					FunctionRef: &FunctionRef{
-						RefName: "function 1",
-						Invoke:  InvokeKindSync,
+		{
+			BaseState: BaseState{
+				Name: "compensation state",
+				Type: StateTypeOperation,
+				OnErrors: []OnError{
+					{
+						ErrorRef: "error 2",
 					},
 				},
-			},
-		},
-	},
-	{
-		BaseState: BaseState{
-			Name: "next name state",
-			Type: StateTypeOperation,
-			Transition: &Transition{
-				NextState: "next name state 2",
-			},
-		},
-		OperationState: &OperationState{
-			ActionMode: "sequential",
-			Actions: []Action{
-				{
-					FunctionRef: &FunctionRef{
-						RefName: "function 1",
-						Invoke:  InvokeKindSync,
-					},
+				UsedForCompensation: true,
+				End: &End{
+					Terminate: true,
 				},
 			},
-		},
-	},
-	{
-		BaseState: BaseState{
-			Name: "next name state 2",
-			Type: StateTypeOperation,
-			End: &End{
-				Terminate: true,
-			},
-		},
-		OperationState: &OperationState{
-			ActionMode: "sequential",
-			Actions: []Action{
-				{
-					FunctionRef: &FunctionRef{
-						RefName: "function 1",
-						Invoke:  InvokeKindSync,
+			OperationState: &OperationState{
+				ActionMode: "sequential",
+				Actions: []Action{
+					{
+						FunctionRef: &FunctionRef{
+							RefName: "function 2",
+							Invoke:  InvokeKindSync,
+						},
+						RetryRef: "retry 1",
 					},
 				},
 			},
@@ -191,7 +160,6 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 			Desp:  "workflow success",
 			Model: workflowStructDefault,
 		},
-
 		{
 			Desp: "workflow state.name repeat",
 			Model: func() Workflow {
@@ -261,7 +229,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w := workflowStructDefault
 				f := w.Functions[0]
 				f.Name = "function renamed to fail"
-				w.Functions = []Function{f}
+				w.Functions = []Function{f, w.Functions[1]}
 				return w
 			}(),
 			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].FunctionRef.refName' Error:Field validation for 'refName' failed on the 'exists' tag`,
@@ -287,7 +255,8 @@ Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Err
 				w.Retries = []Retry{r}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag`,
+			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag
+Key: 'Workflow.States[2].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag`,
 		},
 		{
 			Desp: "error 1 not exists",
@@ -309,7 +278,8 @@ Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Err
 				w.Errors = []Error{w.Errors[0], e}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[1].BaseState.OnErrors[0].ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exists' tag`,
+			Err: `Key: 'Workflow.States[1].BaseState.OnErrors[0].ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exists' tag
+Key: 'Workflow.States[2].BaseState.OnErrors[0].ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exists' tag`,
 		},
 		{
 			Desp: "workflow id exclude key",
@@ -361,16 +331,44 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				}
 				return w
 			}(),
-			Err: `Key: 'Workflow.Start' Error:Field validation for 'Start' failed on the 'startnotexist' tag`,
+			Err: `Key: 'Workflow.BaseWorkflow.Start.StateName' Error:Field validation for 'StateName' failed on the 'exists' tag`,
 		},
 		{
-			Desp: "workflow states transitions",
+			Desp: "workflow transition no exists",
 			Model: func() Workflow {
 				w := workflowStructDefault
-				w.States = listStateTransition1
+				s := w.States[0]
+				t := *s.Transition
+				t.NextState = "transtion not exists"
+				s.Transition = &t
+				w.States = []State{s, w.States[1], w.States[2]}
 				return w
 			}(),
-			Err: ``,
+			Err: `Key: 'Workflow.States[0].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'exists' tag`,
+		},
+		{
+			Desp: "transition compensation",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				s := w.States[2]
+				s.UsedForCompensation = false
+				w.States = []State{w.States[0], w.States[1], s}
+				return w
+			}(),
+			Err: `Key: 'Workflow.States[1].BaseState.CompensatedBy' Error:Field validation for 'CompensatedBy' failed on the 'compensatedby' tag`,
+		},
+		{
+			Desp: "state recursive",
+			Model: func() Workflow {
+				w := workflowStructDefault
+				s := w.States[0]
+				t := *s.Transition
+				t.NextState = s.Name
+				s.Transition = &t
+				w.States = []State{s}
+				return w
+			}(),
+			Err: `Key: 'Workflow.States[0].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'recursivestate' tag`,
 		},
 	}
 

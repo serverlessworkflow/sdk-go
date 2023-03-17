@@ -358,6 +358,7 @@ func (c *Cron) UnmarshalJSON(data []byte) error {
 // Transition Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
 // Each state can define a transition definition that is used to determine which state to transition to next.
 type Transition struct {
+	stateParent *State // used in validation
 	// Name of the state to transition to next.
 	// +kubebuilder:validation:Required
 	NextState string `json:"nextState" validate:"required,min=1"`

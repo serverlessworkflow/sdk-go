@@ -16,6 +16,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -556,6 +557,14 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT100S", w.States[9].SleepState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT200S", w.States[9].SleepState.Timeouts.StateExecTimeout.Single)
 				assert.Equal(t, true, w.States[9].End.Terminate)
+
+				// switch state with DefaultCondition as string
+				assert.NotEmpty(t, w.States[10].SwitchState)
+				assert.Equal(t, "HelloStateWithDefaultConditionString", w.States[10].Name)
+				assert.Equal(t, "${ true }", w.States[10].SwitchState.DataConditions[0].Condition)
+				assert.Equal(t, "HandleApprovedVisa", w.States[10].SwitchState.DataConditions[0].Transition.NextState)
+				assert.Equal(t, "SendTextForHighPriority", w.States[10].SwitchState.DefaultCondition.Transition.NextState)
+				assert.Equal(t, true, w.States[10].End.Terminate)
 			},
 		},
 	}
@@ -815,7 +824,17 @@ states:
       single: PT20S
   defaultCondition:
     transition:
-      nextState: CheckCreditCallback
+      nextState: HelloStateWithDefaultConditionString
+- name: HelloStateWithDefaultConditionString
+  type: switch
+  dataConditions:
+  - condition: ${ true }
+    transition:
+      nextState: HandleApprovedVisa
+  - condition: ${ false }
+    transition:
+      nextState: HandleRejectedVisa
+  defaultCondition: SendTextForHighPriority
 - name: SendTextForHighPriority
   type: foreach
   inputCollection: "${ .messages }"
@@ -911,6 +930,7 @@ states:
     terminate: true
 `))
 		assert.Nil(t, err)
+		fmt.Println(err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
 
@@ -936,7 +956,10 @@ states:
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"ParallelExec\",\"type\":\"parallel\",\"transition\":{\"nextState\":\"CheckVisaStatusSwitchEventBased\"},\"branches\":[{\"name\":\"ShortDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"shortdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"actionExecTimeout\":\"PT5H\",\"branchExecTimeout\":\"PT6M\"}},{\"name\":\"LongDelayBranch\",\"actions\":[{\"subFlowRef\":{\"workflowId\":\"longdelayworkflowid\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}}]}],\"completionType\":\"atLeast\",\"numCompleted\":13,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT2S\",\"total\":\"PT1S\"},\"branchExecTimeout\":\"PT6M\"}}"))
 
 		// Switch State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckVisaStatusSwitchEventBased\",\"type\":\"switch\",\"defaultCondition\":{\"transition\":{\"nextState\":\"CheckCreditCallback\"}},\"eventConditions\":[{\"name\":\"visaApprovedEvent\",\"eventRef\":\"visaApprovedEventRef\",\"metadata\":{\"mastercard\":\"disallowed\",\"visa\":\"allowed\"},\"end\":null,\"transition\":{\"nextState\":\"HandleApprovedVisa\"}},{\"eventRef\":\"visaRejectedEvent\",\"metadata\":{\"test\":\"tested\"},\"end\":null,\"transition\":{\"nextState\":\"HandleRejectedVisa\"}}],\"dataConditions\":null,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT20S\",\"total\":\"PT10S\"},\"eventTimeout\":\"PT10H\"}}"))
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckVisaStatusSwitchEventBased\",\"type\":\"switch\",\"defaultCondition\":{\"transition\":{\"nextState\":\"HelloStateWithDefaultConditionString\"}},\"eventConditions\":[{\"name\":\"visaApprovedEvent\",\"eventRef\":\"visaApprovedEventRef\",\"metadata\":{\"mastercard\":\"disallowed\",\"visa\":\"allowed\"},\"end\":null,\"transition\":{\"nextState\":\"HandleApprovedVisa\"}},{\"eventRef\":\"visaRejectedEvent\",\"metadata\":{\"test\":\"tested\"},\"end\":null,\"transition\":{\"nextState\":\"HandleRejectedVisa\"}}],\"dataConditions\":null,\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT20S\",\"total\":\"PT10S\"},\"eventTimeout\":\"PT10H\"}}"))
+
+		// Switch State with string DefaultCondition
+		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloStateWithDefaultConditionString\",\"type\":\"switch\",\"defaultCondition\":{\"transition\":{\"nextState\":\"SendTextForHighPriority\"}},\"eventConditions\":null,\"dataConditions\":[{\"condition\":\"${ true }\",\"end\":null,\"transition\":{\"nextState\":\"HandleApprovedVisa\"}},{\"condition\":\"${ false }\",\"end\":null,\"transition\":{\"nextState\":\"HandleRejectedVisa\"}}]}"))
 
 		// Foreach State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"SendTextForHighPriority\",\"type\":\"foreach\",\"transition\":{\"nextState\":\"HelloInject\"},\"inputCollection\":\"${ .messages }\",\"outputCollection\":\"${ .outputMessages }\",\"iterationParam\":\"${ .this }\",\"batchSize\":45,\"actions\":[{\"name\":\"test\",\"functionRef\":{\"refName\":\"sendTextFunction\",\"arguments\":{\"message\":\"${ .singlemessage }\"},\"invoke\":\"sync\"},\"eventRef\":{\"triggerEventRef\":\"example1\",\"resultEventRef\":\"example2\",\"resultEventTimeout\":\"PT12H\",\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"mode\":\"sequential\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22S\",\"total\":\"PT11S\"},\"actionExecTimeout\":\"PT11H\"}}"))
@@ -973,7 +996,7 @@ states:
       nextState: HandleRejectedVisa
   defaultCondition:
     transition:
-      nextState: HandleNoVisaDecision
+      nextState: HandleApprovedVisa
 - name: HandleApprovedVisa
   type: operation
   actions:

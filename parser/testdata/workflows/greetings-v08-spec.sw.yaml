@@ -211,3 +211,13 @@ states:
         single: PT200S
     end:
       terminate: true
+  - name: HelloStateWithDefaultConditionString
+    type: switch
+    dataConditions:
+      - condition: ${ true }
+        transition: HandleApprovedVisa
+      - condition: ${ false }
+        transition:
+          nextState: HandleRejectedVisa
+    defaultCondition: SendTextForHighPriority
+    end: true

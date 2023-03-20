@@ -32,6 +32,7 @@ type Retry struct {
 	// Static value by which the delay increases during each attempt (ISO 8601 time format)
 	Increment string `json:"increment,omitempty" validate:"omitempty,iso8601duration"`
 	// Numeric value, if specified the delay between retries is multiplied by this value.
+	// +optional
 	Multiplier *floatstr.Float32OrString `json:"multiplier,omitempty" validate:"omitempty,min=1"`
 	// Maximum number of retry attempts.
 	// +kubebuilder:validation:Required

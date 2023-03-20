@@ -26,13 +26,24 @@ import (
 // github.com/serverlessworkflow/sdk-go/model/event.go:51:2: encountered struct field "" without JSON tag in type "Event"
 // github.com/serverlessworkflow/sdk-go/model/states.go:66:12: unsupported AST kind *ast.InterfaceType
 
+// States should be objects that will be in the same array even if it belongs to
+// different types. An issue similar to the below will happen when trying to deploy your custom CR:
+// strict decoding error: unknown field "spec.states[0].dataConditions"
+// To make the CRD is compliant to the specs there are two options,
+// a flat struct with all states fields at the same level,
+// or use the // +kubebuilder:pruning:PreserveUnknownFields
+// kubebuilder validator and delegate the validation  to the sdk-go validator using the admission webhook.
+// TODO add a webhook example
+
 // ServerlessWorkflowSpec defines a base API for integration test with operator-sdk
 type ServerlessWorkflowSpec struct {
-	BaseWorkflow model.BaseWorkflow `json:"inline"`
+	BaseWorkflow model.BaseWorkflow `json:",inline"`
 	Events       []model.Event      `json:"events,omitempty"`
 	Functions    []model.Function   `json:"functions,omitempty"`
 	Retries      []model.Retry      `json:"retries,omitempty"`
-	States       []model.State      `json:"states"`
+	// +kubebuilder:validation:MinItems=1
+	// +kubebuilder:pruning:PreserveUnknownFields
+	States []model.State `json:"states"`
 }
 
 // ServerlessWorkflow ...

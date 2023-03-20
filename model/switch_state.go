@@ -36,6 +36,36 @@ type SwitchState struct {
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
 }
 
+// DefaultCondition Can be either a transition or end definition
+type DefaultCondition struct {
+	// Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
+	// Each state can define a transition definition that is used to determine which state to transition to next.
+	// +optional
+	Transition *Transition `json:"transition,omitempty"`
+	// 	If this state an end state
+	// +optional
+	End *End `json:"end,omitempty"`
+}
+
+// UnmarshalJSON ...
+func (e *DefaultCondition) UnmarshalJSON(data []byte) error {
+	type defCondUnmarshal DefaultCondition
+
+	obj, str, err := primitiveOrStruct[string, defCondUnmarshal](data)
+	if err != nil {
+		return err
+	}
+
+	if obj == nil {
+		transition := &Transition{NextState: str}
+		e.Transition = transition
+	} else {
+		*e = DefaultCondition(*obj)
+	}
+
+	return nil
+}
+
 func (s *SwitchState) MarshalJSON() ([]byte, error) {
 	type Alias SwitchState
 	custom, err := json.Marshal(&struct {
@@ -46,17 +76,6 @@ func (s *SwitchState) MarshalJSON() ([]byte, error) {
 		Timeouts: s.Timeouts,
 	})
 	return custom, err
-}
-
-// DefaultCondition Can be either a transition or end definition
-type DefaultCondition struct {
-	// Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
-	// Each state can define a transition definition that is used to determine which state to transition to next.
-	// +optional
-	Transition *Transition `json:"transition,omitempty"`
-	// 	If this state an end state
-	// +optional
-	End *End `json:"end,omitempty"`
 }
 
 // SwitchStateTimeout defines the specific timeout settings for switch state
@@ -107,5 +126,5 @@ type DataCondition struct {
 	// Explicit transition to end
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true
-	Transition *Transition `json:"transition" validate:"omitempty"`
+	Transition *Transition `json:"transition,omitempty" validate:"omitempty"`
 }

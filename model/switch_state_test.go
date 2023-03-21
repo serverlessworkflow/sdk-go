@@ -50,6 +50,16 @@ func TestDefaultConditionUnmarshalJSON(t *testing.T) {
 			},
 			err: ``,
 		},
+		{
+			desp: "string success",
+			data: `"next state"`,
+			expect: DefaultCondition{
+				Transition: &Transition{
+					NextState: "next state",
+				},
+			},
+			err: ``,
+		},
 	}
 
 	for _, tc := range testCases {

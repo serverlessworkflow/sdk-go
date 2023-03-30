@@ -54,6 +54,7 @@ func (e *EventState) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("eventState", data, e)
 }
 
+// ApplyDefault set the default values
 func (e *EventState) ApplyDefault() {
 	e.Exclusive = true
 }
@@ -81,6 +82,7 @@ func (o *OnEvents) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("onEvents", data, o)
 }
 
+// ApplyDefault set the default values
 func (o *OnEvents) ApplyDefault() {
 	o.ActionMode = ActionModeSequential
 }

@@ -62,6 +62,7 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("action", data, a)
 }
 
+// ApplyDefault set the default values
 func (a *Action) ApplyDefault() {
 	a.ActionDataFilter.ApplyDefault()
 }
@@ -82,7 +83,7 @@ type FunctionRef struct {
 	// Specifies if the function should be invoked sync or async. Default is sync.
 	// +kubebuilder:validation:Enum=async;sync
 	// +kubebuilder:default=sync
-	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler
@@ -91,6 +92,7 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, f)
 }
 
+// ApplyDefault set the default values
 func (f *FunctionRef) ApplyDefault() {
 	f.Invoke = InvokeKindSync
 }
@@ -107,6 +109,7 @@ type Sleep struct {
 	After string `json:"after,omitempty" validate:"omitempty,iso8601duration"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Sleep) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("sleep", data, s)
 }

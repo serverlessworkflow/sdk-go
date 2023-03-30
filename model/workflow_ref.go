@@ -27,7 +27,7 @@ type WorkflowRef struct {
 	// +kubebuilder:validation:Enum=async;sync
 	// +kubebuilder:default=sync
 	// +optional
-	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 	// onParentComplete specifies how subflow execution should behave when parent workflow completes if invoke
 	// is 'async'. Defaults to terminate.
 	// +kubebuilder:validation:Enum=terminate;continue
@@ -41,6 +41,7 @@ func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, s)
 }
 
+// ApplyDefault set the default values
 func (s *WorkflowRef) ApplyDefault() {
 	s.Invoke = InvokeKindSync
 	s.OnParentComplete = "terminate"

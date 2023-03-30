@@ -56,6 +56,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("event", data, e)
 }
 
+// ApplyDefault set the default values
 func (e *Event) ApplyDefault() {
 	e.DataOnly = true
 	e.Kind = EventKindConsumed
@@ -94,7 +95,7 @@ type EventRef struct {
 	// Specifies if the function should be invoked sync or async. Default is sync.
 	// +kubebuilder:validation:Enum=async;sync
 	// +kubebuilder:default=sync
-	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler
@@ -103,6 +104,7 @@ func (e *EventRef) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("eventRef", data, e)
 }
 
+// ApplyDefault set the default values
 func (e *EventRef) ApplyDefault() {
 	e.Invoke = InvokeKindSync
 }

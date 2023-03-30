@@ -107,7 +107,7 @@ func TestFunctionRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid object refName",
 			data:   `{"refName": 1}`,
 			expect: FunctionRef{},
-			err:    "functionRef.refName must be an string",
+			err:    "functionRef.refName must be string",
 		},
 		{
 			desp: "object with refName",

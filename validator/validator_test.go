@@ -57,3 +57,61 @@ func TestValidateISO8601TimeDuration(t *testing.T) {
 		})
 	}
 }
+
+type testKind string
+
+func (k testKind) AllKinds() []string {
+	return []string{"test1", "test2"}
+}
+
+func (k testKind) String() string {
+	return string(k)
+}
+
+type testKindInvalid string
+
+func (k testKindInvalid) AllKindsInvalid() []string {
+	return []string{"test1", "test2"}
+}
+
+func (k testKindInvalid) String() string {
+	return string(k)
+}
+
+func Test_oneOfKind(t *testing.T) {
+	validate := GetValidator()
+
+	t.Run("kind without kindInvalid", func(t *testing.T) {
+		spec := struct {
+			f interface{}
+			t string
+		}{
+			f: testKindInvalid("test1"), t: "oneofkind",
+		}
+
+		errs := validate.Var(spec.f, spec.t)
+		assert.Error(t, errs)
+
+	})
+
+	t.Run("kind", func(t *testing.T) {
+		spec := struct {
+			f testKind
+			t string
+		}{
+			f: testKind("test1"), t: "oneofkind",
+		}
+		errs := validate.Var(spec.f, spec.t)
+		assert.NoError(t, errs)
+
+		spec = struct {
+			f testKind
+			t string
+		}{
+			f: testKind("test3"), t: "oneofkind",
+		}
+		errs = validate.Var(spec.f, spec.t)
+		assert.Error(t, errs)
+
+	})
+}

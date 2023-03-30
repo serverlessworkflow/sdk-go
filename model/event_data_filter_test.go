@@ -59,7 +59,7 @@ func TestEventDataFilterUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"data": 1, "toStateData": "2"}`,
 			expect: EventDataFilter{},
-			err:    `eventDataFilter.data must be an string`,
+			err:    `eventDataFilter.data must be string`,
 		},
 	}
 

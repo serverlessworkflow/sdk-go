@@ -29,11 +29,13 @@ type EventDataFilter struct {
 	ToStateData string `json:"toStateData,omitempty"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler
 func (f *EventDataFilter) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
 	return unmarshalObject("eventDataFilter", data, f)
 }
 
+// ApplyDefault set the default values
 func (f *EventDataFilter) ApplyDefault() {
 	f.UseData = true
 }

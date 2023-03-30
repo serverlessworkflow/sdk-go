@@ -50,6 +50,7 @@ func (o *OperationState) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("operationState", data, o)
 }
 
+// ApplyDefault set the default values
 func (o *OperationState) ApplyDefault() {
 	o.ActionMode = ActionModeSequential
 }

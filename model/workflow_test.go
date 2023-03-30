@@ -156,7 +156,7 @@ func TestContinueAsUnmarshalJSON(t *testing.T) {
 			desp:   "invalid object format",
 			data:   `{"workflowId": 1}`,
 			expect: ContinueAs{},
-			err:    `continueAs.workflowId must be an string`,
+			err:    `continueAs.workflowId must be string`,
 		},
 	}
 	for _, tc := range testCases {
@@ -196,7 +196,7 @@ func TestEndUnmarshalJSON(t *testing.T) {
 			desp:   "string fail",
 			data:   `"true"`,
 			expect: End{},
-			err:    `end must be an bool or object`,
+			err:    `end must be bool or object`,
 		},
 		{
 			desp: `object success`,
@@ -212,7 +212,7 @@ func TestEndUnmarshalJSON(t *testing.T) {
 			expect: End{
 				Terminate: true,
 			},
-			err: `end.terminate must be an bool`,
+			err: `end.terminate must be bool`,
 		},
 		{
 			desp:   `object key invalid`,
@@ -595,7 +595,7 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 				},
 			},
 			// TODO: improve message: field is empty
-			err: `constants must be an string or object`,
+			err: `constants must be string or object`,
 		},
 		{
 			desp: "object success",

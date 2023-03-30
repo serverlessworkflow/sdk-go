@@ -23,6 +23,11 @@ import (
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
 
+type Kinds interface {
+	AllKinds() []string
+	String() string
+}
+
 var validate *validator.Validate
 
 func init() {
@@ -32,6 +37,12 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = validate.RegisterValidation("oneofkind", oneOfKind)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 // GetValidator gets the default validator.Validate reference
@@ -48,4 +59,16 @@ func ValidateISO8601TimeDuration(s string) error {
 func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel) bool {
 	err := ValidateISO8601TimeDuration(fl.Field().String())
 	return err == nil
+}
+
+func oneOfKind(fl validator.FieldLevel) bool {
+	if val, ok := fl.Field().Interface().(Kinds); ok {
+		for _, kindValue := range val.AllKinds() {
+			if kindValue == val.String() {
+				return true
+			}
+		}
+	}
+
+	return false
 }

@@ -23,6 +23,17 @@ import (
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
 
+func (f ForEachModeType) AllKinds() []string {
+	return []string{
+		string(ForEachModeTypeSequential),
+		string(ForEachModeTypeParallel),
+	}
+}
+
+func (f ForEachModeType) String() string {
+	return string(f)
+}
+
 const (
 	// ForEachModeTypeSequential specifies iterations should be done sequentially.
 	ForEachModeTypeSequential ForEachModeType = "sequential"
@@ -55,7 +66,7 @@ type ForEachState struct {
 	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=parallel
-	Mode ForEachModeType `json:"mode,omitempty"`
+	Mode ForEachModeType `json:"mode,omitempty" validate:"required,oneofkind"`
 }
 
 func (f *ForEachState) MarshalJSON() ([]byte, error) {
@@ -70,11 +81,13 @@ func (f *ForEachState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
+// UnmarshalJSON implements json.Unmarshaler
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
 	return unmarshalObject("forEachState", data, f)
 }
 
+// ApplyDefault set the default values
 func (f *ForEachState) ApplyDefault() {
 	f.Mode = ForEachModeTypeParallel
 }

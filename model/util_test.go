@@ -192,7 +192,7 @@ func Test_primitiveOrMapType(t *testing.T) {
 		data = []byte(`{\n  "fieldValue": value\n}`)
 		err = unmarshalPrimitiveOrObject("structBool", data, &valString, valStruct)
 		assert.Error(t, err)
-		assert.Equal(t, "structBool has a syntax error \"invalid character '\\\\' looking for beginning of object key string\"", err.Error())
+		assert.Equal(t, "structBool has a syntax error \"invalid character '\\\\\\\\' looking for beginning of object key string\"", err.Error())
 		// assert.Equal(t, `structBool value '{"fieldValue": value}' is not supported, it has a syntax error "invalid character 'v' looking for beginning of value"`, err.Error())
 	})
 
@@ -208,14 +208,14 @@ func Test_primitiveOrMapType(t *testing.T) {
 }`)
 		err := unmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
 		assert.Error(t, err)
-		assert.Equal(t, "structBool.fieldValue must be an bool", err.Error())
+		assert.Equal(t, "structBool.fieldValue must be bool", err.Error())
 
 		valBool = false
 		valStruct = &structBool{}
 		data = []byte(`"true"`)
 		err = unmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
 		assert.Error(t, err)
-		assert.Equal(t, "structBool must be an bool or object", err.Error())
+		assert.Equal(t, "structBool must be bool or object", err.Error())
 	})
 
 	t.Run("check json with spaces", func(t *testing.T) {

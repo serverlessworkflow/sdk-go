@@ -41,6 +41,7 @@ func (a *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("actionDataFilter", data, a)
 }
 
+// ApplyDefault set the default values
 func (a *ActionDataFilter) ApplyDefault() {
 	a.UseResults = true
 }

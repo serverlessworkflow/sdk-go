@@ -182,6 +182,7 @@ func (s *State) MarshalJSON() ([]byte, error) {
 	return []byte(result), errs
 }
 
+// UnmarshalJSON implements json.Unmarshaler
 func (s *State) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s.BaseState); err != nil {
 		return err

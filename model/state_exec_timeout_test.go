@@ -81,7 +81,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			}`,
 
 			expect: &StateExecTimeout{},
-			err:    `stateExecTimeout.total must be an string`,
+			err:    `stateExecTimeout.total must be string`,
 		},
 		{
 			desp: "invalid single type",
@@ -94,7 +94,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 				Single: "",
 				Total:  "PT10S",
 			},
-			err: `stateExecTimeout.single must be an string`,
+			err: `stateExecTimeout.single must be string`,
 		},
 	}
 	for _, tc := range testCases {

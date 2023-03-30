@@ -719,7 +719,7 @@ states:
 `))
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "auth must be an string or array", err.Error())
+		assert.Equal(t, "auth must be string or array", err.Error())
 		assert.Nil(t, workflow)
 	})
 }

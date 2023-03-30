@@ -68,7 +68,7 @@ func FromRaw(val interface{}) Object {
 	return Object{Type: Raw, RawValue: custom}
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (obj *Object) UnmarshalJSON(data []byte) error {
 	if data[0] == '"' {
 		obj.Type = String

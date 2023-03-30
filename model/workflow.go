@@ -21,6 +21,14 @@ import (
 // InvokeKind defines how the target is invoked.
 type InvokeKind string
 
+func (i InvokeKind) AllKinds() []string {
+	return []string{string(InvokeKindSync), string(InvokeKindAsync)}
+}
+
+func (i InvokeKind) String() string {
+	return string(i)
+}
+
 const (
 	// InvokeKindSync meaning that worfklow execution should wait until the target completes.
 	InvokeKindSync InvokeKind = "sync"
@@ -130,12 +138,14 @@ type BaseWorkflow struct {
 
 type AuthArray []Auth
 
+// UnmarshalJSON implements json.Unmarshaler
 func (r *AuthArray) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("auth", data, r)
 }
 
 type ErrorArray []Error
 
+// UnmarshalJSON implements json.Unmarshaler
 func (e *ErrorArray) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("errors", data, e)
 }
@@ -171,30 +181,35 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// ApplyDefault set the default values
 func (w *Workflow) ApplyDefault() {
 	w.ExpressionLang = JqExpressionLang
 }
 
 type States []State
 
+// UnmarshalJSON implements json.Unmarshaler
 func (s *States) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("states", data, s)
 }
 
 type Events []Event
 
+// UnmarshalJSON implements json.Unmarshaler
 func (e *Events) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("events", data, e)
 }
 
 type Functions []Function
 
+// UnmarshalJSON implements json.Unmarshaler
 func (f *Functions) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("functions", data, f)
 }
 
 type Retries []Retry
 
+// UnmarshalJSON implements json.Unmarshaler
 func (r *Retries) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("retries", data, r)
 }
@@ -219,7 +234,7 @@ type Timeouts struct {
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (t *Timeouts) UnmarshalJSON(data []byte) error {
 	return unmarshalObjectOrFile("timeouts", data, t)
 }
@@ -239,12 +254,13 @@ type WorkflowExecTimeout struct {
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 	w.ApplyDefault()
 	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, w)
 }
 
+// ApplyDefault set the default values
 func (w *WorkflowExecTimeout) ApplyDefault() {
 	w.Duration = UnlimitedTimeout
 }
@@ -274,7 +290,7 @@ type Start struct {
 	Schedule *Schedule `json:"schedule,omitempty" validate:"omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Start) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("start", data, &s.StateName, s)
 }
@@ -295,7 +311,7 @@ type Schedule struct {
 	Timezone string `json:"timezone,omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Schedule) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("schedule", data, &s.Interval, s)
 }
@@ -330,7 +346,7 @@ type Transition struct {
 	Compensate bool `json:"compensate,omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (t *Transition) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("transition", data, &t.NextState, t)
 }
@@ -372,7 +388,7 @@ type End struct {
 	ContinueAs *ContinueAs `json:"continueAs,omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (e *End) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("end", data, &e.Terminate, e)
 }
@@ -431,12 +447,13 @@ type DataInputSchema struct {
 	FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
 	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, d)
 }
 
+// ApplyDefault set the default values
 func (d *DataInputSchema) ApplyDefault() {
 	d.FailOnValidationErrors = true
 }
@@ -445,7 +462,7 @@ func (d *DataInputSchema) ApplyDefault() {
 // Workflow Expressions.
 type Secrets []string
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Secrets) UnmarshalJSON(data []byte) error {
 	return unmarshalArrayOrFile("secrets", data, s)
 }
@@ -457,7 +474,7 @@ type Constants struct {
 	Data ConstantsData `json:",omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (c *Constants) UnmarshalJSON(data []byte) error {
 	return unmarshalObjectOrFile("constants", data, &c.Data)
 }

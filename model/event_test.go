@@ -49,7 +49,7 @@ func TestEventRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"invoke": 1}`,
 			expect: EventRef{},
-			err:    `eventRef.invoke must be an sync,async`,
+			err:    `eventRef.invoke must be sync,async`,
 		},
 	}
 	for _, tc := range testCases {
@@ -99,7 +99,7 @@ func TestEventUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"dataOnly": "false", "kind": "produced"}`,
 			expect: Event{},
-			err:    `event.dataOnly must be an bool`,
+			err:    `event.dataOnly must be bool`,
 		},
 	}
 	for _, tc := range testCases {

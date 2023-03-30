@@ -24,13 +24,20 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/serverlessworkflow/sdk-go/v2/validator"
 	"sigs.k8s.io/yaml"
 )
 
 // +k8s:deepcopy-gen=false
+
+type Kinds interface {
+	AllKinds() []string
+	String() string
+}
 
 // TODO: Remove global variable
 var httpClient = http.Client{Timeout: time.Duration(1) * time.Second}
@@ -51,16 +58,16 @@ func (e *UnmarshalError) Error() (message string) {
 	var unmarshalTypeErr *json.UnmarshalTypeError
 
 	if errors.As(e.err, &syntaxErr) {
-		message = fmt.Sprintf("%s has a syntax error \"%s\"", e.parameterName, syntaxErr.Error())
+		message = fmt.Sprintf("%s has a syntax error %q", e.parameterName, syntaxErr.Error())
 
 	} else if errors.As(e.err, &unmarshalTypeErr) {
 		var primitiveTypeName string
 		var objectTypeName string
 
-		if e.primitiveType != 0 {
+		if e.primitiveType != reflect.Invalid {
 			primitiveTypeName = e.primitiveType.String()
 		}
-		if e.objectType != 0 {
+		if e.objectType != reflect.Invalid {
 			switch e.objectType {
 			case reflect.Struct:
 				objectTypeName = "object"
@@ -74,19 +81,18 @@ func (e *UnmarshalError) Error() (message string) {
 		}
 
 		if unmarshalTypeErr.Struct == "" && unmarshalTypeErr.Field == "" {
-			message = fmt.Sprintf("%s must be an %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
-		} else if unmarshalTypeErr.Struct != "" && unmarshalTypeErr.Field != "" {
+			message = fmt.Sprintf("%s must be %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
 
-			switch unmarshalTypeErr.Type {
-			case reflect.TypeOf(InvokeKindSync):
-				primitiveTypeName = fmt.Sprintf("%s,%s", InvokeKindSync, InvokeKindAsync)
-			case reflect.TypeOf(ForEachModeTypeSequential):
-				primitiveTypeName = fmt.Sprintf("%s,%s", ForEachModeTypeSequential, ForEachModeTypeParallel)
-			default:
+		} else if unmarshalTypeErr.Struct != "" && unmarshalTypeErr.Field != "" {
+			val := reflect.New(unmarshalTypeErr.Type)
+			if valKinds, ok := val.Elem().Interface().(validator.Kinds); ok {
+				primitiveTypeName = strings.Join(valKinds.AllKinds(), ",")
+			} else {
 				primitiveTypeName = unmarshalTypeErr.Type.Name()
 			}
 
-			message = fmt.Sprintf("%s.%s must be an %s", e.parameterName, unmarshalTypeErr.Field, primitiveTypeName)
+			message = fmt.Sprintf("%s.%s must be %s", e.parameterName, unmarshalTypeErr.Field, primitiveTypeName)
+
 		} else {
 			message = unmarshalTypeErr.Error()
 		}

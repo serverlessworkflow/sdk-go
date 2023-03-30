@@ -49,7 +49,7 @@ func TestForEachStateUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"mode": 1}`,
 			expect: nil,
-			err:    `forEachState.mode must be sequential,parallel`,
+			err:    `forEachState.mode must be sequential or parallel`,
 		},
 	}
 	for _, tc := range testCases {

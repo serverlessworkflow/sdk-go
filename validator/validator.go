@@ -23,8 +23,8 @@ import (
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
 
-type Kinds interface {
-	AllKinds() []string
+type Kind interface {
+	KindValues() []string
 	String() string
 }
 
@@ -62,9 +62,9 @@ func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel)
 }
 
 func oneOfKind(fl validator.FieldLevel) bool {
-	if val, ok := fl.Field().Interface().(Kinds); ok {
-		for _, kindValue := range val.AllKinds() {
-			if kindValue == val.String() {
+	if val, ok := fl.Field().Interface().(Kind); ok {
+		for _, value := range val.KindValues() {
+			if value == val.String() {
 				return true
 			}
 		}

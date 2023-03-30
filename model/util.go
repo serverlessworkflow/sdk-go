@@ -34,8 +34,8 @@ import (
 
 // +k8s:deepcopy-gen=false
 
-type Kinds interface {
-	AllKinds() []string
+type Kind interface {
+	KindValues() []string
 	String() string
 }
 
@@ -85,8 +85,13 @@ func (e *UnmarshalError) Error() (message string) {
 
 		} else if unmarshalTypeErr.Struct != "" && unmarshalTypeErr.Field != "" {
 			val := reflect.New(unmarshalTypeErr.Type)
-			if valKinds, ok := val.Elem().Interface().(validator.Kinds); ok {
-				primitiveTypeName = strings.Join(valKinds.AllKinds(), ",")
+			if valKinds, ok := val.Elem().Interface().(validator.Kind); ok {
+				values := valKinds.KindValues()
+				if len(values) <= 2 {
+					primitiveTypeName = strings.Join(values, " or ")
+				} else {
+					primitiveTypeName = fmt.Sprintf("%s, %s", strings.Join(values[:len(values)-2], ", "), strings.Join(values[len(values)-2:], " or "))
+				}
 			} else {
 				primitiveTypeName = unmarshalTypeErr.Type.Name()
 			}

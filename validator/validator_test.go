@@ -60,7 +60,7 @@ func TestValidateISO8601TimeDuration(t *testing.T) {
 
 type testKind string
 
-func (k testKind) AllKinds() []string {
+func (k testKind) KindValues() []string {
 	return []string{"test1", "test2"}
 }
 
@@ -70,7 +70,7 @@ func (k testKind) String() string {
 
 type testKindInvalid string
 
-func (k testKindInvalid) AllKindsInvalid() []string {
+func (k testKindInvalid) AllValuesInvalid() []string {
 	return []string{"test1", "test2"}
 }
 

@@ -21,7 +21,7 @@ import (
 // InvokeKind defines how the target is invoked.
 type InvokeKind string
 
-func (i InvokeKind) AllKinds() []string {
+func (i InvokeKind) KindValues() []string {
 	return []string{string(InvokeKindSync), string(InvokeKindAsync)}
 }
 

@@ -23,7 +23,7 @@ import (
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
 
-func (f ForEachModeType) AllKinds() []string {
+func (f ForEachModeType) KindValues() []string {
 	return []string{
 		string(ForEachModeTypeSequential),
 		string(ForEachModeTypeParallel),

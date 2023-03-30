@@ -40,9 +40,13 @@ type SwitchState struct {
 type DefaultCondition struct {
 	// Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
 	// Each state can define a transition definition that is used to determine which state to transition to next.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Transition *Transition `json:"transition,omitempty"`
 	// 	If this state an end state
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	End *End `json:"end,omitempty"`
 }
@@ -101,12 +105,20 @@ type EventCondition struct {
 	// +optional
 	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
 	// Metadata information.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
 	// TODO End or Transition needs to be exclusive tag, one or another should be set.
 	// Explicit transition to end
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +optional
 	End *End `json:"end" validate:"omitempty"`
 	// Workflow transition if condition is evaluated to true
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +optional
 	Transition *Transition `json:"transition" validate:"omitempty"`
 }
 

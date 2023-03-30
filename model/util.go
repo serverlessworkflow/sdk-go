@@ -160,25 +160,16 @@ func getBytesFromFile(uri string) (b []byte, err error) {
 }
 
 func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
-	var valString string
-	err := unmarshalPrimitiveOrObject(parameterName, data, &valString, valObject)
-	if err != nil || valString == "" {
-		return err
-	}
-
-	// Assumes that the value inside `data` is a path to a known location.
-	// Returns the content of the file or a not nil error reference.
-	data, err = getBytesFromFile(valString)
-	if err != nil {
-		return err
-	}
-
-	return unmarshalObject(parameterName, data, valObject)
+	return unmarshalJSONOrFile(parameterName, data, valObject, '{')
 }
 
 func unmarshalArrayOrFile[U any](parameterName string, data []byte, valObject *U) error {
+	return unmarshalJSONOrFile(parameterName, data, valObject, '[')
+}
+
+func unmarshalJSONOrFile[U any](parameterName string, data []byte, valObject *U, detectObject byte) error {
 	var valString string
-	err := unmarshalPrimitiveOrArray(parameterName, data, &valString, valObject)
+	err := unmarshalExlucivePrimitiveOrObject(parameterName, data, &valString, valObject, detectObject)
 	if err != nil || valString == "" {
 		return err
 	}
@@ -191,10 +182,6 @@ func unmarshalArrayOrFile[U any](parameterName string, data []byte, valObject *U
 	}
 
 	return unmarshalObject(parameterName, data, valObject)
-}
-
-func unmarshalPrimitiveOrArray[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
-	return unmarshalExlucivePrimitiveOrObject(parameterName, data, valPrimitive, valStruct, '[')
 }
 
 func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {

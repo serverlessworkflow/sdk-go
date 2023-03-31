@@ -165,16 +165,8 @@ func getBytesFromFile(uri string) (b []byte, err error) {
 }
 
 func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
-	return unmarshalJSONOrFile(parameterName, data, valObject, '{')
-}
-
-func unmarshalArrayOrFile[U any](parameterName string, data []byte, valObject *U) error {
-	return unmarshalJSONOrFile(parameterName, data, valObject, '[')
-}
-
-func unmarshalJSONOrFile[U any](parameterName string, data []byte, valObject *U, detectObject byte) error {
 	var valString string
-	err := unmarshalExlucivePrimitiveOrObject(parameterName, data, &valString, valObject, detectObject)
+	err := unmarshalPrimitiveOrObject(parameterName, data, &valString, valObject)
 	if err != nil || valString == "" {
 		return err
 	}
@@ -186,21 +178,40 @@ func unmarshalJSONOrFile[U any](parameterName string, data []byte, valObject *U,
 		return err
 	}
 
+	// TODO: discussion about that external resource implementation: https://github.com/serverlessworkflow/sdk-go/issues/168
+	data = bytes.TrimSpace(data)
+	if data[0] == '{' && parameterName != "constants" && parameterName != "timeouts" {
+		extractData := map[string]json.RawMessage{}
+		err = json.Unmarshal(data, &extractData)
+		if err != nil {
+			return &UnmarshalError{
+				err:           err,
+				parameterName: parameterName,
+				primitiveType: reflect.TypeOf(*valObject).Kind(),
+			}
+		}
+
+		var ok bool
+		if data, ok = extractData[parameterName]; !ok {
+			return &UnmarshalError{
+				err:           err,
+				parameterName: parameterName,
+				primitiveType: reflect.TypeOf(*valObject).Kind(),
+			}
+		}
+	}
+
 	return unmarshalObject(parameterName, data, valObject)
 }
 
 func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
-	return unmarshalExlucivePrimitiveOrObject(parameterName, data, valPrimitive, valStruct, '{')
-}
-
-func unmarshalExlucivePrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U, detectObject byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {
 		// TODO: Normalize error messages
 		return fmt.Errorf("%s no bytes to unmarshal", parameterName)
 	}
 
-	isObject := data[0] == detectObject
+	isObject := data[0] == '{' || data[0] == '['
 	var err error
 	var unmarshalError *UnmarshalError
 	if isObject {

@@ -87,13 +87,13 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 
 		listStructValue := &listStructString{}
 		data = []byte(`[{"fieldValue": "value"}]`)
-		err = unmarshalArrayOrFile("listStructString", data, listStructValue)
+		err = unmarshalObjectOrFile("listStructString", data, listStructValue)
 		assert.NoError(t, err)
 		assert.Equal(t, listStructString{{FieldValue: "value"}}, *listStructValue)
 
 		listStructValue = &listStructString{}
 		data = []byte(fmt.Sprintf(`"%s/test.json"`, server.URL))
-		err = unmarshalArrayOrFile("listStructString", data, listStructValue)
+		err = unmarshalObjectOrFile("listStructString", data, listStructValue)
 		assert.NoError(t, err)
 		assert.Equal(t, listStructString{{FieldValue: "value"}}, *listStructValue)
 	})
@@ -101,14 +101,14 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 	t.Run("file://", func(t *testing.T) {
 		retries := &Retries{}
 		data := []byte(`"file://../parser/testdata/applicationrequestretries.json"`)
-		err := unmarshalArrayOrFile("retries", data, retries)
+		err := unmarshalObjectOrFile("retries", data, retries)
 		assert.NoError(t, err)
 	})
 
 	t.Run("external url", func(t *testing.T) {
 		retries := &Retries{}
 		data := []byte(`"https://raw.githubusercontent.com/serverlessworkflow/sdk-net/main/src/ServerlessWorkflow.Sdk.UnitTests/Resources/retries/default.yaml"`)
-		err := unmarshalArrayOrFile("retries", data, retries)
+		err := unmarshalObjectOrFile("retries", data, retries)
 		assert.NoError(t, err)
 	})
 

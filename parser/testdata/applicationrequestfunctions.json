@@ -1,6 +1,8 @@
-[
-  {
-    "name": "sendRejectionEmailFunction",
-    "operation": "http://myapis.org/application.json#emailRejection"
-  }
-]
+{
+  "functions": [
+    {
+      "name": "sendRejectionEmailFunction",
+      "operation": "http://myapis.org/application.json#emailRejection"
+    }
+  ]
+}

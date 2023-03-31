@@ -140,14 +140,14 @@ type AuthArray []Auth
 
 // UnmarshalJSON implements json.Unmarshaler
 func (r *AuthArray) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("auth", data, r)
+	return unmarshalObjectOrFile("auth", data, r)
 }
 
 type ErrorArray []Error
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *ErrorArray) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("errors", data, e)
+	return unmarshalObjectOrFile("errors", data, e)
 }
 
 // Workflow base definition
@@ -190,28 +190,28 @@ type States []State
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *States) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("states", data, s)
+	return unmarshalObjectOrFile("states", data, s)
 }
 
 type Events []Event
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *Events) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("events", data, e)
+	return unmarshalObjectOrFile("events", data, e)
 }
 
 type Functions []Function
 
 // UnmarshalJSON implements json.Unmarshaler
 func (f *Functions) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("functions", data, f)
+	return unmarshalObjectOrFile("functions", data, f)
 }
 
 type Retries []Retry
 
 // UnmarshalJSON implements json.Unmarshaler
 func (r *Retries) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("retries", data, r)
+	return unmarshalObjectOrFile("retries", data, r)
 }
 
 // Timeouts ...
@@ -464,7 +464,7 @@ type Secrets []string
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Secrets) UnmarshalJSON(data []byte) error {
-	return unmarshalArrayOrFile("secrets", data, s)
+	return unmarshalObjectOrFile("secrets", data, s)
 }
 
 // Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.

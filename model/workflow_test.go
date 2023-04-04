@@ -228,7 +228,7 @@ func TestEndUnmarshalJSON(t *testing.T) {
 
 			if tc.err != "" {
 				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
+				assert.Equal(t, tc.err, err.Error())
 				return
 			}
 

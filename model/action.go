@@ -56,10 +56,12 @@ type Action struct {
 	Condition string `json:"condition,omitempty"`
 }
 
+type actionUnmarshal Action
+
 // UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
 	a.ApplyDefault()
-	return unmarshalObject("action", data, a)
+	return unmarshalObject("action", data, (*actionUnmarshal)(a))
 }
 
 // ApplyDefault set the default values
@@ -86,10 +88,12 @@ type FunctionRef struct {
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 }
 
+type functionRefUnmarshal FunctionRef
+
 // UnmarshalJSON implements json.Unmarshaler
 func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, f)
+	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, (*functionRefUnmarshal)(f))
 }
 
 // ApplyDefault set the default values
@@ -109,7 +113,9 @@ type Sleep struct {
 	After string `json:"after,omitempty" validate:"omitempty,iso8601duration"`
 }
 
+type sleepUnmarshal Sleep
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Sleep) UnmarshalJSON(data []byte) error {
-	return unmarshalObject("sleep", data, s)
+	return unmarshalObject("sleep", data, (*sleepUnmarshal)(s))
 }

@@ -50,10 +50,12 @@ type Event struct {
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
 
+type eventUnmarshal Event
+
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("event", data, e)
+	return unmarshalObject("event", data, (*eventUnmarshal)(e))
 }
 
 // ApplyDefault set the default values
@@ -98,10 +100,12 @@ type EventRef struct {
 	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 }
 
+type eventRefUnmarshal EventRef
+
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("eventRef", data, e)
+	return unmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
 }
 
 // ApplyDefault set the default values

@@ -24,7 +24,9 @@ type StateExecTimeout struct {
 	Total string `json:"total" validate:"required,iso8601duration"`
 }
 
+type stateExecTimeoutUnmarshal StateExecTimeout
+
 // UnmarshalJSON unmarshal StateExecTimeout object from json bytes
 func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, s)
+	return unmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, (*stateExecTimeoutUnmarshal)(s))
 }

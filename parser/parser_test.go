@@ -257,7 +257,7 @@ func TestFromFile(t *testing.T) {
 				assert.NotNil(t, eventState)
 				assert.NotEmpty(t, eventState.DataConditions)
 				assert.IsType(t, model.DataCondition{}, eventState.DataConditions[0])
-				assert.Equal(t, "default", w.Retries[0].Name)
+				assert.Equal(t, "TimeoutRetryStrategy", w.Retries[0].Name)
 			},
 		}, {
 			"./testdata/workflows/checkinbox.sw.yaml", func(t *testing.T, w *model.Workflow) {

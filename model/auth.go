@@ -62,10 +62,12 @@ type Auth struct {
 	Properties AuthProperties `json:"properties" validate:"required"`
 }
 
+type authUnmarshal Auth
+
 // UnmarshalJSON Auth definition
 func (a *Auth) UnmarshalJSON(data []byte) error {
 	authTmp := struct {
-		Auth
+		authUnmarshal
 		PropertiesRaw json.RawMessage `json:"properties"`
 	}{}
 
@@ -74,7 +76,7 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*a = authTmp.Auth
+	*a = Auth(authTmp.authUnmarshal)
 	if len(a.Scheme) == 0 {
 		a.Scheme = AuthTypeBasic
 	}

@@ -62,10 +62,12 @@ func (p *ParallelState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
+type parallelStateUnmarshal ParallelState
+
 // UnmarshalJSON unmarshal ParallelState object from json bytes
 func (ps *ParallelState) UnmarshalJSON(data []byte) error {
 	ps.ApplyDefault()
-	return unmarshalObject("parallelState", data, ps)
+	return unmarshalObject("parallelState", data, (*parallelStateUnmarshal)(ps))
 }
 
 // ApplyDefault set the default values

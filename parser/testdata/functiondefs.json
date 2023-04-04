@@ -1,14 +1,16 @@
-[
-    {
-        "name": "checkFundsAvailability",
-        "operation": "file://myapis/billingapis.json#checkFunds"
-    },
-    {
-        "name": "sendSuccessEmail",
-        "operation": "file://myapis/emailapis.json#paymentSuccess"
-    },
-    {
-        "name": "sendInsufficientFundsEmail",
-        "operation": "file://myapis/emailapis.json#paymentInsufficientFunds"
-    }
-]
+{
+    "functions": [
+        {
+            "name": "checkFundsAvailability",
+            "operation": "file://myapis/billingapis.json#checkFunds"
+        },
+        {
+            "name": "sendSuccessEmail",
+            "operation": "file://myapis/emailapis.json#paymentSuccess"
+        },
+        {
+            "name": "sendInsufficientFundsEmail",
+            "operation": "file://myapis/emailapis.json#paymentInsufficientFunds"
+        }
+    ]    
+}

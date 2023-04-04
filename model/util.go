@@ -49,24 +49,27 @@ type UnmarshalError struct {
 	objectType    reflect.Kind
 }
 
-func (e *UnmarshalError) Error() (message string) {
+func (e *UnmarshalError) Error() string {
 	if e.err == nil {
 		panic("unmarshalError fail")
 	}
 
 	var syntaxErr *json.SyntaxError
 	var unmarshalTypeErr *json.UnmarshalTypeError
-
 	if errors.As(e.err, &syntaxErr) {
-		message = fmt.Sprintf("%s has a syntax error %q", e.parameterName, syntaxErr.Error())
+		return fmt.Sprintf("%s has a syntax error %q", e.parameterName, syntaxErr.Error())
 
 	} else if errors.As(e.err, &unmarshalTypeErr) {
-		var primitiveTypeName string
-		var objectTypeName string
+		return e.unmarshalMessageError(unmarshalTypeErr)
+	}
 
-		if e.primitiveType != reflect.Invalid {
-			primitiveTypeName = e.primitiveType.String()
-		}
+	return e.err.Error()
+}
+
+func (e *UnmarshalError) unmarshalMessageError(err *json.UnmarshalTypeError) string {
+	if err.Struct == "" && err.Field == "" {
+		primitiveTypeName := e.primitiveType.String()
+		var objectTypeName string
 		if e.objectType != reflect.Invalid {
 			switch e.objectType {
 			case reflect.Struct:
@@ -79,37 +82,33 @@ func (e *UnmarshalError) Error() (message string) {
 				objectTypeName = e.objectType.String()
 			}
 		}
+		return fmt.Sprintf("%s must be %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
 
-		if unmarshalTypeErr.Struct == "" && unmarshalTypeErr.Field == "" {
-			message = fmt.Sprintf("%s must be %s or %s", e.parameterName, primitiveTypeName, objectTypeName)
-
-		} else if unmarshalTypeErr.Struct != "" && unmarshalTypeErr.Field != "" {
-			val := reflect.New(unmarshalTypeErr.Type)
-			if valKinds, ok := val.Elem().Interface().(validator.Kind); ok {
-				values := valKinds.KindValues()
-				if len(values) <= 2 {
-					primitiveTypeName = strings.Join(values, " or ")
-				} else {
-					primitiveTypeName = fmt.Sprintf("%s, %s", strings.Join(values[:len(values)-2], ", "), strings.Join(values[len(values)-2:], " or "))
-				}
+	} else if err.Struct != "" && err.Field != "" {
+		var primitiveTypeName string
+		val := reflect.New(err.Type)
+		if valKinds, ok := val.Elem().Interface().(validator.Kind); ok {
+			values := valKinds.KindValues()
+			if len(values) <= 2 {
+				primitiveTypeName = strings.Join(values, " or ")
 			} else {
-				primitiveTypeName = unmarshalTypeErr.Type.Name()
+				primitiveTypeName = fmt.Sprintf("%s, %s", strings.Join(values[:len(values)-2], ", "), strings.Join(values[len(values)-2:], " or "))
 			}
-
-			message = fmt.Sprintf("%s.%s must be %s", e.parameterName, unmarshalTypeErr.Field, primitiveTypeName)
-
 		} else {
-			message = unmarshalTypeErr.Error()
+			primitiveTypeName = err.Type.Name()
 		}
-	} else {
-		message = e.err.Error()
+
+		return fmt.Sprintf("%s.%s must be %s", e.parameterName, err.Field, primitiveTypeName)
 	}
 
-	return message
+	return err.Error()
 }
 
 func getBytesFromFile(uri string) (b []byte, err error) {
-	refUrl, _ := url.Parse(uri)
+	refUrl, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
 
 	if refUrl.Scheme == "" || refUrl.Scheme == "file" {
 		path := filepath.Join(refUrl.Host, refUrl.Path)
@@ -178,7 +177,15 @@ func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 		return err
 	}
 
-	// TODO: discussion about that external resource implementation: https://github.com/serverlessworkflow/sdk-go/issues/168
+	data = bytes.TrimSpace(data)
+	if data[0] != '{' && data[0] != '[' {
+		return errors.New("invalid external resource definition")
+	}
+
+	if data[0] == '[' && parameterName != "auth" && parameterName != "secrets" {
+		return errors.New("invalid external resource definition")
+	}
+
 	data = bytes.TrimSpace(data)
 	if data[0] == '{' && parameterName != "constants" && parameterName != "timeouts" {
 		extractData := map[string]json.RawMessage{}
@@ -193,11 +200,7 @@ func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 
 		var ok bool
 		if data, ok = extractData[parameterName]; !ok {
-			return &UnmarshalError{
-				err:           err,
-				parameterName: parameterName,
-				primitiveType: reflect.TypeOf(*valObject).Kind(),
-			}
+			return fmt.Errorf("external resource parameter not found: %q", parameterName)
 		}
 	}
 
@@ -213,18 +216,16 @@ func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, da
 
 	isObject := data[0] == '{' || data[0] == '['
 	var err error
-	var unmarshalError *UnmarshalError
 	if isObject {
 		err = unmarshalObject(parameterName, data, valStruct)
-		if errors.As(err, &unmarshalError) {
-			unmarshalError.primitiveType = reflect.TypeOf(*valPrimitive).Kind()
-		}
-
 	} else {
 		err = unmarshalPrimitive(parameterName, data, valPrimitive)
-		if errors.As(err, &unmarshalError) {
-			unmarshalError.objectType = reflect.TypeOf(*valStruct).Kind()
-		}
+	}
+
+	var unmarshalError *UnmarshalError
+	if errors.As(err, &unmarshalError) {
+		unmarshalError.objectType = reflect.TypeOf(*valStruct).Kind()
+		unmarshalError.primitiveType = reflect.TypeOf(*valPrimitive).Kind()
 	}
 
 	return err
@@ -252,11 +253,12 @@ func unmarshalObject[U any](parameterName string, data []byte, value *U) error {
 		return nil
 	}
 
+	// Removed to maintain the golang 1.19 compatibility
 	// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
-	type forUnmarshal *U
-	valueForUnmarshal := new(forUnmarshal)
-	*valueForUnmarshal = value
-	err := json.Unmarshal(data, valueForUnmarshal)
+	// type forUnmarshal *U
+	// valueForUnmarshal := new(forUnmarshal)
+	// *valueForUnmarshal = value
+	err := json.Unmarshal(data, value)
 	if err != nil {
 		return &UnmarshalError{
 			err:           err,

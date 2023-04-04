@@ -81,10 +81,12 @@ func (f *ForEachState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
+type forEachStateUnmarshal ForEachState
+
 // UnmarshalJSON implements json.Unmarshaler
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalObject("forEachState", data, f)
+	return unmarshalObject("forEachState", data, (*forEachStateUnmarshal)(f))
 }
 
 // ApplyDefault set the default values

@@ -48,10 +48,12 @@ func (e *EventState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
+type eventStateUnmarshal EventState
+
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("eventState", data, e)
+	return unmarshalObject("eventState", data, (*eventStateUnmarshal)(e))
 }
 
 // ApplyDefault set the default values
@@ -76,10 +78,12 @@ type OnEvents struct {
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
+type onEventsUnmarshal OnEvents
+
 // UnmarshalJSON unmarshal OnEvents object from json bytes
 func (o *OnEvents) UnmarshalJSON(data []byte) error {
 	o.ApplyDefault()
-	return unmarshalObject("onEvents", data, o)
+	return unmarshalObject("onEvents", data, (*onEventsUnmarshal)(o))
 }
 
 // ApplyDefault set the default values

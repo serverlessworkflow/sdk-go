@@ -138,16 +138,20 @@ type BaseWorkflow struct {
 
 type AuthArray []Auth
 
+type errorAuthArray AuthArray
+
 // UnmarshalJSON implements json.Unmarshaler
 func (r *AuthArray) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("auth", data, r)
+	return unmarshalObjectOrFile("auth", data, (*errorAuthArray)(r))
 }
 
 type ErrorArray []Error
 
+type errorArrayUnmarshal ErrorArray
+
 // UnmarshalJSON implements json.Unmarshaler
 func (e *ErrorArray) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("errors", data, e)
+	return unmarshalObjectOrFile("errors", data, (*errorArrayUnmarshal)(e))
 }
 
 // Workflow base definition
@@ -164,10 +168,12 @@ type Workflow struct {
 	Retries Retries `json:"retries,omitempty" validate:"dive"`
 }
 
+type workflowUnmarshal Workflow
+
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
 	w.ApplyDefault()
-	err := unmarshalObject("workflow", data, w)
+	err := unmarshalObject("workflow", data, (*workflowUnmarshal)(w))
 	if err != nil {
 		return err
 	}
@@ -188,30 +194,38 @@ func (w *Workflow) ApplyDefault() {
 
 type States []State
 
+type statesUnmarshal States
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *States) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("states", data, s)
+	return unmarshalObjectOrFile("states", data, (*statesUnmarshal)(s))
 }
 
 type Events []Event
 
+type eventsUnmarshal Events
+
 // UnmarshalJSON implements json.Unmarshaler
 func (e *Events) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("events", data, e)
+	return unmarshalObjectOrFile("events", data, (*eventsUnmarshal)(e))
 }
 
 type Functions []Function
 
+type functionsUnmarshal Functions
+
 // UnmarshalJSON implements json.Unmarshaler
 func (f *Functions) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("functions", data, f)
+	return unmarshalObjectOrFile("functions", data, (*functionsUnmarshal)(f))
 }
 
 type Retries []Retry
 
+type retriesUnmarshal Retries
+
 // UnmarshalJSON implements json.Unmarshaler
 func (r *Retries) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("retries", data, r)
+	return unmarshalObjectOrFile("retries", data, (*retriesUnmarshal)(r))
 }
 
 // Timeouts ...
@@ -234,9 +248,11 @@ type Timeouts struct {
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
+type timeoutsUnmarshal Timeouts
+
 // UnmarshalJSON implements json.Unmarshaler
 func (t *Timeouts) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("timeouts", data, t)
+	return unmarshalObjectOrFile("timeouts", data, (*timeoutsUnmarshal)(t))
 }
 
 // WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
@@ -254,10 +270,12 @@ type WorkflowExecTimeout struct {
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
 }
 
+type workflowExecTimeoutUnmarshal WorkflowExecTimeout
+
 // UnmarshalJSON implements json.Unmarshaler
 func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 	w.ApplyDefault()
-	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, w)
+	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, (*workflowExecTimeoutUnmarshal)(w))
 }
 
 // ApplyDefault set the default values
@@ -290,9 +308,11 @@ type Start struct {
 	Schedule *Schedule `json:"schedule,omitempty" validate:"omitempty"`
 }
 
+type startUnmarshal Start
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Start) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("start", data, &s.StateName, s)
+	return unmarshalPrimitiveOrObject("start", data, &s.StateName, (*startUnmarshal)(s))
 }
 
 // Schedule ...
@@ -311,9 +331,11 @@ type Schedule struct {
 	Timezone string `json:"timezone,omitempty"`
 }
 
+type scheduleUnmarshal Schedule
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Schedule) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("schedule", data, &s.Interval, s)
+	return unmarshalPrimitiveOrObject("schedule", data, &s.Interval, (*scheduleUnmarshal)(s))
 }
 
 // Cron ...
@@ -326,9 +348,11 @@ type Cron struct {
 	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601duration"`
 }
 
+type cronUnmarshal Cron
+
 // UnmarshalJSON custom unmarshal function for Cron
 func (c *Cron) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("cron", data, &c.Expression, c)
+	return unmarshalPrimitiveOrObject("cron", data, &c.Expression, (*cronUnmarshal)(c))
 }
 
 // Transition Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
@@ -346,9 +370,11 @@ type Transition struct {
 	Compensate bool `json:"compensate,omitempty"`
 }
 
+type transitionUnmarshal Transition
+
 // UnmarshalJSON implements json.Unmarshaler
 func (t *Transition) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("transition", data, &t.NextState, t)
+	return unmarshalPrimitiveOrObject("transition", data, &t.NextState, (*transitionUnmarshal)(t))
 }
 
 // OnError ...
@@ -388,9 +414,11 @@ type End struct {
 	ContinueAs *ContinueAs `json:"continueAs,omitempty"`
 }
 
+type endUnmarshal End
+
 // UnmarshalJSON implements json.Unmarshaler
 func (e *End) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("end", data, &e.Terminate, e)
+	return unmarshalPrimitiveOrObject("end", data, &e.Terminate, (*endUnmarshal)(e))
 }
 
 // ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
@@ -411,8 +439,11 @@ type ContinueAs struct {
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }
 
+type continueAsUnmarshal ContinueAs
+
+// UnmarshalJSON implements json.Unmarshaler
 func (c *ContinueAs) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("continueAs", data, &c.WorkflowID, c)
+	return unmarshalPrimitiveOrObject("continueAs", data, &c.WorkflowID, (*continueAsUnmarshal)(c))
 }
 
 // ProduceEvent Defines the event (CloudEvent format) to be produced when workflow execution completes or during a
@@ -447,10 +478,12 @@ type DataInputSchema struct {
 	FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
 }
 
+type dataInputSchemaUnmarshal DataInputSchema
+
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, d)
+	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
 }
 
 // ApplyDefault set the default values
@@ -462,9 +495,11 @@ func (d *DataInputSchema) ApplyDefault() {
 // Workflow Expressions.
 type Secrets []string
 
+type secretsUnmarshal Secrets
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Secrets) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("secrets", data, s)
+	return unmarshalObjectOrFile("secrets", data, (*secretsUnmarshal)(s))
 }
 
 // Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.

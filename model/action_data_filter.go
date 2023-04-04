@@ -35,10 +35,12 @@ type ActionDataFilter struct {
 	ToStateData string `json:"toStateData,omitempty"`
 }
 
+type actionDataFilterUnmarshal ActionDataFilter
+
 // UnmarshalJSON implements json.Unmarshaler
 func (a *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	a.ApplyDefault()
-	return unmarshalObject("actionDataFilter", data, a)
+	return unmarshalObject("actionDataFilter", data, (*actionDataFilterUnmarshal)(a))
 }
 
 // ApplyDefault set the default values

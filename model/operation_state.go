@@ -44,10 +44,12 @@ func (a *OperationState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
+type operationStateUnmarshal OperationState
+
 // UnmarshalJSON unmarshal OperationState object from json bytes
 func (o *OperationState) UnmarshalJSON(data []byte) error {
 	o.ApplyDefault()
-	return unmarshalObject("operationState", data, o)
+	return unmarshalObject("operationState", data, (*operationStateUnmarshal)(o))
 }
 
 // ApplyDefault set the default values

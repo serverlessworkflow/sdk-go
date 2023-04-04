@@ -57,7 +57,7 @@ func Test_getBytesFromFile(t *testing.T) {
 
 	data, err = getBytesFromFile("../parser/testdata/eventdefs.yml")
 	assert.NoError(t, err)
-	assert.Equal(t, "[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]", string(data))
+	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
 }
 
 func Test_unmarshalObjectOrFile(t *testing.T) {
@@ -70,7 +70,7 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			switch req.URL.Path {
 			case "/test.json":
-				_, err := rw.Write([]byte(`[{"fieldValue": "value"}]`))
+				_, err := rw.Write([]byte(`{"listStructString":[{"fieldValue": "value"}]}`))
 				assert.NoError(t, err)
 			default:
 				t.Failed()
@@ -107,7 +107,7 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 
 	t.Run("external url", func(t *testing.T) {
 		retries := &Retries{}
-		data := []byte(`"https://raw.githubusercontent.com/serverlessworkflow/sdk-net/main/src/ServerlessWorkflow.Sdk.UnitTests/Resources/retries/default.yaml"`)
+		data := []byte(`"https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json"`)
 		err := unmarshalObjectOrFile("retries", data, retries)
 		assert.NoError(t, err)
 	})
@@ -279,7 +279,9 @@ type structBool struct {
 	FieldValue bool `json:"fieldValue"`
 }
 
+type structBoolUnmarshal structBool
+
 func (s *structBool) UnmarshalJSON(data []byte) error {
 	s.FieldValue = true
-	return unmarshalObject("unmarshalJSON", data, s)
+	return unmarshalObject("unmarshalJSON", data, (*structBoolUnmarshal)(s))
 }

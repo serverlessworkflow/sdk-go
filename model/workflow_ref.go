@@ -35,10 +35,12 @@ type WorkflowRef struct {
 	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
 }
 
+type workflowRefUnmarshal WorkflowRef
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 	s.ApplyDefault()
-	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, s)
+	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
 }
 
 // ApplyDefault set the default values

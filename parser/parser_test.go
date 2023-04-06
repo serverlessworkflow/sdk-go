@@ -673,7 +673,7 @@ states:
   "description": "Determine if applicant request is valid",
   "start": "Hello State",
   "specVersion": "0.8",
-  "auth": "file://testdata/workflows/urifiles/auth.json",
+  "auth": "testdata/workflows/urifiles/auth.json",
   "states": [
     {
 	  "name": "Hello State",

@@ -60,6 +60,8 @@ type BaseState struct {
 	// +optional
 	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
 	// Next transition of the workflow after the time delay.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Transition *Transition `json:"transition,omitempty"`
 	// State data filter.
@@ -72,6 +74,8 @@ type BaseState struct {
 	// +optional
 	UsedForCompensation bool `json:"usedForCompensation,omitempty"`
 	// State end definition.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	End *End `json:"end,omitempty"`
 	// Metadata information.

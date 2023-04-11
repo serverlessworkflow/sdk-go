@@ -26,8 +26,8 @@ type InvokeKind string
 const (
 	// InvokeKindSync meaning that worfklow execution should wait until the target completes.
 	InvokeKindSync InvokeKind = "sync"
-
-	// InvokeKindAsync meaning that workflow execution should just invoke the target and should not wait until its completion.
+	// InvokeKindAsync meaning that workflow execution should just invoke the target and should not wait until its
+	// completion.
 	InvokeKindAsync InvokeKind = "async"
 )
 
@@ -75,6 +75,8 @@ type BaseWorkflow struct {
 	// +optional
 	Version string `json:"version" validate:"omitempty,min=1"`
 	// Workflow start definition.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Start *Start `json:"start,omitempty"`
 	// Annotations List of helpful terms describing the workflows intended purpose, subject areas, or other important
@@ -112,6 +114,8 @@ type BaseWorkflow struct {
 	// +optional
 	KeepActive bool `json:"keepActive,omitempty"`
 	// Metadata custom information shared with the runtime.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
 	// AutoRetries If set to true, actions should automatically be retried on unchecked errors. Default is false
@@ -120,6 +124,8 @@ type BaseWorkflow struct {
 	// Auth definitions can be used to define authentication information that should be applied to resources defined
 	// in the operation property of function definitions. It is not used as authentication information for the
 	// function invocation, but just to access the resource containing the function invocation information.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
 	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
 }
@@ -524,9 +530,17 @@ type OnError struct {
 	ErrorRef string `json:"errorRef,omitempty"`
 	// ErrorRefs References one or more workflow error definitions. Used if errorRef is not used
 	ErrorRefs []string `json:"errorRefs,omitempty"`
-	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if retries were unsuccessful.
+	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if
+	// retries were unsuccessful.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +optional
 	Transition *Transition `json:"transition,omitempty"`
-	// End workflow execution in case of this error. If retryRef is defined, this ends workflow only if retries were unsuccessful.
+	// End workflow execution in case of this error. If retryRef is defined, this ends workflow only if
+	// retries were unsuccessful.
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +optional
 	End *End `json:"end,omitempty"`
 }
 

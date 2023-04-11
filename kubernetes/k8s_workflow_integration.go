@@ -37,13 +37,7 @@ import (
 
 // ServerlessWorkflowSpec defines a base API for integration test with operator-sdk
 type ServerlessWorkflowSpec struct {
-	BaseWorkflow model.BaseWorkflow `json:",inline"`
-	Events       []model.Event      `json:"events,omitempty"`
-	Functions    []model.Function   `json:"functions,omitempty"`
-	Retries      []model.Retry      `json:"retries,omitempty"`
-	// +kubebuilder:validation:MinItems=1
-	// +kubebuilder:pruning:PreserveUnknownFields
-	States []model.State `json:"states"`
+	model.Workflow `json:",inline"`
 }
 
 // ServerlessWorkflow ...

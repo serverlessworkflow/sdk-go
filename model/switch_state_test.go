@@ -31,7 +31,27 @@ func TestDefaultConditionUnmarshalJSON(t *testing.T) {
 
 	testCases := []testCase{
 		{
-			desp: "string success",
+			desp: "json nextState success",
+			data: `{"transition": {"nextState": "next state"}}`,
+			expect: DefaultCondition{
+				Transition: &Transition{
+					NextState: "next state",
+				},
+			},
+			err: ``,
+		},
+		{
+			desp: "invalid json nextState",
+			data: `{"transition": {"nextState": "next state}}`,
+			err:  `unexpected end of JSON input`,
+		},
+		{
+			desp: "invalid json nextState type",
+			data: `{"transition": {"nextState": true}}`,
+			err:  `transition.nextState must be string`,
+		},
+		{
+			desp: "transition json success",
 			data: `{"transition": "next state"}`,
 			expect: DefaultCondition{
 				Transition: &Transition{
@@ -41,14 +61,14 @@ func TestDefaultConditionUnmarshalJSON(t *testing.T) {
 			err: ``,
 		},
 		{
-			desp: "string success",
-			data: `{"transition": {"nextState": "next state"}}`,
-			expect: DefaultCondition{
-				Transition: &Transition{
-					NextState: "next state",
-				},
-			},
-			err: ``,
+			desp: "invalid json transition",
+			data: `{"transition": "next state}`,
+			err:  `unexpected end of JSON input`,
+		},
+		{
+			desp: "invalid json transition type",
+			data: `{"transition": true}`,
+			err:  `transition must be string or object`,
 		},
 		{
 			desp: "string success",
@@ -59,6 +79,16 @@ func TestDefaultConditionUnmarshalJSON(t *testing.T) {
 				},
 			},
 			err: ``,
+		},
+		{
+			desp: "invalid string syntax",
+			data: `"next state`,
+			err:  `unexpected end of JSON input`,
+		},
+		{
+			desp: "invalid type",
+			data: `123`,
+			err:  `defaultCondition must be string or object`,
 		},
 	}
 

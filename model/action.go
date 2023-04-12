@@ -64,7 +64,7 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("action", data, (*actionUnmarshal)(a))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Action
 func (a *Action) ApplyDefault() {
 	a.ActionDataFilter.ApplyDefault()
 }
@@ -96,7 +96,7 @@ func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, (*functionRefUnmarshal)(f))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Function Ref
 func (f *FunctionRef) ApplyDefault() {
 	f.Invoke = InvokeKindSync
 }

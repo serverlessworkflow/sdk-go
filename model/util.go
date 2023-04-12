@@ -130,12 +130,12 @@ func getBytesFromFile(uri string) (b []byte, err error) {
 		}
 
 	} else {
-		// #nosec
 		req, err := http.NewRequest(http.MethodGet, refUrl.String(), nil)
 		if err != nil {
 			return nil, err
 		}
 
+		// #nosec
 		resp, err := httpClient.Do(req)
 		if err != nil {
 			return nil, err

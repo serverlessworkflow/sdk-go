@@ -43,7 +43,7 @@ func (a *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("actionDataFilter", data, (*actionDataFilterUnmarshal)(a))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Action Data Filter
 func (a *ActionDataFilter) ApplyDefault() {
 	a.UseResults = true
 }

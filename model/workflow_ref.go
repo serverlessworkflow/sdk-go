@@ -43,7 +43,7 @@ func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Workflow Ref
 func (s *WorkflowRef) ApplyDefault() {
 	s.Invoke = InvokeKindSync
 	s.OnParentComplete = "terminate"

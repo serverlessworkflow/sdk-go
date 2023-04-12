@@ -70,7 +70,7 @@ func (ps *ParallelState) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("parallelState", data, (*parallelStateUnmarshal)(ps))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Parallel State
 func (ps *ParallelState) ApplyDefault() {
 	ps.CompletionType = CompletionTypeAllOf
 }

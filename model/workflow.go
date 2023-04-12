@@ -187,7 +187,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Workflow
 func (w *Workflow) ApplyDefault() {
 	w.ExpressionLang = JqExpressionLang
 }
@@ -278,7 +278,7 @@ func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, (*workflowExecTimeoutUnmarshal)(w))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Workflow Exec Timeout
 func (w *WorkflowExecTimeout) ApplyDefault() {
 	w.Duration = UnlimitedTimeout
 }
@@ -486,7 +486,7 @@ func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Data Input Schema
 func (d *DataInputSchema) ApplyDefault() {
 	d.FailOnValidationErrors = true
 }

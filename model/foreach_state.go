@@ -89,7 +89,7 @@ func (f *ForEachState) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("forEachState", data, (*forEachStateUnmarshal)(f))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for ForEach State
 func (f *ForEachState) ApplyDefault() {
 	f.Mode = ForEachModeTypeParallel
 }

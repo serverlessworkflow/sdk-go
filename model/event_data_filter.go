@@ -37,7 +37,7 @@ func (f *EventDataFilter) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("eventDataFilter", data, (*eventDataFilterUnmarshal)(f))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Event Data Filter
 func (f *EventDataFilter) ApplyDefault() {
 	f.UseData = true
 }

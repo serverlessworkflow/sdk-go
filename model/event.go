@@ -58,7 +58,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("event", data, (*eventUnmarshal)(e))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Event
 func (e *Event) ApplyDefault() {
 	e.DataOnly = true
 	e.Kind = EventKindConsumed
@@ -108,7 +108,7 @@ func (e *EventRef) UnmarshalJSON(data []byte) error {
 	return unmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
 }
 
-// ApplyDefault set the default values
+// ApplyDefault set the default values for Event Ref
 func (e *EventRef) ApplyDefault() {
 	e.Invoke = InvokeKindSync
 }

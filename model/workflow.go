@@ -171,6 +171,7 @@ func (r *AuthArray) unmarshalMany(data []byte) error {
 type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:validation:MinItems=1
+	// +kubebuilder:pruning:PreserveUnknownFields
 	States []State `json:"states" validate:"required,min=1,dive"`
 	// +optional
 	Events []Event `json:"events,omitempty"`

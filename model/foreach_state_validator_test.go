@@ -34,7 +34,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			state: State{
 				BaseState: BaseState{
 					Name: "1",
-					Type: "2",
+					Type: StateTypeForEach,
 					End: &End{
 						Terminate: true,
 					},
@@ -54,7 +54,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			state: State{
 				BaseState: BaseState{
 					Name: "1",
-					Type: "2",
+					Type: StateTypeForEach,
 					End: &End{
 						Terminate: true,
 					},
@@ -78,7 +78,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			state: State{
 				BaseState: BaseState{
 					Name: "1",
-					Type: "2",
+					Type: StateTypeForEach,
 					End: &End{
 						Terminate: true,
 					},
@@ -102,7 +102,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			state: State{
 				BaseState: BaseState{
 					Name: "1",
-					Type: "2",
+					Type: StateTypeForEach,
 					End: &End{
 						Terminate: true,
 					},

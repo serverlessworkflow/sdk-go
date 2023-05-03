@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-)
-
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
@@ -33,7 +27,7 @@ type WorkflowRef struct {
 	// +kubebuilder:validation:Enum=async;sync
 	// +kubebuilder:default=sync
 	// +optional
-	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 	// onParentComplete specifies how subflow execution should behave when parent workflow completes if invoke
 	// is 'async'. Defaults to terminate.
 	// +kubebuilder:validation:Enum=terminate;continue
@@ -41,37 +35,16 @@ type WorkflowRef struct {
 	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
 }
 
-type workflowRefForUnmarshal WorkflowRef
+type workflowRefUnmarshal WorkflowRef
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
+	s.ApplyDefault()
+	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
+}
 
-	var err error
-	switch data[0] {
-	case '"':
-		s.WorkflowID, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		s.Invoke, s.OnParentComplete = InvokeKindSync, "terminate"
-		return nil
-	case '{':
-		v := workflowRefForUnmarshal{
-			Invoke:           InvokeKindSync,
-			OnParentComplete: "terminate",
-		}
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			// TODO: replace the error message with correct type's name
-			return err
-		}
-		*s = WorkflowRef(v)
-		return nil
-	}
-
-	return fmt.Errorf("subFlowRef value '%s' is not supported, it must be an object or string", string(data))
+// ApplyDefault set the default values for Workflow Ref
+func (s *WorkflowRef) ApplyDefault() {
+	s.Invoke = InvokeKindSync
+	s.OnParentComplete = "terminate"
 }

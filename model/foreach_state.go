@@ -16,13 +16,23 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
 type ForEachModeType string
+
+func (f ForEachModeType) KindValues() []string {
+	return []string{
+		string(ForEachModeTypeSequential),
+		string(ForEachModeTypeParallel),
+	}
+}
+
+func (f ForEachModeType) String() string {
+	return string(f)
+}
 
 const (
 	// ForEachModeTypeSequential specifies iterations should be done sequentially.
@@ -56,7 +66,7 @@ type ForEachState struct {
 	// Specifies how iterations are to be performed (sequential or in parallel), defaults to parallel.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=parallel
-	Mode ForEachModeType `json:"mode,omitempty"`
+	Mode ForEachModeType `json:"mode,omitempty" validate:"required,oneofkind"`
 }
 
 func (f *ForEachState) MarshalJSON() ([]byte, error) {
@@ -71,19 +81,17 @@ func (f *ForEachState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-type forEachStateForUnmarshal ForEachState
+type forEachStateUnmarshal ForEachState
 
+// UnmarshalJSON implements json.Unmarshaler
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
-	v := forEachStateForUnmarshal{
-		Mode: ForEachModeTypeParallel,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("forEachState value '%s' is not supported, it must be an object or string", string(data))
-	}
+	f.ApplyDefault()
+	return unmarshalObject("forEachState", data, (*forEachStateUnmarshal)(f))
+}
 
-	*f = ForEachState(v)
-	return nil
+// ApplyDefault set the default values for ForEach State
+func (f *ForEachState) ApplyDefault() {
+	f.Mode = ForEachModeTypeParallel
 }
 
 // ForEachStateTimeout defines timeout settings for foreach state

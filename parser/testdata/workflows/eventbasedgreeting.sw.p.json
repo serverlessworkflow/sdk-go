@@ -7,7 +7,7 @@
   "start": {
     "stateName": "Greet"
   },
-  "events": "testdata/eventbasedgreetingevents.json",
+  "events": "file://testdata/eventbasedgreetingevents.json",
   "functions": [
     {
       "name": "greetingFunction",

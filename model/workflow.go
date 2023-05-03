@@ -15,13 +15,19 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 )
 
 // InvokeKind defines how the target is invoked.
 type InvokeKind string
+
+func (i InvokeKind) KindValues() []string {
+	return []string{string(InvokeKindSync), string(InvokeKindAsync)}
+}
+
+func (i InvokeKind) String() string {
+	return string(i)
+}
 
 const (
 	// InvokeKindSync meaning that worfklow execution should wait until the target completes.
@@ -108,7 +114,7 @@ type BaseWorkflow struct {
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
 	// Defines checked errors that can be explicitly handled during workflow execution.
 	// +optional
-	Errors []Error `json:"errors,omitempty"`
+	Errors Errors `json:"errors,omitempty"`
 	// If "true", workflow instances is not terminated when there are no active execution paths.
 	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
 	// +optional
@@ -127,44 +133,25 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"omitempty"`
 }
 
-type AuthArray []Auth
+type Auths []Auth
 
-func (r *AuthArray) UnmarshalJSON(data []byte) error {
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
+type authsUnmarshal Auths
 
-	switch data[0] {
-	case '"':
-		return r.unmarshalFile(data)
-	case '[':
-		return r.unmarshalMany(data)
-	}
-
-	return fmt.Errorf("auth value '%s' is not supported, it must be an array or string", string(data))
+// UnmarshalJSON implements json.Unmarshaler
+func (r *Auths) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("auth", data, (*authsUnmarshal)(r))
 }
 
-func (r *AuthArray) unmarshalFile(data []byte) error {
-	b, err := unmarshalFile(data)
-	if err != nil {
-		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
-	}
+type Errors []Error
 
-	return r.unmarshalMany(b)
-}
+type errorsUnmarshal Errors
 
-func (r *AuthArray) unmarshalMany(data []byte) error {
-	var auths []Auth
-	err := json.Unmarshal(data, &auths)
-	if err != nil {
-		return fmt.Errorf("authDefinitions value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*r = auths
-	return nil
+// UnmarshalJSON implements json.Unmarshaler
+func (e *Errors) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("errors", data, (*errorsUnmarshal)(e))
 }
 
 // Workflow base definition
@@ -174,118 +161,71 @@ type Workflow struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	States []State `json:"states" validate:"required,min=1,dive"`
 	// +optional
-	Events []Event `json:"events,omitempty"`
+	Events Events `json:"events,omitempty"`
 	// +optional
-	Functions []Function `json:"functions,omitempty"`
+	Functions Functions `json:"functions,omitempty"`
 	// +optional
-	Retries []Retry `json:"retries,omitempty" validate:"dive"`
+	Retries Retries `json:"retries,omitempty" validate:"dive"`
 }
+
+type workflowUnmarshal Workflow
 
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &w.BaseWorkflow); err != nil {
+	w.ApplyDefault()
+	err := unmarshalObject("workflow", data, (*workflowUnmarshal)(w))
+	if err != nil {
 		return err
 	}
 
-	workflowMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &workflowMap); err != nil {
-		return err
-	}
-
-	var rawStates []json.RawMessage
-	if _, ok := workflowMap["states"]; ok {
-		if err := json.Unmarshal(workflowMap["states"], &rawStates); err != nil {
-			return err
-		}
-	}
-
-	w.States = make([]State, len(rawStates))
-	for i, rawState := range rawStates {
-		if err := json.Unmarshal(rawState, &w.States[i]); err != nil {
-			return err
-		}
-	}
-
-	// if the start is not defined, use the first state
-	if w.BaseWorkflow.Start == nil && len(w.States) > 0 {
-		w.BaseWorkflow.Start = &Start{
+	if w.Start == nil && len(w.States) > 0 {
+		w.Start = &Start{
 			StateName: w.States[0].Name,
 		}
 	}
 
-	if _, ok := workflowMap["events"]; ok {
-		if err := json.Unmarshal(workflowMap["events"], &w.Events); err != nil {
-			var s string
-			if err := json.Unmarshal(workflowMap["events"], &s); err != nil {
-				return err
-			}
-			var nestedData []byte
-			if nestedData, err = getBytesFromFile(s); err != nil {
-				return err
-			}
-
-			m := make(map[string][]Event)
-			if err := json.Unmarshal(nestedData, &m); err != nil {
-				return err
-			}
-			w.Events = m["events"]
-		}
-	}
-	if _, ok := workflowMap["functions"]; ok {
-		if err := json.Unmarshal(workflowMap["functions"], &w.Functions); err != nil {
-			var s string
-			if err := json.Unmarshal(workflowMap["functions"], &s); err != nil {
-				return err
-			}
-			var nestedData []byte
-			if nestedData, err = getBytesFromFile(s); err != nil {
-				return err
-			}
-			m := make(map[string][]Function)
-			if err := json.Unmarshal(nestedData, &m); err != nil {
-				return err
-			}
-			w.Functions = m["functions"]
-		}
-	}
-	if _, ok := workflowMap["retries"]; ok {
-		if err := json.Unmarshal(workflowMap["retries"], &w.Retries); err != nil {
-			var s string
-			if err := json.Unmarshal(workflowMap["retries"], &s); err != nil {
-				return err
-			}
-			var nestedData []byte
-			if nestedData, err = getBytesFromFile(s); err != nil {
-				return err
-			}
-			m := make(map[string][]Retry)
-			if err := json.Unmarshal(nestedData, &m); err != nil {
-				return err
-			}
-			w.Retries = m["retries"]
-		}
-	}
-	if _, ok := workflowMap["errors"]; ok {
-		if err := json.Unmarshal(workflowMap["errors"], &w.Errors); err != nil {
-			nestedData, err := unmarshalFile(workflowMap["errors"])
-			if err != nil {
-				return err
-			}
-			m := make(map[string][]Error)
-			if err := json.Unmarshal(nestedData, &m); err != nil {
-				return err
-			}
-			w.Errors = m["errors"]
-		}
-	}
-	w.setDefaults()
 	return nil
 }
 
-func (w *Workflow) setDefaults() {
-	if len(w.ExpressionLang) == 0 {
-		w.ExpressionLang = JqExpressionLang
-	}
+// ApplyDefault set the default values for Workflow
+func (w *Workflow) ApplyDefault() {
+	w.ExpressionLang = JqExpressionLang
+}
+
+type States []State
+
+type statesUnmarshal States
+
+// UnmarshalJSON implements json.Unmarshaler
+func (s *States) UnmarshalJSON(data []byte) error {
+	return unmarshalObject("states", data, (*statesUnmarshal)(s))
+}
+
+type Events []Event
+
+type eventsUnmarshal Events
+
+// UnmarshalJSON implements json.Unmarshaler
+func (e *Events) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("events", data, (*eventsUnmarshal)(e))
+}
+
+type Functions []Function
+
+type functionsUnmarshal Functions
+
+// UnmarshalJSON implements json.Unmarshaler
+func (f *Functions) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("functions", data, (*functionsUnmarshal)(f))
+}
+
+type Retries []Retry
+
+type retriesUnmarshal Retries
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *Retries) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("retries", data, (*retriesUnmarshal)(r))
 }
 
 // Timeouts ...
@@ -308,37 +248,11 @@ type Timeouts struct {
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,min=1"`
 }
 
-// UnmarshalJSON ...
-func (t *Timeouts) UnmarshalJSON(data []byte) error {
-	timeout := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &timeout); err != nil {
-		// assumes it's a reference to a file
-		file, err := unmarshalFile(data)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(file, &t); err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("workflowExecTimeout", timeout, &t.WorkflowExecTimeout); err != nil {
-		return err
-	}
-	if err := unmarshalKey("stateExecTimeout", timeout, &t.StateExecTimeout); err != nil {
-		return err
-	}
-	if err := unmarshalKey("actionExecTimeout", timeout, &t.ActionExecTimeout); err != nil {
-		return err
-	}
-	if err := unmarshalKey("branchExecTimeout", timeout, &t.ActionExecTimeout); err != nil {
-		return err
-	}
-	if err := unmarshalKey("eventTimeout", timeout, &t.ActionExecTimeout); err != nil {
-		return err
-	}
+type timeoutsUnmarshal Timeouts
 
-	return nil
+// UnmarshalJSON implements json.Unmarshaler
+func (t *Timeouts) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("timeouts", data, (*timeoutsUnmarshal)(t))
 }
 
 // WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
@@ -356,29 +270,17 @@ type WorkflowExecTimeout struct {
 	RunBefore string `json:"runBefore,omitempty" validate:"omitempty,min=1"`
 }
 
-// UnmarshalJSON ...
+type workflowExecTimeoutUnmarshal WorkflowExecTimeout
+
+// UnmarshalJSON implements json.Unmarshaler
 func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
-	execTimeout := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &execTimeout); err != nil {
-		w.Duration, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-	} else {
-		if err := unmarshalKey("duration", execTimeout, &w.Duration); err != nil {
-			return err
-		}
-		if err := unmarshalKey("interrupt", execTimeout, &w.Interrupt); err != nil {
-			return err
-		}
-		if err := unmarshalKey("runBefore", execTimeout, &w.RunBefore); err != nil {
-			return err
-		}
-	}
-	if len(w.Duration) == 0 {
-		w.Duration = UnlimitedTimeout
-	}
-	return nil
+	w.ApplyDefault()
+	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, (*workflowExecTimeoutUnmarshal)(w))
+}
+
+// ApplyDefault set the default values for Workflow Exec Timeout
+func (w *WorkflowExecTimeout) ApplyDefault() {
+	w.Duration = UnlimitedTimeout
 }
 
 // Error declaration for workflow definitions
@@ -406,24 +308,11 @@ type Start struct {
 	Schedule *Schedule `json:"schedule,omitempty" validate:"omitempty"`
 }
 
-// UnmarshalJSON ...
-func (s *Start) UnmarshalJSON(data []byte) error {
-	startMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &startMap); err != nil {
-		s.StateName, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := unmarshalKey("stateName", startMap, &s.StateName); err != nil {
-		return err
-	}
-	if err := unmarshalKey("schedule", startMap, &s.Schedule); err != nil {
-		return err
-	}
+type startUnmarshal Start
 
-	return nil
+// UnmarshalJSON implements json.Unmarshaler
+func (s *Start) UnmarshalJSON(data []byte) error {
+	return unmarshalPrimitiveOrObject("start", data, &s.StateName, (*startUnmarshal)(s))
 }
 
 // Schedule ...
@@ -442,28 +331,11 @@ type Schedule struct {
 	Timezone string `json:"timezone,omitempty"`
 }
 
-// UnmarshalJSON ...
+type scheduleUnmarshal Schedule
+
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Schedule) UnmarshalJSON(data []byte) error {
-	scheduleMap := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &scheduleMap); err != nil {
-		s.Interval, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := unmarshalKey("interval", scheduleMap, &s.Interval); err != nil {
-		return err
-	}
-	if err := unmarshalKey("cron", scheduleMap, &s.Cron); err != nil {
-		return err
-	}
-	if err := unmarshalKey("timezone", scheduleMap, &s.Timezone); err != nil {
-		return err
-	}
-
-	return nil
+	return unmarshalPrimitiveOrObject("schedule", data, &s.Interval, (*scheduleUnmarshal)(s))
 }
 
 // Cron ...
@@ -476,21 +348,11 @@ type Cron struct {
 	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601duration"`
 }
 
+type cronUnmarshal Cron
+
 // UnmarshalJSON custom unmarshal function for Cron
 func (c *Cron) UnmarshalJSON(data []byte) error {
-	cron := make(map[string]interface{})
-	if err := json.Unmarshal(data, &cron); err != nil {
-		c.Expression, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	c.Expression = requiresNotNilOrEmpty(cron["expression"])
-	c.ValidUntil = requiresNotNilOrEmpty(cron["validUntil"])
-
-	return nil
+	return unmarshalPrimitiveOrObject("cron", data, &c.Expression, (*cronUnmarshal)(c))
 }
 
 // Transition Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
@@ -508,21 +370,11 @@ type Transition struct {
 	Compensate bool `json:"compensate,omitempty"`
 }
 
-// UnmarshalJSON ...
-func (e *Transition) UnmarshalJSON(data []byte) error {
-	type defTransitionUnmarshal Transition
+type transitionUnmarshal Transition
 
-	obj, str, err := primitiveOrStruct[string, defTransitionUnmarshal](data)
-	if err != nil {
-		return err
-	}
-
-	if obj == nil {
-		e.NextState = str
-	} else {
-		*e = Transition(*obj)
-	}
-	return nil
+// UnmarshalJSON implements json.Unmarshaler
+func (t *Transition) UnmarshalJSON(data []byte) error {
+	return unmarshalPrimitiveOrObject("transition", data, &t.NextState, (*transitionUnmarshal)(t))
 }
 
 // OnError ...
@@ -562,22 +414,11 @@ type End struct {
 	ContinueAs *ContinueAs `json:"continueAs,omitempty"`
 }
 
-// UnmarshalJSON ...
+type endUnmarshal End
+
+// UnmarshalJSON implements json.Unmarshaler
 func (e *End) UnmarshalJSON(data []byte) error {
-	type endUnmarshal End
-	end, endBool, err := primitiveOrStruct[bool, endUnmarshal](data)
-	if err != nil {
-		return err
-	}
-
-	if end == nil {
-		e.Terminate = endBool
-		e.Compensate = false
-	} else {
-		*e = End(*end)
-	}
-
-	return nil
+	return unmarshalPrimitiveOrObject("end", data, &e.Terminate, (*endUnmarshal)(e))
 }
 
 // ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
@@ -598,31 +439,11 @@ type ContinueAs struct {
 	WorkflowExecTimeout WorkflowExecTimeout `json:"workflowExecTimeout,omitempty"`
 }
 
-type continueAsForUnmarshal ContinueAs
+type continueAsUnmarshal ContinueAs
 
+// UnmarshalJSON implements json.Unmarshaler
 func (c *ContinueAs) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return fmt.Errorf("no bytes to unmarshal")
-	}
-
-	var err error
-	switch data[0] {
-	case '"':
-		c.WorkflowID, err = unmarshalString(data)
-		return err
-	case '{':
-		v := continueAsForUnmarshal{}
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			return err
-		}
-
-		*c = ContinueAs(v)
-		return nil
-	}
-
-	return fmt.Errorf("continueAs value '%s' is not supported, it must be an object or string", string(data))
+	return unmarshalPrimitiveOrObject("continueAs", data, &c.WorkflowID, (*continueAsUnmarshal)(c))
 }
 
 // ProduceEvent Defines the event (CloudEvent format) to be produced when workflow execution completes or during a
@@ -654,70 +475,43 @@ type DataInputSchema struct {
 	// +kubebuilder:validation:Required
 	Schema string `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
-	FailOnValidationErrors *bool `json:"failOnValidationErrors" validate:"required"`
+	FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
 }
 
-// UnmarshalJSON ...
-func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
-	dataInSchema := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &dataInSchema); err != nil {
-		d.Schema, err = unmarshalString(data)
-		if err != nil {
-			return err
-		}
-		d.FailOnValidationErrors = &TRUE
-		return nil
-	}
-	if err := unmarshalKey("schema", dataInSchema, &d.Schema); err != nil {
-		return err
-	}
-	if err := unmarshalKey("failOnValidationErrors", dataInSchema, &d.FailOnValidationErrors); err != nil {
-		return err
-	}
+type dataInputSchemaUnmarshal DataInputSchema
 
-	return nil
+// UnmarshalJSON implements json.Unmarshaler
+func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
+	d.ApplyDefault()
+	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
+}
+
+// ApplyDefault set the default values for Data Input Schema
+func (d *DataInputSchema) ApplyDefault() {
+	d.FailOnValidationErrors = true
 }
 
 // Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc inside your
 // Workflow Expressions.
 type Secrets []string
 
-// UnmarshalJSON ...
+type secretsUnmarshal Secrets
+
+// UnmarshalJSON implements json.Unmarshaler
 func (s *Secrets) UnmarshalJSON(data []byte) error {
-	var secretArray []string
-	if err := json.Unmarshal(data, &secretArray); err != nil {
-		file, err := unmarshalFile(data)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(file, &secretArray); err != nil {
-			return err
-		}
-	}
-	*s = secretArray
-	return nil
+	return unmarshalObjectOrFile("secrets", data, (*secretsUnmarshal)(s))
 }
 
 // Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
 type Constants struct {
 	// Data represents the generic structure of the constants value
 	// +optional
-	Data map[string]json.RawMessage `json:",omitempty"`
+	Data ConstantsData `json:",omitempty"`
 }
 
-// UnmarshalJSON ...
+// UnmarshalJSON implements json.Unmarshaler
 func (c *Constants) UnmarshalJSON(data []byte) error {
-	constantData := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &constantData); err != nil {
-		// assumes it's a reference to a file
-		file, err := unmarshalFile(data)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(file, &constantData); err != nil {
-			return err
-		}
-	}
-	c.Data = constantData
-	return nil
+	return unmarshalObjectOrFile("constants", data, &c.Data)
 }
+
+type ConstantsData map[string]json.RawMessage

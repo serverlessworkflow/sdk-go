@@ -673,7 +673,7 @@ states:
   "description": "Determine if applicant request is valid",
   "start": "Hello State",
   "specVersion": "0.8",
-  "auth": "./testdata/workflows/urifiles/auth.json",
+  "auth": "testdata/workflows/urifiles/auth.json",
   "states": [
     {
 	  "name": "Hello State",
@@ -719,7 +719,7 @@ states:
 `))
 
 		assert.NotNil(t, err)
-		assert.Equal(t, "auth value '123' is not supported, it must be an array or string", err.Error())
+		assert.Equal(t, "auth must be string or array", err.Error())
 		assert.Nil(t, workflow)
 	})
 }

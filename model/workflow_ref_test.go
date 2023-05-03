@@ -80,13 +80,13 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 			desp:   "invalid json format",
 			data:   `{"workflowId": 1, "version": "2", "invoke": "async", "onParentComplete": "continue"}`,
 			expect: WorkflowRef{},
-			err:    `json: cannot unmarshal number into Go struct field workflowRefForUnmarshal.workflowId of type string`,
+			err:    "subFlowRef.workflowId must be string",
 		},
 		{
 			desp:   "invalid string or object",
 			data:   `1`,
 			expect: WorkflowRef{},
-			err:    `subFlowRef value '1' is not supported, it must be an object or string`,
+			err:    `subFlowRef must be string or object`,
 		},
 	}
 	for _, tc := range testCases {
@@ -151,7 +151,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 				Invoke:           "sync1",
 				OnParentComplete: "terminate",
 			},
-			err: `Key: 'WorkflowRef.Invoke' Error:Field validation for 'Invoke' failed on the 'oneof' tag`,
+			err: `Key: 'WorkflowRef.Invoke' Error:Field validation for 'Invoke' failed on the 'oneofkind' tag`,
 		},
 		{
 			desp: "invalid onParentComplete",

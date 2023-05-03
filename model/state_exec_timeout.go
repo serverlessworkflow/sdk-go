@@ -14,12 +14,6 @@
 
 package model
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-)
-
 // StateExecTimeout defines workflow state execution timeout
 type StateExecTimeout struct {
 	// Single state execution timeout, not including retries (ISO 8601 duration format)
@@ -30,34 +24,9 @@ type StateExecTimeout struct {
 	Total string `json:"total" validate:"required,iso8601duration"`
 }
 
-// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
-type stateExecTimeoutForUnmarshal StateExecTimeout
+type stateExecTimeoutUnmarshal StateExecTimeout
 
 // UnmarshalJSON unmarshal StateExecTimeout object from json bytes
 func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
-	// We must trim the leading space, because we use first byte to detect data's type
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		// TODO: Normalize error messages
-		return fmt.Errorf("no bytes to unmarshal")
-	}
-
-	var err error
-	switch data[0] {
-	case '"':
-		s.Total, err = unmarshalString(data)
-		return err
-	case '{':
-		var v stateExecTimeoutForUnmarshal
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			return err
-		}
-
-		*s = StateExecTimeout(v)
-
-		return nil
-	}
-
-	return fmt.Errorf("stateExecTimeout value '%s' is not supported, it must be an object or string", string(data))
+	return unmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, (*stateExecTimeoutUnmarshal)(s))
 }

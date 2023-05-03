@@ -26,7 +26,7 @@ var workflowStructDefault = Workflow{
 	BaseWorkflow: BaseWorkflow{
 		ID:          "id",
 		SpecVersion: "0.8",
-		Auth: AuthArray{
+		Auth: Auths{
 			{
 				Name: "auth name",
 			},

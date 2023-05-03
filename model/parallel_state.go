@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -63,26 +62,17 @@ func (p *ParallelState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-type parallelStateForUnmarshal ParallelState
+type parallelStateUnmarshal ParallelState
 
 // UnmarshalJSON unmarshal ParallelState object from json bytes
-func (ps *ParallelState) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
-		// TODO: Normalize error messages
-		return fmt.Errorf("no bytes to unmarshal")
-	}
+func (ps *ParallelState) UnmarshalJSON(data []byte) error {
+	ps.ApplyDefault()
+	return unmarshalObject("parallelState", data, (*parallelStateUnmarshal)(ps))
+}
 
-	v := &parallelStateForUnmarshal{
-		CompletionType: CompletionTypeAllOf,
-	}
-	err := json.Unmarshal(b, v)
-	if err != nil {
-		return err
-	}
-
-	*ps = ParallelState(*v)
-
-	return nil
+// ApplyDefault set the default values for Parallel State
+func (ps *ParallelState) ApplyDefault() {
+	ps.CompletionType = CompletionTypeAllOf
 }
 
 // Branch Definition

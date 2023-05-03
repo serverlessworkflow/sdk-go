@@ -39,7 +39,7 @@ func continueAsStructLevelValidation(structLevel validator.StructLevel) {
 // WorkflowStructLevelValidation custom validator
 func workflowStructLevelValidation(structLevel validator.StructLevel) {
 	// unique name of the auth methods
-	// NOTE: we cannot add the custom validation of auth to AuthArray
+	// NOTE: we cannot add the custom validation of auth to Auth
 	// because `RegisterStructValidation` only works with struct type
 	wf := structLevel.Current().Interface().(Workflow)
 	dict := map[string]bool{}

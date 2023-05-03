@@ -14,10 +14,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
 
@@ -54,21 +50,18 @@ type Event struct {
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
 }
 
-type eventForUnmarshal Event
+type eventUnmarshal Event
 
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
-	v := eventForUnmarshal{
-		DataOnly: true,
-		Kind:     EventKindConsumed,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
+	e.ApplyDefault()
+	return unmarshalObject("event", data, (*eventUnmarshal)(e))
+}
 
-	*e = Event(v)
-	return nil
+// ApplyDefault set the default values for Event
+func (e *Event) ApplyDefault() {
+	e.DataOnly = true
+	e.Kind = EventKindConsumed
 }
 
 // Correlation define event correlation rules for an event. Only used for `consumed` events
@@ -104,21 +97,18 @@ type EventRef struct {
 	// Specifies if the function should be invoked sync or async. Default is sync.
 	// +kubebuilder:validation:Enum=async;sync
 	// +kubebuilder:default=sync
-	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneof=async sync"`
+	Invoke InvokeKind `json:"invoke,omitempty" validate:"required,oneofkind"`
 }
 
-type eventRefForUnmarshal EventRef
+type eventRefUnmarshal EventRef
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
-	v := eventRefForUnmarshal{
-		Invoke: InvokeKindSync,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
+	e.ApplyDefault()
+	return unmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
+}
 
-	*e = EventRef(v)
-	return nil
+// ApplyDefault set the default values for Event Ref
+func (e *EventRef) ApplyDefault() {
+	e.Invoke = InvokeKindSync
 }

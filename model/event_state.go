@@ -16,7 +16,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // EventState await one or more events and perform actions when they are received. If defined as the
@@ -49,20 +48,17 @@ func (e *EventState) MarshalJSON() ([]byte, error) {
 	return custom, err
 }
 
-type eventStateForUnmarshal EventState
+type eventStateUnmarshal EventState
 
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
-	v := eventStateForUnmarshal{
-		Exclusive: true,
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("eventState value '%s' is not supported, it must be an object or string", string(data))
-	}
+	e.ApplyDefault()
+	return unmarshalObject("eventState", data, (*eventStateUnmarshal)(e))
+}
 
-	*e = EventState(v)
-	return nil
+// ApplyDefault set the default values for Event State
+func (e *EventState) ApplyDefault() {
+	e.Exclusive = true
 }
 
 // OnEvents define which actions are be performed for the one or more events.
@@ -82,22 +78,17 @@ type OnEvents struct {
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
 }
 
-type onEventsForUnmarshal OnEvents
+type onEventsUnmarshal OnEvents
 
 // UnmarshalJSON unmarshal OnEvents object from json bytes
 func (o *OnEvents) UnmarshalJSON(data []byte) error {
-	v := onEventsForUnmarshal{
-		ActionMode: ActionModeSequential,
-	}
+	o.ApplyDefault()
+	return unmarshalObject("onEvents", data, (*onEventsUnmarshal)(o))
+}
 
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return fmt.Errorf("onEvents value '%s' is not supported, it must be an object or string", string(data))
-	}
-
-	*o = OnEvents(v)
-
-	return nil
+// ApplyDefault set the default values for On Events
+func (o *OnEvents) ApplyDefault() {
+	o.ActionMode = ActionModeSequential
 }
 
 // EventStateTimeout defines timeout settings for event state

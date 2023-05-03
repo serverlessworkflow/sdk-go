@@ -23,6 +23,24 @@ import (
 // StateType ...
 type StateType string
 
+func (s StateType) KindValues() []string {
+	return []string{
+		string(StateTypeDelay),
+		string(StateTypeEvent),
+		string(StateTypeOperation),
+		string(StateTypeParallel),
+		string(StateTypeSwitch),
+		string(StateTypeForEach),
+		string(StateTypeInject),
+		string(StateTypeCallback),
+		string(StateTypeSleep),
+	}
+}
+
+func (s StateType) String() string {
+	return string(s)
+}
+
 const (
 	// StateTypeDelay ...
 	StateTypeDelay StateType = "delay"
@@ -55,7 +73,7 @@ type BaseState struct {
 	// stateType can be any of delay, callback, event, foreach, inject, operation, parallel, sleep, switch
 	// +kubebuilder:validation:Enum:=delay;callback;event;foreach;inject;operation;parallel;sleep;switch
 	// +kubebuilder:validation:Required
-	Type StateType `json:"type" validate:"required"`
+	Type StateType `json:"type" validate:"required,oneofkind"`
 	// States error handling and retries definitions.
 	// +optional
 	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
@@ -94,44 +112,6 @@ func (b *BaseState) MarshalJSON() ([]byte, error) {
 		Alias: (*Alias)(b),
 	})
 	return cus, err
-}
-
-func (b *BaseState) UnmarshalJSON(data []byte) error {
-	baseState := make(map[string]json.RawMessage)
-	if err := json.Unmarshal(data, &baseState); err != nil {
-		return err
-	}
-	if err := unmarshalKey("id", baseState, &b.ID); err != nil {
-		return err
-	}
-	if err := unmarshalKey("name", baseState, &b.Name); err != nil {
-		return err
-	}
-	if err := unmarshalKey("type", baseState, &b.Type); err != nil {
-		return err
-	}
-	if err := unmarshalKey("onErrors", baseState, &b.OnErrors); err != nil {
-		return err
-	}
-	if err := unmarshalKey("transition", baseState, &b.Transition); err != nil {
-		return err
-	}
-	if err := unmarshalKey("stateDataFilter", baseState, &b.StateDataFilter); err != nil {
-		return err
-	}
-	if err := unmarshalKey("compensatedBy", baseState, &b.CompensatedBy); err != nil {
-		return err
-	}
-	if err := unmarshalKey("usedForCompensation", baseState, &b.UsedForCompensation); err != nil {
-		return err
-	}
-	if err := unmarshalKey("end", baseState, &b.End); err != nil {
-		return err
-	}
-	if err := unmarshalKey("metadata", baseState, &b.Metadata); err != nil {
-		return err
-	}
-	return nil
 }
 
 type State struct {
@@ -220,83 +200,79 @@ func (s *State) MarshalJSON() ([]byte, error) {
 	return []byte(result), errs
 }
 
+type unmarshalState State
+
+// UnmarshalJSON implements json.Unmarshaler
 func (s *State) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &s.BaseState); err != nil {
+	if err := unmarshalObject("state", data, (*unmarshalState)(s)); err != nil {
 		return err
 	}
 
-	mapState := map[string]interface{}{}
-	if err := json.Unmarshal(data, &mapState); err != nil {
-		return err
-	}
-
-	switch mapState["type"] {
-	case string(StateTypeDelay):
+	switch s.Type {
+	case StateTypeDelay:
 		state := &DelayState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.DelayState = state
 
-	case string(StateTypeEvent):
+	case StateTypeEvent:
 		state := &EventState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.EventState = state
 
-	case string(StateTypeOperation):
+	case StateTypeOperation:
 		state := &OperationState{}
-		if err := json.Unmarshal(data, state); err != nil {
+		if err := unmarshalObject("states", data, state); err != nil {
 			return err
 		}
 		s.OperationState = state
 
-	case string(StateTypeParallel):
+	case StateTypeParallel:
 		state := &ParallelState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.ParallelState = state
 
-	case string(StateTypeSwitch):
+	case StateTypeSwitch:
 		state := &SwitchState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.SwitchState = state
 
-	case string(StateTypeForEach):
+	case StateTypeForEach:
 		state := &ForEachState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.ForEachState = state
 
-	case string(StateTypeInject):
+	case StateTypeInject:
 		state := &InjectState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.InjectState = state
 
-	case string(StateTypeCallback):
+	case StateTypeCallback:
 		state := &CallbackState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.CallbackState = state
 
-	case string(StateTypeSleep):
+	case StateTypeSleep:
 		state := &SleepState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.SleepState = state
-	case nil:
-		return fmt.Errorf("state parameter 'type' not defined")
 	default:
-		return fmt.Errorf("state type %v not supported", mapState["type"])
+		return fmt.Errorf("states type %q not supported", s.Type.String())
 	}
 	return nil
 }

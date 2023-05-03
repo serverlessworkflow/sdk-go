@@ -71,7 +71,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			data: `PT10S`,
 
 			expect: &StateExecTimeout{},
-			err:    `stateExecTimeout value 'PT10S' is not supported, it must be an object or string`,
+			err:    `stateExecTimeout has a syntax error "invalid character 'P' looking for beginning of value"`,
 		},
 		{
 			desp: "invalid total type",
@@ -81,7 +81,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 			}`,
 
 			expect: &StateExecTimeout{},
-			err:    `json: cannot unmarshal number into Go struct field stateExecTimeoutForUnmarshal.total of type string`,
+			err:    `stateExecTimeout.total must be string`,
 		},
 		{
 			desp: "invalid single type",
@@ -94,7 +94,7 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 				Single: "",
 				Total:  "PT10S",
 			},
-			err: `json: cannot unmarshal number into Go struct field stateExecTimeoutForUnmarshal.single of type string`,
+			err: `stateExecTimeout.single must be string`,
 		},
 	}
 	for _, tc := range testCases {

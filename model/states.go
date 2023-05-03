@@ -23,6 +23,24 @@ import (
 // StateType ...
 type StateType string
 
+func (s StateType) KindValues() []string {
+	return []string{
+		string(StateTypeDelay),
+		string(StateTypeEvent),
+		string(StateTypeOperation),
+		string(StateTypeParallel),
+		string(StateTypeSwitch),
+		string(StateTypeForEach),
+		string(StateTypeInject),
+		string(StateTypeCallback),
+		string(StateTypeSleep),
+	}
+}
+
+func (s StateType) String() string {
+	return string(s)
+}
+
 const (
 	// StateTypeDelay ...
 	StateTypeDelay StateType = "delay"
@@ -55,7 +73,7 @@ type BaseState struct {
 	// stateType can be any of delay, callback, event, foreach, inject, operation, parallel, sleep, switch
 	// +kubebuilder:validation:Enum:=delay;callback;event;foreach;inject;operation;parallel;sleep;switch
 	// +kubebuilder:validation:Required
-	Type StateType `json:"type" validate:"required"`
+	Type StateType `json:"type" validate:"required,oneofkind"`
 	// States error handling and retries definitions.
 	// +optional
 	OnErrors []OnError `json:"onErrors,omitempty"  validate:"omitempty,dive"`
@@ -100,32 +118,32 @@ type State struct {
 	BaseState `json:",inline"`
 	// delayState Causes the workflow execution to delay for a specified duration.
 	// +optional
-	*DelayState `json:"delayState,omitempty"`
+	*DelayState
 	// event states await one or more events and perform actions when they are received. If defined as the
 	// workflow starting state, the event state definition controls when the workflow instances should be created.
 	// +optional
-	*EventState `json:"eventState,omitempty"`
+	*EventState
 	// operationState defines a set of actions to be performed in sequence or in parallel.
 	// +optional
-	*OperationState `json:"operationState,omitempty"`
+	*OperationState
 	// parallelState Consists of a number of states that are executed in parallel.
 	// +optional
-	*ParallelState `json:"parallelState,omitempty"`
+	*ParallelState
 	// switchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
 	// +optional
-	*SwitchState `json:"switchState,omitempty"`
+	*SwitchState
 	// forEachState used to execute actions for each element of a data set.
 	// +optional
-	*ForEachState `json:"forEachState,omitempty"`
+	*ForEachState
 	// injectState used to inject static data into state data input.
 	// +optional
-	*InjectState `json:"injectState,omitempty"`
+	*InjectState
 	// callbackState executes a function and waits for callback event that indicates completion of the task.
 	// +optional
-	*CallbackState `json:"callbackState,omitempty"`
+	*CallbackState
 	// sleepState suspends workflow execution for a given time duration.
 	// +optional
-	*SleepState `json:"sleepState,omitempty"`
+	*SleepState
 }
 
 func (s *State) MarshalJSON() ([]byte, error) {
@@ -182,84 +200,79 @@ func (s *State) MarshalJSON() ([]byte, error) {
 	return []byte(result), errs
 }
 
+type unmarshalState State
+
 // UnmarshalJSON implements json.Unmarshaler
 func (s *State) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &s.BaseState); err != nil {
+	if err := unmarshalObject("state", data, (*unmarshalState)(s)); err != nil {
 		return err
 	}
 
-	mapState := map[string]interface{}{}
-	if err := json.Unmarshal(data, &mapState); err != nil {
-		return err
-	}
-
-	switch mapState["type"] {
-	case string(StateTypeDelay):
+	switch s.Type {
+	case StateTypeDelay:
 		state := &DelayState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.DelayState = state
 
-	case string(StateTypeEvent):
+	case StateTypeEvent:
 		state := &EventState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.EventState = state
 
-	case string(StateTypeOperation):
+	case StateTypeOperation:
 		state := &OperationState{}
-		if err := json.Unmarshal(data, state); err != nil {
+		if err := unmarshalObject("states", data, state); err != nil {
 			return err
 		}
 		s.OperationState = state
 
-	case string(StateTypeParallel):
+	case StateTypeParallel:
 		state := &ParallelState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.ParallelState = state
 
-	case string(StateTypeSwitch):
+	case StateTypeSwitch:
 		state := &SwitchState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.SwitchState = state
 
-	case string(StateTypeForEach):
+	case StateTypeForEach:
 		state := &ForEachState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.ForEachState = state
 
-	case string(StateTypeInject):
+	case StateTypeInject:
 		state := &InjectState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.InjectState = state
 
-	case string(StateTypeCallback):
+	case StateTypeCallback:
 		state := &CallbackState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.CallbackState = state
 
-	case string(StateTypeSleep):
+	case StateTypeSleep:
 		state := &SleepState{}
 		if err := json.Unmarshal(data, state); err != nil {
 			return err
 		}
 		s.SleepState = state
-	case nil:
-		return fmt.Errorf("state parameter 'type' not defined")
 	default:
-		return fmt.Errorf("state type %v not supported", mapState["type"])
+		return fmt.Errorf("states type %q not supported", s.Type.String())
 	}
 	return nil
 }

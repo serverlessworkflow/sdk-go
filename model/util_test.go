@@ -19,8 +19,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
+	"github.com/serverlessworkflow/sdk-go/v2/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,6 +31,7 @@ func TestIncludePaths(t *testing.T) {
 	assert.True(t, len(IncludePaths()) > 0)
 
 	// update include paths
+	initialPaths := IncludePaths()
 	paths := []string{"/root", "/path"}
 	SetIncludePaths(paths)
 	assert.Equal(t, IncludePaths(), paths)
@@ -36,9 +39,12 @@ func TestIncludePaths(t *testing.T) {
 	assert.PanicsWithError(t, "1 must be an absolute file path", assert.PanicTestFunc(func() {
 		SetIncludePaths([]string{"1"})
 	}))
+
+	SetIncludePaths(initialPaths)
 }
 
-func Test_getBytesFromFile(t *testing.T) {
+func Test_loadExternalResource(t *testing.T) {
+	SetIncludePaths(append(IncludePaths(), filepath.Join(test.CurrentProjectPath())))
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		switch req.URL.Path {
 		case "/test.json":
@@ -51,13 +57,24 @@ func Test_getBytesFromFile(t *testing.T) {
 	defer server.Close()
 	httpClient = *server.Client()
 
-	data, err := getBytesFromFile(server.URL + "/test.json")
+	data, err := loadExternalResource(server.URL + "/test.json")
 	assert.NoError(t, err)
 	assert.Equal(t, "{}", string(data))
 
-	data, err = getBytesFromFile("../parser/testdata/eventdefs.yml")
+	data, err = loadExternalResource("parser/testdata/eventdefs.yml")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
+
+	data, err = loadExternalResource("file://../parser/testdata/eventdefs.yml")
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
+
+	data, err = loadExternalResource("./parser/testdata/eventdefs.yml")
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
+
+	_, err = loadExternalResource("ftp://test.yml")
+	assert.ErrorContains(t, err, "unsupported scheme: \"ftp\"")
 }
 
 func Test_unmarshalObjectOrFile(t *testing.T) {
@@ -111,7 +128,6 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 		err := unmarshalObjectOrFile("retries", data, retries)
 		assert.NoError(t, err)
 	})
-
 }
 
 func Test_primitiveOrMapType(t *testing.T) {

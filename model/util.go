@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -104,49 +103,23 @@ func (e *UnmarshalError) unmarshalMessageError(err *json.UnmarshalTypeError) str
 	return err.Error()
 }
 
-func getBytesFromFile(uri string) (b []byte, err error) {
-	refUrl, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-
-	if refUrl.Scheme == "" || refUrl.Scheme == "file" {
-		path := filepath.Join(refUrl.Host, refUrl.Path)
-		if !filepath.IsAbs(path) {
-			// The import file is an non-absolute path, we join it with include path
-			// TODO: if the file didn't find in any include path, we should report an error
-			for _, p := range IncludePaths() {
-				sn := filepath.Join(p, path)
-				if _, err := os.Stat(sn); err == nil {
-					path = sn
-					break
-				}
-			}
-		}
-
-		b, err = os.ReadFile(filepath.Clean(path))
-		if err != nil {
-			return nil, err
-		}
-
+func loadExternalResource(url string) (b []byte, err error) {
+	index := strings.Index(url, "://")
+	if index == -1 {
+		b, err = getBytesFromFile(url)
 	} else {
-		req, err := http.NewRequest(http.MethodGet, refUrl.String(), nil)
-		if err != nil {
-			return nil, err
+		scheme := url[:index]
+		switch scheme {
+		case "http", "https":
+			b, err = getBytesFromHttp(url)
+		case "file":
+			b, err = getBytesFromFile(url[index+3:])
+		default:
+			return nil, fmt.Errorf("unsupported scheme: %q", scheme)
 		}
-
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		buf := new(bytes.Buffer)
-		if _, err = buf.ReadFrom(resp.Body); err != nil {
-			return nil, err
-		}
-
-		b = buf.Bytes()
+	}
+	if err != nil {
+		return
 	}
 
 	// TODO: optimize this
@@ -157,9 +130,55 @@ func getBytesFromFile(uri string) (b []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
+		return b, nil
 	}
 
 	return b, nil
+}
+
+func getBytesFromFile(path string) ([]byte, error) {
+	// if path is relative, search in include paths
+	if !filepath.IsAbs(path) {
+		paths := IncludePaths()
+		pathFound := false
+		for i := 0; i < len(paths) && !pathFound; i++ {
+			sn := filepath.Join(paths[i], path)
+			_, err := os.Stat(sn)
+			if err != nil {
+				if !errors.Is(err, os.ErrNotExist) {
+					return nil, err
+				}
+			} else {
+				path = sn
+				pathFound = true
+			}
+		}
+		if !pathFound {
+			return nil, fmt.Errorf("file not found: %q", path)
+		}
+	}
+
+	return os.ReadFile(filepath.Clean(path))
+}
+
+func getBytesFromHttp(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	buf := new(bytes.Buffer)
+	if _, err = buf.ReadFrom(resp.Body); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
@@ -171,7 +190,7 @@ func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 
 	// Assumes that the value inside `data` is a path to a known location.
 	// Returns the content of the file or a not nil error reference.
-	data, err = getBytesFromFile(valString)
+	data, err = loadExternalResource(valString)
 	if err != nil {
 		return err
 	}
@@ -252,11 +271,6 @@ func unmarshalObject[U any](parameterName string, data []byte, value *U) error {
 		return nil
 	}
 
-	// Removed to maintain the golang 1.19 compatibility
-	// just define another type to unmarshal object, so the UnmarshalJSON will not be called recursively
-	// type forUnmarshal *U
-	// valueForUnmarshal := new(forUnmarshal)
-	// *valueForUnmarshal = value
 	err := json.Unmarshal(data, value)
 	if err != nil {
 		return &UnmarshalError{

@@ -625,7 +625,7 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 					"testkey": []byte(`"testvalue"`),
 				},
 			},
-			err: `open uri_invalid: no such file or directory`,
+			err: `file not found: "uri_invalid"`,
 		},
 	}
 

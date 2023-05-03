@@ -114,7 +114,7 @@ type BaseWorkflow struct {
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
 	// Defines checked errors that can be explicitly handled during workflow execution.
 	// +optional
-	Errors ErrorArray `json:"errors,omitempty"`
+	Errors Errors `json:"errors,omitempty"`
 	// If "true", workflow instances is not terminated when there are no active execution paths.
 	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
 	// +optional
@@ -133,25 +133,25 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth AuthArray `json:"auth,omitempty" validate:"omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"omitempty"`
 }
 
-type AuthArray []Auth
+type Auths []Auth
 
-type errorAuthArray AuthArray
+type authsUnmarshal Auths
 
 // UnmarshalJSON implements json.Unmarshaler
-func (r *AuthArray) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("auth", data, (*errorAuthArray)(r))
+func (r *Auths) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("auth", data, (*authsUnmarshal)(r))
 }
 
-type ErrorArray []Error
+type Errors []Error
 
-type errorArrayUnmarshal ErrorArray
+type errorsUnmarshal Errors
 
 // UnmarshalJSON implements json.Unmarshaler
-func (e *ErrorArray) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("errors", data, (*errorArrayUnmarshal)(e))
+func (e *Errors) UnmarshalJSON(data []byte) error {
+	return unmarshalObjectOrFile("errors", data, (*errorsUnmarshal)(e))
 }
 
 // Workflow base definition
@@ -198,7 +198,7 @@ type statesUnmarshal States
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *States) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("states", data, (*statesUnmarshal)(s))
+	return unmarshalObject("states", data, (*statesUnmarshal)(s))
 }
 
 type Events []Event

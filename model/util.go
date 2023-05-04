@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Kind ...
 // +k8s:deepcopy-gen=false
-
 type Kind interface {
 	KindValues() []string
 	String() string
@@ -41,6 +41,8 @@ type Kind interface {
 // TODO: Remove global variable
 var httpClient = http.Client{Timeout: time.Duration(1) * time.Second}
 
+// UnmarshalError ...
+// +k8s:deepcopy-gen=false
 type UnmarshalError struct {
 	err           error
 	parameterName string

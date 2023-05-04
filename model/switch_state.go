@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // SwitchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
@@ -34,6 +35,23 @@ type SwitchState struct {
 	// SwitchState specific timeouts
 	// +optional
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (s *SwitchState) MarshalJSON() ([]byte, error) {
+	type Alias SwitchState
+	custom, err := json.Marshal(&struct {
+		*Alias
+		Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
+	}{
+		Alias:    (*Alias)(s),
+		Timeouts: s.Timeouts,
+	})
+
+	// Avoid marshal empty objects as null.
+	st := strings.Replace(string(custom), "\"eventConditions\":null,", "", 1)
+	st = strings.Replace(st, "\"dataConditions\":null,", "", 1)
+	st = strings.Replace(st, "\"end\":null,", "", -1)
+	return []byte(st), err
 }
 
 // DefaultCondition Can be either a transition or end definition
@@ -66,18 +84,6 @@ func (e *DefaultCondition) UnmarshalJSON(data []byte) error {
 	}
 
 	return err
-}
-
-func (s *SwitchState) MarshalJSON() ([]byte, error) {
-	type Alias SwitchState
-	custom, err := json.Marshal(&struct {
-		*Alias
-		Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
-	}{
-		Alias:    (*Alias)(s),
-		Timeouts: s.Timeouts,
-	})
-	return custom, err
 }
 
 // SwitchStateTimeout defines the specific timeout settings for switch state

@@ -104,7 +104,7 @@ type BaseState struct {
 func (b *BaseState) MarshalJSON() ([]byte, error) {
 	type Alias BaseState
 	if b == nil {
-		return []byte("null"), nil
+		return nil, nil
 	}
 	cus, err := json.Marshal(struct {
 		*Alias
@@ -148,7 +148,7 @@ type State struct {
 
 func (s *State) MarshalJSON() ([]byte, error) {
 	if s == nil {
-		return []byte("null"), nil
+		return nil, nil
 	}
 	r := []byte("")
 	var errs error

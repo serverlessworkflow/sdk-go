@@ -28,6 +28,10 @@ functions:
     type: graphql
   - name: greetingFunction
     operation: file://myapis/greetingapis.json#greeting
+  - name: StoreBidFunction
+    operation: http://myapis.org/inboxapi.json#storeBidFunction
+events:
+  - name: StoreBidFunction
 states:
   - name: GreetDelay
     type: delay
@@ -203,6 +207,16 @@ states:
     end:
       terminate: true
   - name: HelloStateWithDefaultConditionString
+    type: switch
+    dataConditions:
+      - condition: ${ true }
+        transition: HandleApprovedVisa
+      - condition: ${ false }
+        transition:
+          nextState: HandleRejectedVisa
+    defaultCondition: SendTextForHighPriority
+    end: true
+  - name: RejectApplication
     type: switch
     dataConditions:
       - condition: ${ true }

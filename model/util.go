@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -137,6 +138,10 @@ func loadExternalResource(url string) (b []byte, err error) {
 }
 
 func getBytesFromFile(path string) ([]byte, error) {
+	if WebAssembly() {
+		return nil, fmt.Errorf("unsupported open file")
+	}
+
 	// if path is relative, search in include paths
 	if !filepath.IsAbs(path) {
 		paths := IncludePaths()
@@ -286,11 +291,15 @@ func unmarshalObject[U any](parameterName string, data []byte, value *U) error {
 var defaultIncludePaths atomic.Value
 
 func init() {
+	// No execute set include path to suport webassembly
+	if WebAssembly() {
+		return
+	}
+
 	wd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-
 	SetIncludePaths([]string{wd})
 }
 
@@ -308,4 +317,8 @@ func SetIncludePaths(paths []string) {
 	}
 
 	defaultIncludePaths.Store(paths)
+}
+
+func WebAssembly() bool {
+	return runtime.GOOS == "js" && runtime.GOARCH == "wasm"
 }

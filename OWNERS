@@ -1,6 +1,7 @@
 # List of usernames who may use /lgtm
 reviewers:
 - ricardozanini
+- spolti
 
 # List of usernames who may use /approve
 approvers:

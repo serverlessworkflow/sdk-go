@@ -87,3 +87,37 @@ func TestUnmarshalJSONMultipleAuthProperties(t *testing.T) {
 		assert.NotEqual(t, a1Properties, a2Properties)
 	})
 }
+
+func TestAuthToString(t *testing.T) {
+
+	basic := BasicAuthProperties{
+		Username: "basicusername",
+		Password: "basicpassword",
+		Secret:   "basicsecret",
+	}
+
+	bearer := BearerAuthProperties{
+		Secret: "bsecret",
+		Token:  "token",
+	}
+	oauth := OAuth2AuthProperties{
+		Username: "ousername",
+		Password: "opass",
+		Secret:   "osecret",
+	}
+
+	auth := Auth{
+		Name:   "AuthName",
+		Scheme: "whatever",
+		Properties: AuthProperties{
+			Basic:  &basic,
+			Bearer: &bearer,
+			OAuth2: &oauth,
+		},
+	}
+	value := auth.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "[AuthName, whatever, [&{Common:{Metadata:map[]} Secret:basicsecret Username:basicusername Password:basicpassword}, "+
+		"&{Common:{Metadata:map[]} Secret:bsecret Token:token}, "+
+		"&{Common:{Metadata:map[]} Secret:osecret Authority: GrantType: ClientID: ClientSecret: Scopes:[] Username:ousername Password:opass Audiences:[] SubjectToken: RequestedSubject: RequestedIssuer:}]]", value)
+}

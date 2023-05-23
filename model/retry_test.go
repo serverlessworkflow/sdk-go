@@ -13,3 +13,40 @@
 // limitations under the License.
 
 package model
+
+import (
+	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"testing"
+)
+
+func TestRetryToString(t *testing.T) {
+
+	multiplier := floatstr.Float32OrString{
+		StrVal: "4",
+		Type:   1,
+	}
+
+	maxAttempt := intstr.IntOrString{
+		StrVal: "7",
+		Type:   1,
+	}
+	jitter := floatstr.Float32OrString{
+		StrVal: "10",
+		Type:   1,
+	}
+
+	retry := Retry{
+		Name:        "name",
+		Increment:   "1",
+		Delay:       "2",
+		MaxDelay:    "10",
+		Multiplier:  &multiplier,
+		MaxAttempts: maxAttempt,
+		Jitter:      jitter,
+	}
+	value := retry.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "{ Name:name, Delay:2, MaxDelay:10, Increment:1,  Multiplier:4, MaxAttempts:{Type:1 IntVal:0 StrVal:7}, Jitter:{Type:1 FloatVal:0 StrVal:10} }", value)
+}

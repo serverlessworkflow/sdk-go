@@ -14,6 +14,8 @@
 
 package model
 
+import "fmt"
+
 // StateExecTimeout defines workflow state execution timeout
 type StateExecTimeout struct {
 	// Single state execution timeout, not including retries (ISO 8601 duration format)
@@ -22,6 +24,10 @@ type StateExecTimeout struct {
 	// Total state execution timeout, including retries (ISO 8601 duration format)
 	// +kubebuilder:validation:Required
 	Total string `json:"total" validate:"required,iso8601duration"`
+}
+
+func (s StateExecTimeout) String() string {
+	return fmt.Sprintf("{ Single:%s, Total:%s}", s.Single, s.Total)
 }
 
 type stateExecTimeoutUnmarshal StateExecTimeout

@@ -118,3 +118,24 @@ func TestEventUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestEventToString(t *testing.T) {
+
+	correlationA := Correlation{
+		ContextAttributeName:  "ctxAName",
+		ContextAttributeValue: "ctxAVal",
+	}
+	correlations := []Correlation{correlationA}
+
+	event := Event{
+		Name:        "EventName",
+		Source:      "Source",
+		Kind:        "Kind",
+		Type:        "Type",
+		DataOnly:    false,
+		Correlation: correlations,
+	}
+	value := event.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "[EventName, Source, Type, Kind, false, [{ContextAttributeName:ctxAName ContextAttributeValue:ctxAVal}]]", value)
+}

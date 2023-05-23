@@ -16,7 +16,14 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
+
+type CallbackType string
+
+func (c CallbackType) String() string {
+	return string(c)
+}
 
 // CallbackState executes a function and waits for callback event that indicates completion of the task.
 type CallbackState struct {
@@ -32,6 +39,10 @@ type CallbackState struct {
 	// Event data filter definition.
 	// +optional
 	EventDataFilter *EventDataFilter `json:"eventDataFilter,omitempty"`
+}
+
+func (c CallbackState) String() string {
+	return fmt.Sprintf("[%+v, %+v, %+v, %+v]", c.Action, c.EventRef, c.Timeouts, c.EventDataFilter)
 }
 
 func (c *CallbackState) MarshalJSON() ([]byte, error) {
@@ -57,4 +68,8 @@ type CallbackStateTimeout struct {
 	// Default timeout for consuming defined events (ISO 8601 duration format)
 	// +optional
 	EventTimeout string `json:"eventTimeout,omitempty" validate:"omitempty,iso8601duration"`
+}
+
+func (c CallbackStateTimeout) String() string {
+	return fmt.Sprintf("{ StateExecTimeout:%+v, ActionExecTimeout:%+v, EventTimeout:%+v }", c.StateExecTimeout, c.ActionExecTimeout, c.EventTimeout)
 }

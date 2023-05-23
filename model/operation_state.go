@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
@@ -30,6 +31,11 @@ type OperationState struct {
 	// State specific timeouts
 	// +optional
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (o OperationState) String() string {
+	return fmt.Sprintf(
+		"{ ActionMode:%+v, Actions:%+v, Timeouts:%+v }", o.ActionMode, o.Actions, o.Timeouts)
 }
 
 func (a *OperationState) MarshalJSON() ([]byte, error) {
@@ -65,4 +71,9 @@ type OperationStateTimeout struct {
 	// Default single actions definition execution timeout (ISO 8601 duration format)
 	// +optional
 	ActionExecTimeout string `json:"actionExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+}
+
+func (o OperationStateTimeout) String() string {
+	return fmt.Sprintf(
+		"{ ActionMode:%+v, ActionExecTimeout:%+v }", o.StateExecTimeout, o.ActionExecTimeout)
 }

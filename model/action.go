@@ -14,6 +14,8 @@
 
 package model
 
+import "fmt"
+
 // Action specify invocations of services or other workflows during workflow execution.
 type Action struct {
 	// Defines Unique action identifier.
@@ -54,6 +56,13 @@ type Action struct {
 	// Expression, if defined, must evaluate to true for this action to be performed. If false, action is disregarded.
 	// +optional
 	Condition string `json:"condition,omitempty"`
+}
+
+func (a Action) String() string {
+	return fmt.Sprintf("{ ID:%s, Name:%s, FunctionRef: %+v EventRef: %+v, SubFlowRef:%+v, Sleep:%+v, RetryRef: %+v, NonRetryableErrors:%+v, RetryableErrors:%+v, ActionDataFilter:%+v, Condition:%s }",
+		a.ID, a.Name, a.FunctionRef, a.EventRef, a.SubFlowRef,
+		a.Sleep, a.RetryRef, a.NonRetryableErrors, a.RetryableErrors, a.ActionDataFilter,
+		a.Condition)
 }
 
 type actionUnmarshal Action

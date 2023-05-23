@@ -65,3 +65,26 @@ func TestParallelStateUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestParallelStateToString(t *testing.T) {
+	single := "2023-04-22T10:00:35+02:00"
+	total := "2023-04-22T10:01:35+02:00"
+	stateExecTimeout := StateExecTimeout{
+		Single: single,
+		Total:  total,
+	}
+
+	timeout := ParallelStateTimeout{
+		StateExecTimeout: &stateExecTimeout,
+	}
+
+	parallelState := ParallelState{
+		CompletionType: CompletionTypeAtLeast,
+		NumCompleted:   intstr.FromInt(25),
+		Branches:       []Branch{},
+		Timeouts:       &timeout,
+	}
+	value := parallelState.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "{ Branches:[], CompletionType:atLeast, NumCompleted:{Type:0 IntVal:25 StrVal:}, Timeouts:{ BranchExecTimeout:, StateExecTimeout:{ Single:2023-04-22T10:00:35+02:00, Total:2023-04-22T10:01:35+02:00} } }", value)
+}

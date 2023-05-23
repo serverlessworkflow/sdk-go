@@ -14,6 +14,8 @@
 
 package model
 
+import "fmt"
+
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
 
@@ -48,6 +50,10 @@ type Event struct {
 	// Define event correlation rules for this event. Only used for consumed events.
 	// +optional
 	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
+}
+
+func (e Event) String() string {
+	return fmt.Sprintf("[%s, %s, %s, %+v, %t, %+v]", e.Name, e.Source, e.Type, e.Kind, e.DataOnly, e.Correlation)
 }
 
 type eventUnmarshal Event

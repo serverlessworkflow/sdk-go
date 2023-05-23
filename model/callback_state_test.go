@@ -94,3 +94,74 @@ func TestCallbackStateStructLevelValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestCallbackToString(t *testing.T) {
+
+	dataObj := FromString("data")
+
+	eventRef := EventRef{
+		TriggerEventRef:    "triggerEvRef",
+		ResultEventRef:     "resEvRef",
+		ResultEventTimeout: "0",
+		Data:               &dataObj,
+	}
+
+	funcRef := FunctionRef{
+		RefName:      "funcRefName",
+		SelectionSet: "selSet",
+	}
+
+	workFlowRef := WorkflowRef{
+		WorkflowID:       "58",
+		Version:          "0.0.1",
+		Invoke:           "invokeKind",
+		OnParentComplete: "onPComplete",
+	}
+	sleep := Sleep{
+		Before: "PT10S",
+		After:  "PT20S",
+	}
+
+	var retryErrs = []string{"errA", "errB"}
+	var nonRetryErrs = []string{"nErrA", "nErrB"}
+
+	action := Action{
+		ID:                 "46",
+		Name:               "ActionName",
+		FunctionRef:        &funcRef,
+		EventRef:           &eventRef,
+		SubFlowRef:         &workFlowRef,
+		Sleep:              &sleep,
+		RetryableErrors:    retryErrs,
+		NonRetryableErrors: nonRetryErrs,
+	}
+
+	stateExTimeOut := StateExecTimeout{
+		Total:  "30S",
+		Single: "10S",
+	}
+
+	callbackStateTimeouts := CallbackStateTimeout{
+		ActionExecTimeout: "10S",
+		EventTimeout:      "20S",
+		StateExecTimeout:  &stateExTimeOut,
+	}
+
+	evDataFilter := EventDataFilter{
+		UseData:     true,
+		Data:        "data",
+		ToStateData: "Next",
+	}
+
+	callback := CallbackState{
+		Action:          action,
+		EventRef:        "eventRef",
+		Timeouts:        &callbackStateTimeouts,
+		EventDataFilter: &evDataFilter,
+	}
+	value := callback.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "[[46, ActionName, &{RefName:funcRefName Arguments:map[] SelectionSet:selSet Invoke:}, &{TriggerEventRef:triggerEvRef ResultEventRef:resEvRef ResultEventTimeout:0 Data:[1, 0, data, []] ContextAttributes:map[] Invoke:},"+
+		" [58, 0.0.1, invokeKind, onPComplete], &{Before:PT10S After:PT20S}, , [nErrA nErrB], [errA errB], {FromStateData: UseResults:false Results: ToStateData:}, ],"+
+		" eventRef, [[10S, 30S], 10S, 20S], [true, data, Next]]", value)
+}

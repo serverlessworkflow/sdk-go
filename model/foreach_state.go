@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -67,6 +68,11 @@ type ForEachState struct {
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=parallel
 	Mode ForEachModeType `json:"mode,omitempty" validate:"required,oneofkind"`
+}
+
+func (f ForEachState) String() string {
+	return fmt.Sprintf("{ InputCollection:%s, OutputCollection:%s, IterationParam:%s, BatchSize:%+v, Actions:%+v, Timeouts:%+v, Mode:%+v }",
+		f.InputCollection, f.OutputCollection, f.IterationParam, f.BatchSize, f.Actions, f.Timeouts, f.Mode)
 }
 
 func (f *ForEachState) MarshalJSON() ([]byte, error) {

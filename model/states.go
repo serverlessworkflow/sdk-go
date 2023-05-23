@@ -101,6 +101,12 @@ type BaseState struct {
 	Metadata *Metadata `json:"metadata,omitempty"`
 }
 
+func (b BaseState) String() string {
+	return fmt.Sprintf("{ ID:%s, Name:%s, Type:%+v, OnErrors:%+v, Transition:%+v, StateDataFilter:%+v, CompensatedBy:%+v, UsedForCompensation:%+v, End:%+v, Metadata:%+v }",
+		b.ID, b.Name, b.Type, b.OnErrors, b.Transition,
+		b.StateDataFilter, b.CompensatedBy, b.UsedForCompensation, b.End, b.Metadata)
+}
+
 func (b *BaseState) MarshalJSON() ([]byte, error) {
 	type Alias BaseState
 	if b == nil {
@@ -144,6 +150,13 @@ type State struct {
 	// sleepState suspends workflow execution for a given time duration.
 	// +optional
 	*SleepState `json:"sleepState,omitempty"`
+}
+
+func (s State) String() string {
+	return fmt.Sprintf("{ BaseState:%+v, DelayState:%+v, EventState:%+v, OperationState:%+v, ParallelState:%+v, SwitchState:%+v, ForEachState:%+v, InjectState:%+v, CallbackState:%+v, SleepState:%+v }",
+		s.BaseState, s.DelayState, s.EventState, s.OperationState, s.ParallelState,
+		s.SwitchState, s.ForEachState, s.InjectState, s.CallbackState, s.SleepState)
+
 }
 
 func (s *State) MarshalJSON() ([]byte, error) {

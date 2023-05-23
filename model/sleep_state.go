@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // SleepState suspends workflow execution for a given time duration.
@@ -26,6 +27,10 @@ type SleepState struct {
 	// Timeouts State specific timeouts
 	// +optional
 	Timeouts *SleepStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (s SleepState) String() string {
+	return fmt.Sprintf("{ Duration:%s, Timeouts:%+v }", s.Duration, s.Timeouts)
 }
 
 func (s *SleepState) MarshalJSON() ([]byte, error) {

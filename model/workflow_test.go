@@ -645,3 +645,10 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkflowToString(t *testing.T) {
+
+	value := Workflow{}.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "{ BaseWorkflow:{ ID:, Key:, Name:, Description:, Version:, Start:<nil>, Annotations:[], DataInputSchema:<nil>, SpecVersion:, Secrets:[], Constants:<nil>, ExpressionLang:, Timeouts:<nil>, Errors:[], KeepActive:false, Metadata:map[], AutoRetries:false, Auth:[] }, States:[], Events:[], Functions:[], Retries:[] } ", value)
+}

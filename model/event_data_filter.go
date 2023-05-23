@@ -14,6 +14,8 @@
 
 package model
 
+import "fmt"
+
 // EventDataFilter used to filter consumed event payloads.
 type EventDataFilter struct {
 	// If set to false, event payload is not added/merged to state data. In this case 'data' and 'toStateData'
@@ -27,6 +29,10 @@ type EventDataFilter struct {
 	// If not specified denotes the top-level state data element
 	// +optional
 	ToStateData string `json:"toStateData,omitempty"`
+}
+
+func (f EventDataFilter) String() string {
+	return fmt.Sprintf("{ UseData:%t, Data:%s, ToStateData:%s }", f.UseData, f.Data, f.ToStateData)
 }
 
 type eventDataFilterUnmarshal EventDataFilter

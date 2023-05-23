@@ -70,3 +70,26 @@ func TestOperationStateUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestOperationStateToString(t *testing.T) {
+
+	single := "2023-03-22T10:00:35+02:00"
+	total := "2023-03-22T10:01:35+02:00"
+	stateExecTimeout := StateExecTimeout{
+		Single: single,
+		Total:  total,
+	}
+
+	operationStateTimeouts := OperationStateTimeout{
+		ActionExecTimeout: "actionExecTimout",
+		StateExecTimeout:  &stateExecTimeout,
+	}
+
+	operationState := OperationState{
+		ActionMode: ActionModeSequential,
+		Timeouts:   &operationStateTimeouts,
+	}
+	value := operationState.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "{ ActionMode:sequential, Actions:[], Timeouts:{ ActionMode:{ Single:2023-03-22T10:00:35+02:00, Total:2023-03-22T10:01:35+02:00}, ActionExecTimeout:actionExecTimout } }", value)
+}

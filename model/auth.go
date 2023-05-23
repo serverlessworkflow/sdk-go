@@ -62,6 +62,11 @@ type Auth struct {
 	Properties AuthProperties `json:"properties" validate:"required"`
 }
 
+func (a Auth) String() string {
+	return fmt.Sprintf("{ Name:%s, Scheme:%+v, Properties:%+v}",
+		a.Name, a.Scheme, a.Properties)
+}
+
 type authUnmarshal Auth
 
 // UnmarshalJSON Auth definition
@@ -123,6 +128,10 @@ type AuthProperties struct {
 	Basic  *BasicAuthProperties  `json:",omitempty"`
 	Bearer *BearerAuthProperties `json:",omitempty"`
 	OAuth2 *OAuth2AuthProperties `json:",omitempty"`
+}
+
+func (ap AuthProperties) String() string {
+	return fmt.Sprintf("{ Basic:%+v, Bearer:%+v, OAuth2:%+v }", ap.Basic, ap.Bearer, ap.OAuth2)
 }
 
 // BasicAuthProperties Basic Auth Info

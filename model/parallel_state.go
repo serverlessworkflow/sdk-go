@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -48,6 +49,11 @@ type ParallelState struct {
 	// State specific timeouts
 	// +optional
 	Timeouts *ParallelStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (p ParallelState) String() string {
+	return fmt.Sprintf("{ Branches:%+v, CompletionType:%+v, NumCompleted:%+v, Timeouts:%+v }",
+		p.Branches, p.CompletionType, p.NumCompleted, p.Timeouts)
 }
 
 func (p *ParallelState) MarshalJSON() ([]byte, error) {
@@ -88,6 +94,11 @@ type Branch struct {
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`
 }
 
+func (b Branch) String() string {
+	return fmt.Sprintf("{ Name:%+v, Actions:%+v, Timeouts:%+v }",
+		b.Name, b.Actions, b.Timeouts)
+}
+
 // BranchTimeouts defines the specific timeout settings for branch
 type BranchTimeouts struct {
 	// Single actions definition execution timeout duration (ISO 8601 duration format)
@@ -98,6 +109,11 @@ type BranchTimeouts struct {
 	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
 }
 
+func (b BranchTimeouts) String() string {
+	return fmt.Sprintf("{ BranchExecTimeout:%+v, ActionExecTimeout:%+v }",
+		b.BranchExecTimeout, b.ActionExecTimeout)
+}
+
 // ParallelStateTimeout defines the specific timeout settings for parallel state
 type ParallelStateTimeout struct {
 	// Default workflow state execution timeout (ISO 8601 duration format)
@@ -106,4 +122,9 @@ type ParallelStateTimeout struct {
 	// Default single branch execution timeout (ISO 8601 duration format)
 	// +optional
 	BranchExecTimeout string `json:"branchExecTimeout,omitempty" validate:"omitempty,iso8601duration"`
+}
+
+func (p ParallelStateTimeout) String() string {
+	return fmt.Sprintf("{ BranchExecTimeout:%+v, StateExecTimeout:%+v }",
+		p.BranchExecTimeout, p.StateExecTimeout)
 }

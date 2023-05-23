@@ -14,6 +14,8 @@
 
 package model
 
+import "fmt"
+
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
@@ -33,6 +35,10 @@ type WorkflowRef struct {
 	// +kubebuilder:validation:Enum=terminate;continue
 	// +kubebuilder:default=terminate
 	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
+}
+
+func (s WorkflowRef) String() string {
+	return fmt.Sprintf("[%s, %s, %+v, %s]", s.WorkflowID, s.Version, s.Invoke, s.OnParentComplete)
 }
 
 type workflowRefUnmarshal WorkflowRef

@@ -79,3 +79,15 @@ func TestEventDataFilterUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestEventDataFilterToString(t *testing.T) {
+
+	eventDataFilter := EventDataFilter{
+		UseData:     true,
+		Data:        "data",
+		ToStateData: "ToStateData",
+	}
+	value := eventDataFilter.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "[true, data, ToStateData]", value)
+}

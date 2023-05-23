@@ -15,6 +15,7 @@
 package model
 
 import (
+	"fmt"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
@@ -40,4 +41,9 @@ type Retry struct {
 	// If float type, maximum amount of random time added or subtracted from the delay between each retry relative to total delay (between 0 and 1). If string type, absolute maximum amount of random time added or subtracted from the delay between each retry (ISO 8601 duration format)
 	// TODO: make iso8601duration compatible this type
 	Jitter floatstr.Float32OrString `json:"jitter,omitempty" validate:"omitempty,min=0,max=1"`
+}
+
+func (r Retry) String() string {
+	return fmt.Sprintf("{ Name:%s, Delay:%s, MaxDelay:%s, Increment:%s,  Multiplier:%+v, MaxAttempts:%+v, Jitter:%+v }",
+		r.Name, r.Delay, r.MaxDelay, r.Increment, r.Multiplier, r.MaxAttempts, r.Jitter)
 }

@@ -39,6 +39,11 @@ type Object struct {
 	RawValue json.RawMessage `json:"rawValue,inline"`
 }
 
+func (o Object) String() string {
+	return fmt.Sprintf("{ Type:%d, IntVal:%d, StrVal:%s, RawValue:%+v }",
+		o.Type, o.IntVal, o.StrVal, o.RawValue)
+}
+
 type Type int64
 
 const (

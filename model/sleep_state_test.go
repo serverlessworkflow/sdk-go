@@ -15,9 +15,8 @@
 package model
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
@@ -73,4 +72,26 @@ func TestSleepStateStructLevelValidation(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestSleepStateToString(t *testing.T) {
+
+	single := "2023-05-22T10:00:35+02:00"
+	total := "2023-05-22T10:01:35+02:00"
+	stateExecTimeout := StateExecTimeout{
+		Single: single,
+		Total:  total,
+	}
+
+	timeout := SleepStateTimeout{
+		StateExecTimeout: &stateExecTimeout,
+	}
+
+	sleepState := SleepState{
+		Duration: "duration",
+		Timeouts: &timeout,
+	}
+	value := sleepState.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "{ Duration:duration, Timeouts:&{StateExecTimeout:{ Single:2023-05-22T10:00:35+02:00, Total:2023-05-22T10:01:35+02:00}} }", value)
 }

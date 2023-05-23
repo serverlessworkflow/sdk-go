@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // EventState await one or more events and perform actions when they are received. If defined as the
@@ -34,6 +35,10 @@ type EventState struct {
 	// State specific timeouts.
 	// +optional
 	Timeouts *EventStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (e EventState) String() string {
+	return fmt.Sprintf("{ Exclusive:%t, OnEvents:%+v, Timeouts:%+v }", e.Exclusive, e.OnEvents, e.Timeouts)
 }
 
 func (e *EventState) MarshalJSON() ([]byte, error) {

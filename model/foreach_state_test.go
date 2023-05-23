@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -67,4 +68,79 @@ func TestForEachStateUnmarshalJSON(t *testing.T) {
 			assert.Equal(t, tc.expect, &v)
 		})
 	}
+}
+
+func TestForeachStateToString(t *testing.T) {
+
+	dataObj := FromString("dataF")
+
+	eventRef := EventRef{
+		TriggerEventRef:    "triggerEvRef",
+		ResultEventRef:     "resEvRef",
+		ResultEventTimeout: "3",
+		Data:               &dataObj,
+	}
+
+	funcRef := FunctionRef{
+		RefName:      "funcRefName",
+		SelectionSet: "selSet",
+	}
+
+	workFlowRef := WorkflowRef{
+		WorkflowID:       "76",
+		Version:          "0.0.14",
+		Invoke:           "invokeKind",
+		OnParentComplete: "onPComplete",
+	}
+	sleep := Sleep{
+		Before: "PT13S",
+		After:  "PT23S",
+	}
+
+	var retryErrs = []string{"errE", "errF"}
+	var nonRetryErrs = []string{"nErrE", "nErrF"}
+
+	action := Action{
+		ID:                 "13",
+		Name:               "ActionName",
+		FunctionRef:        &funcRef,
+		EventRef:           &eventRef,
+		SubFlowRef:         &workFlowRef,
+		Sleep:              &sleep,
+		RetryableErrors:    retryErrs,
+		NonRetryableErrors: nonRetryErrs,
+	}
+	actions := []Action{action}
+
+	intStr := intstr.IntOrString{
+		StrVal: "42",
+		IntVal: 42,
+	}
+
+	stateExTimeOut := StateExecTimeout{
+		Total:  "40S",
+		Single: "20S",
+	}
+
+	timeouts := ForEachStateTimeout{
+		ActionExecTimeout: "10S",
+		StateExecTimeout:  &stateExTimeOut,
+	}
+
+	state := ForEachState{
+		InputCollection:  "inputCollection",
+		OutputCollection: "outCollection",
+		IterationParam:   "iterationParam",
+		Actions:          actions,
+		Mode:             "Mode",
+		BatchSize:        &intStr,
+		Timeouts:         &timeouts,
+	}
+	value := state.String()
+	assert.NotNil(t, value)
+	assert.Equal(t, "[inputCollection, outCollection, iterationParam, 42, [[13, ActionName, &{RefName:funcRefName "+
+		"Arguments:map[] SelectionSet:selSet Invoke:}, &{TriggerEventRef:triggerEvRef ResultEventRef:resEvRef ResultEventTimeout:3 "+
+		"Data:[1, 0, dataF, []] ContextAttributes:map[] Invoke:}, [76, 0.0.14, invokeKind, onPComplete], &{Before:PT13S After:PT23S}, , "+
+		"[nErrE nErrF], [errE errF], {FromStateData: UseResults:false Results: ToStateData:}, ]], "+
+		"&{StateExecTimeout:[20S, 40S] ActionExecTimeout:10S}, Mode]", value)
 }

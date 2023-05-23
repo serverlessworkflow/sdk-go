@@ -16,6 +16,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // InjectState used to inject static data into state data input.
@@ -26,6 +27,10 @@ type InjectState struct {
 	// State specific timeouts
 	// +optional
 	Timeouts *InjectStateTimeout `json:"timeouts,omitempty"`
+}
+
+func (i InjectState) String() string {
+	return fmt.Sprintf("{ Data:%+v, Timeouts:%+v }", i.Data, i.Timeouts)
 }
 
 func (i *InjectState) MarshalJSON() ([]byte, error) {

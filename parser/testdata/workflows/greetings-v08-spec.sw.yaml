@@ -30,8 +30,21 @@ functions:
     operation: file://myapis/greetingapis.json#greeting
   - name: StoreBidFunction
     operation: http://myapis.org/inboxapi.json#storeBidFunction
+  - name: callCreditCheckMicroservice
+    operation: http://myapis.org/inboxapi.json#callCreditCheckMicroservice
 events:
   - name: StoreBidFunction
+    type: StoreBidFunction
+    source: StoreBidFunction
+  - name: CarBidEvent
+    type: typeCarBidEvent
+    source: sourceCarBidEvent
+  - name: visaApprovedEventRef
+    type: typeVisaApprovedEventRef
+    source: sourceVisaApprovedEventRef
+  - name: visaRejectedEvent
+    type: typeVisaRejectedEvent
+    source: sourceVisaRejectedEvent
 states:
   - name: GreetDelay
     type: delay
@@ -225,4 +238,36 @@ states:
         transition:
           nextState: HandleRejectedVisa
     defaultCondition: SendTextForHighPriority
+    end: true
+  - name: HandleNoVisaDecision
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: StartApplication
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: HandleApprovedVisa
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: HandleRejectedVisa
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
     end: true

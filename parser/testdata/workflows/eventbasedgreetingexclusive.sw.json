@@ -23,6 +23,10 @@
     {
       "name": "greetingFunction",
       "operation": "file://myapis/greetingapis.json#greeting"
+    },
+    {
+      "name": "greetingFunction2",
+      "operation": "file://myapis/greetingapis.json#greeting2"
     }
   ],
   "states": [

@@ -57,10 +57,12 @@ var workflowStructDefault = Workflow{
 		{
 			Name:      "function 1",
 			Operation: "rest",
+			Type:      FunctionTypeREST,
 		},
 		{
 			Name:      "function 2",
 			Operation: "rest",
+			Type:      FunctionTypeREST,
 		},
 	},
 	Retries: []Retry{

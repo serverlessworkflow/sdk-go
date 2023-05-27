@@ -6,7 +6,7 @@
     "start": "StartNewOrder",
     "timeouts": {
         "workflowExecTimeout": {
-            "duration": "PT30D",
+            "duration": "P30D",
             "runBefore": "CancelOrder"
         }
     },

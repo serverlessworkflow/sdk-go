@@ -224,7 +224,7 @@ func TestEventConditionStructLevelValidation(t *testing.T) {
 			obj: EventCondition{
 				EventRef: "1",
 				Transition: &Transition{
-					NextState: "1",
+					NextState: "nextState",
 				},
 			},
 			err: ``,
@@ -244,15 +244,20 @@ func TestEventConditionStructLevelValidation(t *testing.T) {
 					Terminate: true,
 				},
 				Transition: &Transition{
-					NextState: "1",
+					NextState: "nextState",
 				},
 			},
 			err: `Key: 'EventCondition.Transition' Error:Field validation for 'Transition' failed on the 'exclusive' tag`,
 		},
 	}
+
+	ctx := NewValidatorContext(&Workflow{
+		Events: Events{{Name: "1"}},
+		States: States{{BaseState: BaseState{Name: "nextState"}}},
+	})
 	for _, tc := range testCases {
 		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.obj)
+			err := val.GetValidator().StructCtx(ctx, tc.obj)
 
 			if tc.err != "" {
 				assert.Error(t, err)

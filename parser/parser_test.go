@@ -350,7 +350,7 @@ func TestFromFile(t *testing.T) {
 			"./testdata/workflows/purchaseorderworkflow.sw.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Purchase Order Workflow", w.Name)
 				assert.NotNil(t, w.Timeouts)
-				assert.Equal(t, "PT30D", w.Timeouts.WorkflowExecTimeout.Duration)
+				assert.Equal(t, "P30D", w.Timeouts.WorkflowExecTimeout.Duration)
 				assert.Equal(t, "CancelOrder", w.Timeouts.WorkflowExecTimeout.RunBefore)
 			},
 		}, {
@@ -393,7 +393,7 @@ func TestFromFile(t *testing.T) {
 
 				assert.NotEmpty(t, w.Functions[2])
 				assert.Equal(t, "greetingFunction", w.Functions[2].Name)
-				assert.Empty(t, w.Functions[2].Type)
+				assert.Equal(t, model.FunctionTypeREST, w.Functions[2].Type)
 				assert.Equal(t, "file://myapis/greetingapis.json#greeting", w.Functions[2].Operation)
 
 				// Delay state
@@ -465,7 +465,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT1H", w.States[3].SwitchState.Timeouts.EventTimeout)
 				assert.Equal(t, "PT1S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Single)
-				assert.Equal(t, &model.Transition{NextState: "HandleNoVisaDecision"}, w.States[3].SwitchState.DefaultCondition.Transition)
+				assert.Equal(t, "HandleNoVisaDecision", w.States[3].SwitchState.DefaultCondition.Transition.NextState)
 
 				//  DataBasedSwitchState
 				dataBased := w.States[4].SwitchState
@@ -474,9 +474,7 @@ func TestFromFile(t *testing.T) {
 				dataCondition := dataBased.DataConditions[0]
 				assert.Equal(t, "${ .applicants | .age >= 18 }", dataCondition.Condition)
 				assert.Equal(t, "StartApplication", dataCondition.Transition.NextState)
-				assert.Equal(t, &model.Transition{
-					NextState: "RejectApplication",
-				}, w.States[4].DefaultCondition.Transition)
+				assert.Equal(t, "RejectApplication", w.States[4].DefaultCondition.Transition.NextState)
 				assert.Equal(t, "PT1S", w.States[4].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[4].SwitchState.Timeouts.StateExecTimeout.Single)
 

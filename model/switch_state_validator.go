@@ -22,10 +22,10 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidation(switchStateStructLevelValidation, SwitchState{})
-	val.GetValidator().RegisterStructValidation(defaultConditionStructLevelValidation, DefaultCondition{})
-	val.GetValidator().RegisterStructValidation(eventConditionStructLevelValidation, EventCondition{})
-	val.GetValidator().RegisterStructValidation(dataConditionStructLevelValidation, DataCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(switchStateStructLevelValidation, nil), SwitchState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(defaultConditionStructLevelValidation, nil), DefaultCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, eventConditionStructLevelValidationCtx), EventCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(dataConditionStructLevelValidation, nil), DataCondition{})
 }
 
 // SwitchStateStructLevelValidation custom validator for SwitchState
@@ -38,6 +38,7 @@ func switchStateStructLevelValidation(structLevel validator.StructLevel) {
 	case len(switchState.DataConditions) > 0 && len(switchState.EventConditions) > 0:
 		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", TagExclusive, "")
 	}
+
 }
 
 // DefaultConditionStructLevelValidation custom validator for DefaultCondition
@@ -47,9 +48,13 @@ func defaultConditionStructLevelValidation(structLevel validator.StructLevel) {
 }
 
 // EventConditionStructLevelValidation custom validator for EventCondition
-func eventConditionStructLevelValidation(structLevel validator.StructLevel) {
+func eventConditionStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
 	eventCondition := structLevel.Current().Interface().(EventCondition)
 	validTransitionAndEnd(structLevel, eventCondition, eventCondition.Transition, eventCondition.End)
+
+	if eventCondition.EventRef != "" && !ctx.MapEvents.contain(eventCondition.EventRef) {
+		structLevel.ReportError(eventCondition, "eventRef", "EventRef", TagExists, "")
+	}
 }
 
 // DataConditionStructLevelValidation custom validator for DataCondition

@@ -15,16 +15,24 @@
 package model
 
 import (
-	"context"
-
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(eventStateStructLevelValidation, EventState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, eventStateStructLevelValidationCtx), EventState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, onEventsStructLevelValidationCtx), OnEvents{})
 }
 
-func eventStateStructLevelValidation(ctx context.Context, structLevel validator.StructLevel) {
+func eventStateStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	// EventRefs
+}
 
+func onEventsStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+	onEvent := structLevel.Current().Interface().(OnEvents)
+	for _, eventRef := range onEvent.EventRefs {
+		if eventRef != "" && !ctx.MapEvents.contain(eventRef) {
+			structLevel.ReportError(eventRef, "eventRefs", "EventRefs", TagExists, "")
+		}
+	}
 }

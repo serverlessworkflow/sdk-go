@@ -40,6 +40,22 @@ const (
 // FunctionType ...
 type FunctionType string
 
+func (i FunctionType) KindValues() []string {
+	return []string{
+		string(FunctionTypeREST),
+		string(FunctionTypeRPC),
+		string(FunctionTypeExpression),
+		string(FunctionTypeGraphQL),
+		string(FunctionTypeAsyncAPI),
+		string(FunctionTypeOData),
+		string(FunctionTypeCustom),
+	}
+}
+
+func (i FunctionType) String() string {
+	return string(i)
+}
+
 // Function ...
 type Function struct {
 	Common `json:",inline"`
@@ -51,12 +67,12 @@ type Function struct {
 	// If type is `expression`, defines the workflow expression. If the type is `custom`,
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Required
-	Operation string `json:"operation" validate:"required,oneof=rest rpc expression graphql odata asyncapi"`
+	Operation string `json:"operation" validate:"required"`
 	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `odata` or `asyncapi`.
 	// Default is `rest`.
 	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;odata;asyncapi;custom
 	// +kubebuilder:default=rest
-	Type FunctionType `json:"type,omitempty" validate:"required,oneof=rest rpc expression graphql custom"`
+	Type FunctionType `json:"type,omitempty" validate:"required,oneofkind"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter.
 	// +optional
 	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`

@@ -16,19 +16,20 @@ package model
 
 import (
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, eventStateStructLevelValidationCtx), EventState{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, onEventsStructLevelValidationCtx), OnEvents{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(eventStateStructLevelValidationCtx), EventState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(onEventsStructLevelValidationCtx), OnEvents{})
 }
 
-func eventStateStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func eventStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	// EventRefs
 }
 
-func onEventsStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func onEventsStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	onEvent := structLevel.Current().Interface().(OnEvents)
 	for _, eventRef := range onEvent.EventRefs {
 		if eventRef != "" && !ctx.MapEvents.contain(eventRef) {

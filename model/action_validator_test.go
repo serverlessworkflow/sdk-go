@@ -16,13 +16,10 @@ package model
 
 import (
 	"testing"
-
-	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 )
 
 func TestActionStructLevelValidation(t *testing.T) {
-
-	testCases := []test.ValidationCase[Action]{
+	testCases := []ValidationCase[Action]{
 		{
 			Desp:  "action empty",
 			Model: Action{},
@@ -34,12 +31,12 @@ Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the '
 			Desp: "action functionRef and eventRef",
 			Model: Action{
 				FunctionRef: &FunctionRef{
-					RefName: "teste",
+					RefName: "function 1",
 					Invoke:  InvokeKindSync,
 				},
 				EventRef: &EventRef{
-					TriggerEventRef: "teste",
-					ResultEventRef:  "teste2",
+					TriggerEventRef: "event 1",
+					ResultEventRef:  "event 1",
 					Invoke:          InvokeKindAsync,
 				},
 			},
@@ -51,14 +48,14 @@ Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the '
 			Desp: "action eventRef and subFlowRef",
 			Model: Action{
 				EventRef: &EventRef{
-					TriggerEventRef: "teste",
-					ResultEventRef:  "teste2",
+					TriggerEventRef: "event 1",
+					ResultEventRef:  "event 1",
 					Invoke:          InvokeKindAsync,
 				},
 				SubFlowRef: &WorkflowRef{
 					WorkflowID:       "teste",
 					Invoke:           InvokeKindAsync,
-					OnParentComplete: "terminate",
+					OnParentComplete: OnParentCompleteTypeTerminate,
 				},
 			},
 			Err: `Key: 'Action.FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'exclusive' tag
@@ -69,7 +66,7 @@ Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the '
 			Desp: "action functionRef",
 			Model: Action{
 				FunctionRef: &FunctionRef{
-					RefName: "teste",
+					RefName: "function 1",
 					Invoke:  InvokeKindSync,
 				},
 			},
@@ -79,8 +76,8 @@ Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the '
 			Desp: "action eventRef",
 			Model: Action{
 				EventRef: &EventRef{
-					TriggerEventRef: "teste",
-					ResultEventRef:  "teste2",
+					TriggerEventRef: "event 1",
+					ResultEventRef:  "event 1",
 					Invoke:          InvokeKindAsync,
 				},
 			},
@@ -99,5 +96,5 @@ Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the '
 		},
 	}
 
-	test.StructLevelValidation(t, testCases)
+	StructLevelValidationCtx(t, NewValidatorContext(&workflowStructDefault), testCases)
 }

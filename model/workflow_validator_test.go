@@ -15,11 +15,11 @@
 package model
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
@@ -51,6 +51,7 @@ var workflowStructDefault = Workflow{
 		{
 			Name: "event 1",
 			Type: "consumer",
+			Kind: EventKindConsumed,
 		},
 	},
 	Functions: []Function{
@@ -156,8 +157,30 @@ var workflowStructDefault = Workflow{
 	},
 }
 
+type ValidationCase[T any] struct {
+	Desp  string
+	Model T
+	Err   string
+}
+
+func StructLevelValidationCtx[T any](t *testing.T, ctx context.Context, testCases []ValidationCase[T]) {
+	for _, tc := range testCases {
+		t.Run(tc.Desp, func(t *testing.T) {
+			err := val.GetValidator().StructCtx(ctx, tc.Model)
+			err = WorkflowError(err)
+			if tc.Err != "" {
+				if assert.Error(t, err) {
+					assert.Equal(t, tc.Err, err.Error())
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestWorkflowStructLevelValidation(t *testing.T) {
-	testCases := []test.ValidationCase[Workflow]{
+	testCases := []ValidationCase[Workflow]{
 		{
 			Desp:  "workflow success",
 			Model: workflowStructDefault,
@@ -169,7 +192,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.States = append(w.States, w.States[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.States' Error:Field validation for 'States' failed on the 'unique' tag`,
+			Err: `states has duplicate "name"`,
 		},
 		{
 			Desp: "workflow event.name repeat",
@@ -178,7 +201,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Events = append(w.Events, w.Events[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.Events' Error:Field validation for 'Events' failed on the 'unique' tag`,
+			Err: `events has duplicate "name"`,
 		},
 		{
 			Desp: "workflow function.name repeat",
@@ -187,7 +210,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Functions = append(w.Functions, w.Functions[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.Functions' Error:Field validation for 'Functions' failed on the 'unique' tag`,
+			Err: `functions has duplicate "name"`,
 		},
 		{
 			Desp: "workflow retrie.name repeat",
@@ -196,7 +219,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Retries = append(w.Retries, w.Retries[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.Retries' Error:Field validation for 'Retries' failed on the 'unique' tag`,
+			Err: `retries has duplicate "name"`,
 		},
 		{
 			Desp: "workflow auth.name repeat",
@@ -205,7 +228,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Auth = append(w.Auth, w.Auth[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.BaseWorkflow.Auth' Error:Field validation for 'Auth' failed on the 'unique' tag`,
+			Err: `auth has duplicate "name"`,
 		},
 		{
 			Desp: "workflow error.name repeat",
@@ -214,7 +237,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Errors = append(w.Errors, w.Errors[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.BaseWorkflow.Errors' Error:Field validation for 'Errors' failed on the 'unique' tag`,
+			Err: `errors has duplicate "name"`,
 		},
 		{
 			Desp: "workflow secrets.name repeat",
@@ -223,7 +246,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Secrets = append(w.Secrets, w.Secrets[0])
 				return w
 			}(),
-			Err: `Key: 'Workflow.BaseWorkflow.Secrets' Error:Field validation for 'Secrets' failed on the 'unique' tag`,
+			Err: `secrets has duplicate value`,
 		},
 		{
 			Desp: "function not exists",
@@ -234,7 +257,7 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Functions = []Function{f, w.Functions[1]}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].FunctionRef.refName' Error:Field validation for 'refName' failed on the 'exists' tag`,
+			Err: `states[0].operationState.actions[0].functionRef.refName don't exists "function 1"`,
 		},
 		{
 			Desp: "event not exists",
@@ -245,8 +268,8 @@ func TestWorkflowStructLevelValidation(t *testing.T) {
 				w.Events = []Event{e}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Error:Field validation for 'triggerEventRef' failed on the 'exists' tag
-Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Error:Field validation for 'triggerEventRef' failed on the 'exists' tag`,
+			Err: `states[1].operationState.actions[0].eventRef.triggerEventRef don't exists "event 1"
+states[1].operationState.actions[0].eventRef.triggerEventRef don't exists "event 1"`,
 		},
 		{
 			Desp: "retry not exists",
@@ -257,8 +280,8 @@ Key: 'Workflow.States[1].OperationState.Actions[0].EventRef.triggerEventRef' Err
 				w.Retries = []Retry{r}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag
-Key: 'Workflow.States[2].OperationState.Actions[0].retryRef' Error:Field validation for 'retryRef' failed on the 'exists' tag`,
+			Err: `states[0].operationState.actions[0].retryRef don't exists "retry 1"
+states[2].operationState.actions[0].retryRef don't exists "retry 1"`,
 		},
 		{
 			Desp: "error 1 not exists",
@@ -269,7 +292,7 @@ Key: 'Workflow.States[2].OperationState.Actions[0].retryRef' Error:Field validat
 				w.Errors = []Error{e, w.Errors[1]}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].BaseState.OnErrors[0].ErrorRefs' Error:Field validation for 'ErrorRefs' failed on the 'exists' tag`,
+			Err: `states[0].onErrors[0].errorRefs don't exists ["error 1"]`,
 		},
 		{
 			Desp: "error 2 not exists",
@@ -280,8 +303,8 @@ Key: 'Workflow.States[2].OperationState.Actions[0].retryRef' Error:Field validat
 				w.Errors = []Error{w.Errors[0], e}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[1].BaseState.OnErrors[0].ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exists' tag
-Key: 'Workflow.States[2].BaseState.OnErrors[0].ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exists' tag`,
+			Err: `states[1].onErrors[0].errorRef don't exists "error 2"
+states[2].onErrors[0].errorRef don't exists "error 2"`,
 		},
 		{
 			Desp: "workflow id exclude key",
@@ -321,8 +344,8 @@ Key: 'Workflow.States[2].BaseState.OnErrors[0].ErrorRef' Error:Field validation 
 				w.Key = ""
 				return w
 			}(),
-			Err: `Key: 'Workflow.BaseWorkflow.ID' Error:Field validation for 'ID' failed on the 'required_without' tag
-Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 'required_without' tag`,
+			Err: `key required when not defined "id"
+id required when not defined "key"`,
 		},
 		{
 			Desp: "workflow start",
@@ -333,7 +356,7 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				}
 				return w
 			}(),
-			Err: `Key: 'Workflow.BaseWorkflow.Start.StateName' Error:Field validation for 'StateName' failed on the 'exists' tag`,
+			Err: `start.stateName don't exists "start state not found"`,
 		},
 		{
 			Desp: "workflow transition no exists",
@@ -346,7 +369,7 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				w.States = []State{s, w.States[1], w.States[2]}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'exists' tag`,
+			Err: `states[0].transition.nextState don't exists "transtion not exists"`,
 		},
 		{
 			Desp: "transition compensation",
@@ -357,7 +380,7 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				w.States = []State{w.States[0], w.States[1], s}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[1].BaseState.CompensatedBy' Error:Field validation for 'CompensatedBy' failed on the 'compensatedby' tag`,
+			Err: `states[1].compensatedBy compensatedBy don't exists "compensation state"`,
 		},
 		{
 			Desp: "state recursive",
@@ -370,27 +393,19 @@ Key: 'Workflow.BaseWorkflow.Key' Error:Field validation for 'Key' failed on the 
 				w.States = []State{s}
 				return w
 			}(),
-			Err: `Key: 'Workflow.States[0].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'recursivestate' tag`,
+			Err: `states[0].transition.nextState can't no be recursive "name state"`,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Desp, func(t *testing.T) {
-			ctx := NewValidatorContext(&tc.Model)
-			err := val.GetValidator().StructCtx(ctx, tc.Model)
-			if tc.Err != "" {
-				if assert.Error(t, err) {
-					assert.Equal(t, tc.Err, err.Error())
-				}
-				return
-			}
-			assert.NoError(t, err)
+			StructLevelValidationCtx(t, NewValidatorContext(&tc.Model), []ValidationCase[Workflow]{tc})
 		})
 	}
 }
 
 func TestContinueAsStructLevelValidation(t *testing.T) {
-	testCases := []test.ValidationCase[ContinueAs]{
+	testCases := []ValidationCase[ContinueAs]{
 		{
 			Desp: "valid ContinueAs",
 			Model: ContinueAs{
@@ -419,29 +434,29 @@ func TestContinueAsStructLevelValidation(t *testing.T) {
 		},
 	}
 
-	test.StructLevelValidation(t, testCases)
+	StructLevelValidationCtx(t, NewValidatorContext(&Workflow{}), testCases)
 }
 
 func TestOnErrorStructLevelValidation(t *testing.T) {
-	testCases := []test.ValidationCase[OnError]{
+	testCases := []ValidationCase[OnError]{
 		{
 			Desp: "duplicate ErrorRefs",
 			Model: OnError{
-				ErrorRefs: []string{"error1", "error1"},
+				ErrorRefs: []string{"error 1", "error 1"},
 			},
-			Err: `Key: 'OnError.ErrorRefs' Error:Field validation for 'ErrorRefs' failed on the 'unique' tag`,
+			Err: `errorRefs has duplicate value`,
 		},
 		{
 			Desp: "valid OnError",
 			Model: OnError{
-				ErrorRef: "error1",
+				ErrorRef: "error 1",
 			},
 			Err: ``,
 		},
 		{
 			Desp: "valid OnError",
 			Model: OnError{
-				ErrorRefs: []string{"error1"},
+				ErrorRefs: []string{"error 1"},
 			},
 			Err: ``,
 		},
@@ -454,12 +469,12 @@ func TestOnErrorStructLevelValidation(t *testing.T) {
 		{
 			Desp: "required errorRef",
 			Model: OnError{
-				ErrorRef:  "error1",
-				ErrorRefs: []string{"error1"},
+				ErrorRef:  "error 1",
+				ErrorRefs: []string{"error 1"},
 			},
 			Err: `Key: 'OnError.ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exclusive' tag`,
 		},
 	}
 
-	test.StructLevelValidation(t, testCases)
+	StructLevelValidationCtx(t, NewValidatorContext(&workflowStructDefault), testCases)
 }

@@ -18,8 +18,9 @@ import (
 	"testing"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"github.com/stretchr/testify/assert"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestRetryStructLevelValidation(t *testing.T) {

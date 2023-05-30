@@ -16,9 +16,6 @@ package model
 
 import (
 	"testing"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 var stateTransitionDefault = State{
@@ -33,7 +30,7 @@ var stateTransitionDefault = State{
 		ActionMode: "sequential",
 		Actions: []Action{{
 			FunctionRef: &FunctionRef{
-				RefName: "test",
+				RefName: "function 1",
 				Invoke:  InvokeKindAsync,
 			},
 		}},
@@ -82,60 +79,52 @@ var switchStateTransitionDefault = State{
 }
 
 func TestStateStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		name     string
-		instance State
-		err      string
-	}
+	// type testCase struct {
+	// 	name     string
+	// 	instance State
+	// 	err      string
+	// }
 
-	testCases := []testCase{
+	testCases := []ValidationCase[State]{
 		{
-			name:     "state transition success",
-			instance: stateTransitionDefault,
-			err:      ``,
+			Desp:  "state transition success",
+			Model: stateTransitionDefault,
+			Err:   ``,
 		},
 		{
-			name:     "state end success",
-			instance: stateEndDefault,
-			err:      ``,
+			Desp:  "state end success",
+			Model: stateEndDefault,
+			Err:   ``,
 		},
 		{
-			name:     "switch state success",
-			instance: switchStateTransitionDefault,
-			err:      ``,
+			Desp:  "switch state success",
+			Model: switchStateTransitionDefault,
+			Err:   ``,
 		},
 		{
-			name: "state end and transition",
-			instance: func() State {
+			Desp: "state end and transition",
+			Model: func() State {
 				s := stateTransitionDefault
 				s.End = stateEndDefault.End
 				return s
 			}(),
-			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'exclusive' tag`,
+			Err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'exclusive' tag`,
 		},
 		{
-			name: "basestate without end and transition",
-			instance: func() State {
+			Desp: "basestate without end and transition",
+			Model: func() State {
 				s := stateTransitionDefault
 				s.Transition = nil
 				return s
 			}(),
-			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'required' tag`,
+			Err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'required' tag`,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.instance)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				if err != nil {
-					assert.Equal(t, tc.err, err.Error())
-				}
-				return
-			}
-			assert.NoError(t, err)
-		})
+	workflow := &Workflow{
+		Functions: Functions{{
+			Name: "function 1",
+		}},
 	}
+	StructLevelValidationCtx(t, NewValidatorContext(workflow), testCases)
 }

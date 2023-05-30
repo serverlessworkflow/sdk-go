@@ -18,18 +18,19 @@ import (
 	"reflect"
 
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(switchStateStructLevelValidation, nil), SwitchState{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(defaultConditionStructLevelValidation, nil), DefaultCondition{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, eventConditionStructLevelValidationCtx), EventCondition{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(dataConditionStructLevelValidation, nil), DataCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(switchStateStructLevelValidation), SwitchState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(defaultConditionStructLevelValidation), DefaultCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(eventConditionStructLevelValidationCtx), EventCondition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(dataConditionStructLevelValidation), DataCondition{})
 }
 
 // SwitchStateStructLevelValidation custom validator for SwitchState
-func switchStateStructLevelValidation(structLevel validator.StructLevel) {
+func switchStateStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	switchState := structLevel.Current().Interface().(SwitchState)
 
 	switch {
@@ -42,13 +43,13 @@ func switchStateStructLevelValidation(structLevel validator.StructLevel) {
 }
 
 // DefaultConditionStructLevelValidation custom validator for DefaultCondition
-func defaultConditionStructLevelValidation(structLevel validator.StructLevel) {
+func defaultConditionStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	defaultCondition := structLevel.Current().Interface().(DefaultCondition)
 	validTransitionAndEnd(structLevel, defaultCondition, defaultCondition.Transition, defaultCondition.End)
 }
 
 // EventConditionStructLevelValidation custom validator for EventCondition
-func eventConditionStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func eventConditionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	eventCondition := structLevel.Current().Interface().(EventCondition)
 	validTransitionAndEnd(structLevel, eventCondition, eventCondition.Transition, eventCondition.End)
 
@@ -58,7 +59,7 @@ func eventConditionStructLevelValidationCtx(ctx ValidatorContextValue, structLev
 }
 
 // DataConditionStructLevelValidation custom validator for DataCondition
-func dataConditionStructLevelValidation(structLevel validator.StructLevel) {
+func dataConditionStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	dataCondition := structLevel.Current().Interface().(DataCondition)
 	validTransitionAndEnd(structLevel, dataCondition, dataCondition.Transition, dataCondition.End)
 }

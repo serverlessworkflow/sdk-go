@@ -22,7 +22,10 @@ import (
 type InvokeKind string
 
 func (i InvokeKind) KindValues() []string {
-	return []string{string(InvokeKindSync), string(InvokeKindAsync)}
+	return []string{
+		string(InvokeKindSync),
+		string(InvokeKindAsync),
+	}
 }
 
 func (i InvokeKind) String() string {
@@ -40,6 +43,17 @@ const (
 // ActionMode specifies how actions are to be performed.
 type ActionMode string
 
+func (i ActionMode) KindValues() []string {
+	return []string{
+		string(ActionModeSequential),
+		string(ActionModeParallel),
+	}
+}
+
+func (i ActionMode) String() string {
+	return string(i)
+}
+
 const (
 	// ActionModeSequential specifies actions should be performed in sequence
 	ActionModeSequential ActionMode = "sequential"
@@ -54,6 +68,17 @@ const (
 )
 
 type ExpressionLangType string
+
+func (i ExpressionLangType) KindValues() []string {
+	return []string{
+		string(JqExpressionLang),
+		string(JsonPathExpressionLang),
+	}
+}
+
+func (i ExpressionLangType) String() string {
+	return string(i)
+}
 
 const (
 	//JqExpressionLang ...
@@ -108,7 +133,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Enum=jq;jsonpath
 	// +kubebuilder:default=jq
 	// +optional
-	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
+	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneofkind"`
 	// Defines the workflow default timeout settings.
 	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
@@ -159,7 +184,7 @@ type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:pruning:PreserveUnknownFields
-	States []State `json:"states" validate:"required,min=1,unique=Name,dive"`
+	States States `json:"states" validate:"required,min=1,unique=Name,dive"`
 	// +optional
 	Events Events `json:"events,omitempty" validate:"unique=Name,dive"`
 	// +optional

@@ -23,6 +23,17 @@ import (
 // CompletionType define on how to complete branch execution.
 type CompletionType string
 
+func (i CompletionType) KindValues() []string {
+	return []string{
+		string(CompletionTypeAllOf),
+		string(CompletionTypeAtLeast),
+	}
+}
+
+func (i CompletionType) String() string {
+	return string(i)
+}
+
 const (
 	// CompletionTypeAllOf defines all branches must complete execution before the state can transition/end.
 	CompletionTypeAllOf CompletionType = "allOf"
@@ -39,7 +50,7 @@ type ParallelState struct {
 	// Option types on how to complete branch execution. Defaults to `allOf`.
 	// +kubebuilder:validation:Enum=allOf;atLeast
 	// +kubebuilder:default=allOf
-	CompletionType CompletionType `json:"completionType,omitempty" validate:"required,oneof=allOf atLeast"`
+	CompletionType CompletionType `json:"completionType,omitempty" validate:"required,oneofkind"`
 	// Used when branchCompletionType is set to atLeast to specify the least number of branches that must complete
 	// in order for the state to transition/end.
 	// +optional

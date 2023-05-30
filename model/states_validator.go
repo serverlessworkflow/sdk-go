@@ -16,23 +16,20 @@ package model
 
 import (
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(baseStateStructLevelValidation, baseStateStructLevelValidationCtx), BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(baseStateStructLevelValidationCtx), BaseState{})
 }
 
-func baseStateStructLevelValidation(structLevel validator.StructLevel) {
+func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.Type != StateTypeSwitch {
 		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
 	}
-}
 
-func baseStateStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
-
-	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.CompensatedBy != "" {
 		if baseState.UsedForCompensation {
 			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagRecursiveCompensation, "")

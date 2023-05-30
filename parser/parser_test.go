@@ -21,9 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/serverlessworkflow/sdk-go/v2/test"

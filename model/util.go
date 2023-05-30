@@ -28,8 +28,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/serverlessworkflow/sdk-go/v2/validator"
 	"sigs.k8s.io/yaml"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 // Kind ...
@@ -88,8 +89,8 @@ func (e *UnmarshalError) unmarshalMessageError(err *json.UnmarshalTypeError) str
 
 	} else if err.Struct != "" && err.Field != "" {
 		var primitiveTypeName string
-		val := reflect.New(err.Type)
-		if valKinds, ok := val.Elem().Interface().(validator.Kind); ok {
+		value := reflect.New(err.Type)
+		if valKinds, ok := value.Elem().Interface().(val.Kind); ok {
 			values := valKinds.KindValues()
 			if len(values) <= 2 {
 				primitiveTypeName = strings.Join(values, " or ")

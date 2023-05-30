@@ -16,17 +16,15 @@ package model
 
 import (
 	"testing"
-
-	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 )
 
 func TestEventRefStructLevelValidation(t *testing.T) {
-	test.StructLevelValidation(t, []test.ValidationCase[EventRef]{
+	testCases := []ValidationCase[EventRef]{
 		{
 			Desp: "valid resultEventTimeout",
 			Model: EventRef{
-				TriggerEventRef:    "example valid",
-				ResultEventRef:     "example valid",
+				TriggerEventRef:    "test",
+				ResultEventRef:     "test",
 				ResultEventTimeout: "PT1H",
 				Invoke:             InvokeKindSync,
 			},
@@ -34,13 +32,17 @@ func TestEventRefStructLevelValidation(t *testing.T) {
 		{
 			Desp: "invalid resultEventTimeout",
 			Model: EventRef{
-				TriggerEventRef:    "example invalid",
-				ResultEventRef:     "example invalid red",
+				TriggerEventRef:    "test",
+				ResultEventRef:     "test",
 				ResultEventTimeout: "10hs",
 				Invoke:             InvokeKindSync,
 			},
 			Err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
 		},
-	})
+	}
 
+	workflow := &Workflow{
+		Events: Events{{Name: "test"}},
+	}
+	StructLevelValidationCtx(t, NewValidatorContext(workflow), testCases)
 }

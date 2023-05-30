@@ -14,6 +14,25 @@
 
 package model
 
+// CompletionType define on how to complete branch execution.
+type OnParentCompleteType string
+
+func (i OnParentCompleteType) KindValues() []string {
+	return []string{
+		string(OnParentCompleteTypeTerminate),
+		string(OnParentCompleteTypeContinue),
+	}
+}
+
+func (i OnParentCompleteType) String() string {
+	return string(i)
+}
+
+const (
+	OnParentCompleteTypeTerminate OnParentCompleteType = "terminate"
+	OnParentCompleteTypeContinue  OnParentCompleteType = "continue"
+)
+
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
@@ -32,7 +51,7 @@ type WorkflowRef struct {
 	// is 'async'. Defaults to terminate.
 	// +kubebuilder:validation:Enum=terminate;continue
 	// +kubebuilder:default=terminate
-	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
+	OnParentComplete OnParentCompleteType `json:"onParentComplete,omitempty" validate:"required,oneofkind"`
 }
 
 type workflowRefUnmarshal WorkflowRef

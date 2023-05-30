@@ -17,8 +17,9 @@ package model
 import (
 	"testing"
 
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"github.com/stretchr/testify/assert"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestSwitchStateStructLevelValidation(t *testing.T) {

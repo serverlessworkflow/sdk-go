@@ -22,8 +22,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/test"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/serverlessworkflow/sdk-go/v2/test"
 )
 
 func TestIncludePaths(t *testing.T) {

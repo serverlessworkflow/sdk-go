@@ -17,9 +17,10 @@ package model
 import (
 	"testing"
 
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestParallelStateStructLevelValidation(t *testing.T) {
@@ -82,7 +83,7 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 					CompletionType: CompletionTypeAllOf + "1",
 				},
 			},
-			err: `Key: 'State.ParallelState.CompletionType' Error:Field validation for 'CompletionType' failed on the 'oneof' tag`,
+			err: `Key: 'State.ParallelState.CompletionType' Error:Field validation for 'CompletionType' failed on the 'oneofkind' tag`,
 		},
 		{
 			desp: "invalid numCompleted `int`",

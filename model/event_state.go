@@ -69,7 +69,7 @@ type OnEvents struct {
 	// Should actions be performed sequentially or in parallel. Default is sequential.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=sequential
-	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
+	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed if expression matches
 	// +optional
 	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`

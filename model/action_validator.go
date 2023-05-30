@@ -16,17 +16,17 @@ package model
 
 import (
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(actionExclusiveParamters, actionStructLevelValidation), Action{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, functionRefStructLevelValidation), FunctionRef{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(actionStructLevelValidationCtx), Action{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(functionRefStructLevelValidation), FunctionRef{})
 }
 
-func actionExclusiveParamters(sl validator.StructLevel) {
-	action := sl.Current().Interface().(Action)
-
+func actionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+	action := structLevel.Current().Interface().(Action)
 	values := []bool{
 		action.FunctionRef != nil,
 		action.EventRef != nil,
@@ -34,22 +34,19 @@ func actionExclusiveParamters(sl validator.StructLevel) {
 	}
 
 	if validationNotExclusiveParamters(values) {
-		sl.ReportError(action.FunctionRef, "FunctionRef", "functionRef", TagExclusive, "")
-		sl.ReportError(action.EventRef, "EventRef", "eventRef", TagExclusive, "")
-		sl.ReportError(action.SubFlowRef, "SubFlowRef", "subFlowRef", TagExclusive, "")
+		structLevel.ReportError(action.FunctionRef, "functionRef", "FunctionRef", TagExclusive, "")
+		structLevel.ReportError(action.EventRef, "EventRef", "eventRef", TagExclusive, "")
+		structLevel.ReportError(action.SubFlowRef, "SubFlowRef", "subFlowRef", TagExclusive, "")
 	}
-}
 
-func actionStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
-	action := structLevel.Current().Interface().(Action)
 	if action.RetryRef != "" && !ctx.MapRetries.contain(action.RetryRef) {
 		structLevel.ReportError(action.RetryRef, "retryRef", "RetryRef", TagExists, "")
 	}
 }
 
-func functionRefStructLevelValidation(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func functionRefStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	functionRef := structLevel.Current().Interface().(FunctionRef)
 	if !ctx.MapFunctions.contain(functionRef.RefName) {
-		structLevel.ReportError(functionRef.RefName, "refName", "RefName", TagExists, "")
+		structLevel.ReportError(functionRef.RefName, "refName", "RefName", TagExists, functionRef.RefName)
 	}
 }

@@ -17,12 +17,11 @@ package model
 import (
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model/test"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestForEachStateStructLevelValidation(t *testing.T) {
-	test.StructLevelValidation(t, []test.ValidationCase[State]{
+	testCases := []ValidationCase[State]{
 		{
 			Desp: "normal test & sequential",
 			Model: State{
@@ -60,7 +59,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					InputCollection: "3",
 					Actions: []Action{{
 						FunctionRef: &FunctionRef{
-							RefName: "test 1",
+							RefName: "function 1",
 							Invoke:  InvokeKindAsync,
 						},
 					}},
@@ -87,7 +86,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					InputCollection: "3",
 					Actions: []Action{{
 						FunctionRef: &FunctionRef{
-							RefName: "test 1",
+							RefName: "function 1",
 							Invoke:  InvokeKindAsync,
 						},
 					}},
@@ -114,7 +113,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					InputCollection: "3",
 					Actions: []Action{{
 						FunctionRef: &FunctionRef{
-							RefName: "test 1",
+							RefName: "function 1",
 							Invoke:  InvokeKindAsync,
 						},
 					}},
@@ -141,7 +140,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					InputCollection: "3",
 					Actions: []Action{{
 						FunctionRef: &FunctionRef{
-							RefName: "test 1",
+							RefName: "function 1",
 							Invoke:  InvokeKindAsync,
 						},
 					}},
@@ -168,7 +167,7 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 					InputCollection: "3",
 					Actions: []Action{{
 						FunctionRef: &FunctionRef{
-							RefName: "test 1",
+							RefName: "function 1",
 							Invoke:  InvokeKindAsync,
 						},
 					}},
@@ -181,5 +180,12 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			},
 			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
 		},
-	})
+	}
+
+	workflow := &Workflow{
+		Functions: Functions{{
+			Name: "function 1",
+		}},
+	}
+	StructLevelValidationCtx(t, NewValidatorContext(workflow), testCases)
 }

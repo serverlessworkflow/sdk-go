@@ -16,13 +16,17 @@ package model
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-type workflowValidator func(mapValues ValidatorContextValue, sl validator.StructLevel)
+type workflowValidator func(mapValues ValidatorContext, sl validator.StructLevel)
 
 type contextValueKey string
 
@@ -43,7 +47,7 @@ const (
 	TagTransitionUseForCompensation string = "transitionusedforcompensation" // They can transition only to states which also have their usedForCompensation property and set to true
 )
 
-type ValidatorContextValue struct {
+type ValidatorContext struct {
 	MapStates    mapValues[State]
 	MapFunctions mapValues[Function]
 	MapEvents    mapValues[Event]
@@ -51,14 +55,10 @@ type ValidatorContextValue struct {
 	MapErrors    mapValues[Error]
 }
 
-func validationWrap(fn1 validator.StructLevelFunc, fnCtx workflowValidator) validator.StructLevelFuncCtx {
+func validationWrap(fnCtx workflowValidator) validator.StructLevelFuncCtx {
 	return func(ctx context.Context, structLevel validator.StructLevel) {
-		if fn1 != nil {
-			fn1(structLevel)
-		}
-
 		if fnCtx != nil {
-			if mapValues, ok := ctx.Value(validatorContextValue).(ValidatorContextValue); ok {
+			if mapValues, ok := ctx.Value(validatorContextValue).(ValidatorContext); ok {
 				fnCtx(mapValues, structLevel)
 			}
 		}
@@ -93,7 +93,7 @@ func NewValidatorContext(workflow *Workflow) context.Context {
 		}
 	}
 
-	contextValue := ValidatorContextValue{
+	contextValue := ValidatorContext{
 		MapStates:    newMapValues(workflow.States, "Name"),
 		MapFunctions: newMapValues(workflow.Functions, "Name"),
 		MapEvents:    newMapValues(workflow.Events, "Name"),
@@ -131,12 +131,12 @@ func init() {
 	// TODO: create states graph to complex check
 
 	// val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, workflowStructLevelValidation), Workflow{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(onErrorStructLevelValidation, onErrorStructLevelValidationCtx), OnError{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, transitionStructLevelValidationCtx), Transition{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(nil, startStructLevelValidationCtx), Start{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(onErrorStructLevelValidationCtx), OnError{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(transitionStructLevelValidationCtx), Transition{})
+	val.GetValidator().RegisterStructValidationCtx(validationWrap(startStructLevelValidationCtx), Start{})
 }
 
-func startStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func startStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	start := structLevel.Current().Interface().(Start)
 	if !ctx.MapStates.contain(start.StateName) {
 		structLevel.ReportError(start.StateName, "StateName", "stateName", TagExists, "")
@@ -144,9 +144,8 @@ func startStructLevelValidationCtx(ctx ValidatorContextValue, structLevel valida
 	}
 }
 
-func onErrorStructLevelValidation(structLevel validator.StructLevel) {
+func onErrorStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	onError := structLevel.Current().Interface().(OnError)
-
 	hasErrorRef := onError.ErrorRef != ""
 	hasErrorRefs := len(onError.ErrorRefs) > 0
 
@@ -155,10 +154,6 @@ func onErrorStructLevelValidation(structLevel validator.StructLevel) {
 	} else if hasErrorRef && hasErrorRefs {
 		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", TagExclusive, "")
 	}
-}
-
-func onErrorStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
-	onError := structLevel.Current().Interface().(OnError)
 
 	if onError.ErrorRef != "" && !ctx.MapErrors.contain(onError.ErrorRef) {
 		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "errorRef", TagExists, "")
@@ -171,7 +166,7 @@ func onErrorStructLevelValidationCtx(ctx ValidatorContextValue, structLevel vali
 	}
 }
 
-func transitionStructLevelValidationCtx(ctx ValidatorContextValue, structLevel validator.StructLevel) {
+func transitionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	// Naive check if transitions exist
 	transition := structLevel.Current().Interface().(Transition)
 	if ctx.MapStates.contain(transition.NextState) {
@@ -179,7 +174,8 @@ func transitionStructLevelValidationCtx(ctx ValidatorContextValue, structLevel v
 			parentBaseState := transition.stateParent
 
 			if parentBaseState.Name == transition.NextState {
-				structLevel.ReportError(transition.NextState, "NextState", "nextState", TagRecursiveState, "")
+				// TODO: Improve recursive check
+				structLevel.ReportError(transition.NextState, "NextState", "nextState", TagRecursiveState, parentBaseState.Name)
 			}
 
 			if parentBaseState.UsedForCompensation && !ctx.MapStates.ValuesMap[transition.NextState].UsedForCompensation {
@@ -223,4 +219,78 @@ func validationNotExclusiveParamters(values []bool) bool {
 		}
 	}
 	return (hasOne && hasTwo) || (!hasOne && !hasTwo)
+}
+
+type WorkflowErrors []error
+
+func (e WorkflowErrors) Error() string {
+	errors := []string{}
+	for _, err := range []error(e) {
+		errors = append(errors, err.Error())
+	}
+	return strings.Join(errors, "\n")
+}
+
+func WorkflowError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if _, ok := err.(*validator.InvalidValidationError); ok {
+		return err
+	}
+
+	workflowErrors := []error{}
+	for _, err := range err.(validator.ValidationErrors) {
+		// fmt.Println("Namespace", err.Namespace())
+		// fmt.Println("Field", err.Field())
+		// fmt.Println("StructNamespace", err.StructNamespace())
+		// fmt.Println("StructField", err.StructField())
+		// fmt.Println("Tag", err.Tag())
+		// // fmt.Println(err.ActualTag())
+		// // fmt.Println(err.Kind())
+		// // fmt.Println(err.Type())
+		// fmt.Println("value", err.Value())
+		// fmt.Println("param", err.Param())
+		// fmt.Println()
+
+		// normalize namespace
+		namespaceList := strings.Split(err.Namespace(), ".")[1:]
+		newNamespaceList := []string{}
+		for i := range namespaceList {
+			part := namespaceList[i]
+			if part != "Workflow" && part != "BaseWorkflow" && part != "BaseState" {
+				part := strings.ToLower(part[:1]) + part[1:]
+				newNamespaceList = append(newNamespaceList, part)
+			}
+		}
+		namespace := strings.Join(newNamespaceList, ".")
+
+		switch err.Tag() {
+		case "exists":
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s don't exists %q", namespace, err.Value()))
+		case TagCompensatedby:
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s compensatedBy don't exists %q", namespace, err.Value()))
+		case "unique":
+			if err.Param() == "" {
+				workflowErrors = append(workflowErrors, fmt.Errorf("%s has duplicate value", namespace))
+			} else {
+				workflowErrors = append(workflowErrors, fmt.Errorf("%s has duplicate %q", namespace, strings.ToLower(err.Param())))
+			}
+		case "required_without":
+			if err.Param() == "ID" {
+				workflowErrors = append(workflowErrors, errors.New("id required when not defined \"key\""))
+			} else if err.Param() == "Key" {
+				workflowErrors = append(workflowErrors, errors.New("key required when not defined \"id\""))
+			} else {
+				workflowErrors = append(workflowErrors, err)
+			}
+		case TagRecursiveState:
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s can't no be recursive %q", namespace, strings.ToLower(err.Param())))
+		default:
+			workflowErrors = append(workflowErrors, err)
+		}
+	}
+
+	return WorkflowErrors(workflowErrors)
 }

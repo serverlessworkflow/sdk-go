@@ -17,6 +17,17 @@ package model
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
 
+func (i EventKind) KindValues() []string {
+	return []string{
+		string(EventKindConsumed),
+		string(EventKindProduced),
+	}
+}
+
+func (i EventKind) String() string {
+	return string(i)
+}
+
 const (
 	// EventKindConsumed means the event continuation of workflow instance execution
 	EventKindConsumed EventKind = "consumed"
@@ -40,7 +51,7 @@ type Event struct {
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Defaults to `consumed`.
 	// +kubebuilder:validation:Enum=consumed;produced
 	// +kubebuilder:default=consumed
-	Kind EventKind `json:"kind,omitempty"`
+	Kind EventKind `json:"kind,omitempty" validate:"required,oneofkind"`
 	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload
 	// and context attributes should be accessible. Defaults to true.
 	// +optional

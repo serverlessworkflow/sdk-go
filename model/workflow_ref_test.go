@@ -161,7 +161,7 @@ func TestWorkflowRefValidate(t *testing.T) {
 				Invoke:           InvokeKindSync,
 				OnParentComplete: "terminate1",
 			},
-			err: `Key: 'WorkflowRef.OnParentComplete' Error:Field validation for 'OnParentComplete' failed on the 'oneof' tag`,
+			err: `Key: 'WorkflowRef.OnParentComplete' Error:Field validation for 'OnParentComplete' failed on the 'oneofkind' tag`,
 		},
 	}
 	for _, tc := range testCases {

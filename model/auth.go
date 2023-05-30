@@ -23,6 +23,18 @@ import (
 // AuthType can be "basic", "bearer", or "oauth2". Default is "basic"
 type AuthType string
 
+func (i AuthType) KindValues() []string {
+	return []string{
+		string(AuthTypeBasic),
+		string(AuthTypeBearer),
+		string(AuthTypeOAuth2),
+	}
+}
+
+func (i AuthType) String() string {
+	return string(i)
+}
+
 const (
 	// AuthTypeBasic ...
 	AuthTypeBasic AuthType = "basic"
@@ -34,6 +46,18 @@ const (
 
 // GrantType ...
 type GrantType string
+
+func (i GrantType) KindValues() []string {
+	return []string{
+		string(GrantTypePassword),
+		string(GrantTypeClientCredentials),
+		string(GrantTypeTokenExchange),
+	}
+}
+
+func (i GrantType) String() string {
+	return string(i)
+}
 
 const (
 	// GrantTypePassword ...
@@ -162,7 +186,7 @@ type OAuth2AuthProperties struct {
 	// 	Defines the grant type. Can be "password", "clientCredentials", or "tokenExchange"
 	// +kubebuilder:validation:Enum=password;clientCredentials;tokenExchange
 	// +kubebuilder:validation:Required
-	GrantType GrantType `json:"grantType" validate:"required"`
+	GrantType GrantType `json:"grantType" validate:"required,oneofkind"`
 	// String or a workflow expression. Contains the client identifier.
 	// +kubebuilder:validation:Required
 	ClientID string `json:"clientId" validate:"required"`

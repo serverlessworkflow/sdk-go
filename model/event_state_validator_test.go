@@ -13,3 +13,20 @@
 // limitations under the License.
 
 package model
+
+import "testing"
+
+func TestEventStateStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestOnEventsStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestEventStateTimeoutStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}

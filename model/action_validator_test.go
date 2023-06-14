@@ -18,83 +18,123 @@ import (
 	"testing"
 )
 
+func buildActionByOperationState(state *State, name string) *Action {
+	action := Action{
+		Name: name,
+	}
+
+	state.OperationState.Actions = append(state.OperationState.Actions, action)
+	return &state.OperationState.Actions[len(state.OperationState.Actions)-1]
+}
+
+func buildActionByForEachState(state *State, name string) *Action {
+	action := Action{
+		Name: name,
+	}
+
+	state.ForEachState.Actions = append(state.ForEachState.Actions, action)
+	return &state.ForEachState.Actions[len(state.ForEachState.Actions)-1]
+}
+
+func buildActionByBranch(branch *Branch, name string) *Action {
+	action := Action{
+		Name: name,
+	}
+
+	branch.Actions = append(branch.Actions, action)
+	return &branch.Actions[len(branch.Actions)-1]
+}
+
+func buildFunctionRef(workflow *Workflow, action *Action, name string) (*FunctionRef, *Function) {
+	function := Function{
+		Name:      name,
+		Operation: "http://function/function_name",
+		Type:      FunctionTypeREST,
+	}
+
+	functionRef := FunctionRef{
+		RefName: name,
+		Invoke:  InvokeKindSync,
+	}
+	action.FunctionRef = &functionRef
+
+	workflow.Functions = append(workflow.Functions, function)
+	return &functionRef, &function
+}
+
+func buildRetryRef(workflow *Workflow, action *Action, name string) {
+	retry := Retry{
+		Name: name,
+	}
+
+	workflow.Retries = append(workflow.Retries, retry)
+	action.RetryRef = name
+}
+
 func TestActionStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[Action]{
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
 		{
-			Desp:  "action empty",
-			Model: Action{},
-			Err: `Key: 'Action.FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'exclusive' tag
-Key: 'Action.EventRef' Error:Field validation for 'EventRef' failed on the 'exclusive' tag
-Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the 'exclusive' tag`,
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
 		},
 		{
-			Desp: "action functionRef and eventRef",
-			Model: Action{
-				FunctionRef: &FunctionRef{
-					RefName: "function 1",
-					Invoke:  InvokeKindSync,
-				},
-				EventRef: &EventRef{
-					TriggerEventRef: "event 1",
-					ResultEventRef:  "event 1",
-					Invoke:          InvokeKindAsync,
-				},
+			Desp: "require_without",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].FunctionRef = nil
+				return *model
 			},
-			Err: `Key: 'Action.FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'exclusive' tag
-Key: 'Action.EventRef' Error:Field validation for 'EventRef' failed on the 'exclusive' tag
-Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the 'exclusive' tag`,
+			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'required_without' tag`,
 		},
 		{
-			Desp: "action eventRef and subFlowRef",
-			Model: Action{
-				EventRef: &EventRef{
-					TriggerEventRef: "event 1",
-					ResultEventRef:  "event 1",
-					Invoke:          InvokeKindAsync,
-				},
-				SubFlowRef: &WorkflowRef{
-					WorkflowID:       "teste",
-					Invoke:           InvokeKindAsync,
-					OnParentComplete: OnParentCompleteTypeTerminate,
-				},
+			Desp: "exclude",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				buildEventRef(model, &model.States[0].OperationState.Actions[0], "event 1", "event2")
+				return *model
 			},
-			Err: `Key: 'Action.FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'exclusive' tag
-Key: 'Action.EventRef' Error:Field validation for 'EventRef' failed on the 'exclusive' tag
-Key: 'Action.SubFlowRef' Error:Field validation for 'SubFlowRef' failed on the 'exclusive' tag`,
-		},
-		{
-			Desp: "action functionRef",
-			Model: Action{
-				FunctionRef: &FunctionRef{
-					RefName: "function 1",
-					Invoke:  InvokeKindSync,
-				},
-			},
-			Err: ``,
-		},
-		{
-			Desp: "action eventRef",
-			Model: Action{
-				EventRef: &EventRef{
-					TriggerEventRef: "event 1",
-					ResultEventRef:  "event 1",
-					Invoke:          InvokeKindAsync,
-				},
-			},
-			Err: ``,
-		},
-		{
-			Desp: "action subFlowRef",
-			Model: Action{
-				SubFlowRef: &WorkflowRef{
-					WorkflowID:       "teste",
-					Invoke:           InvokeKindAsync,
-					OnParentComplete: "terminate",
-				},
-			},
-			Err: ``,
+			Err: `workflow.states[0].actions[0].functionRef exclusive
+workflow.states[0].actions[0].eventRef exclusive
+workflow.states[0].actions[0].subFlowRef exclusive`,
 		},
 	}
 
-	StructLevelValidationCtx(t, NewValidatorContext(&workflowStructDefault), testCases)
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestFunctionRefStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].FunctionRef.RefName = "invalid function"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].functionRef.refName don't exist "invalid function"`,
+		},
+	}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestSleepStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
 }

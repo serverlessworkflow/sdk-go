@@ -21,6 +21,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -567,7 +568,7 @@ func TestConstantsUnmarshalJSON(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	httpClient = *server.Client()
+	util.HttpClient = *server.Client()
 
 	type testCase struct {
 		desp   string

@@ -20,172 +20,62 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func TestForEachStateStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[State]{
-		{
-			Desp: "normal test & sequential",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeSequential,
-				},
-			},
-			Err: ``,
+func buildForEachState(workflow *Workflow, name string) *State {
+	state := State{
+		BaseState: BaseState{
+			Name: name,
+			Type: StateTypeForEach,
 		},
-		{
-			Desp: "normal test & parallel int",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeParallel,
-					BatchSize: &intstr.IntOrString{
-						Type:   intstr.Int,
-						IntVal: 1,
-					},
-				},
-			},
-			Err: ``,
-		},
-		{
-			Desp: "normal test & parallel string",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeParallel,
-					BatchSize: &intstr.IntOrString{
-						Type:   intstr.String,
-						StrVal: "1",
-					},
-				},
-			},
-			Err: ``,
-		},
-		{
-			Desp: "invalid parallel int",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeParallel,
-					BatchSize: &intstr.IntOrString{
-						Type:   intstr.Int,
-						IntVal: 0,
-					},
-				},
-			},
-			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
-		},
-		{
-			Desp: "invalid parallel string",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeParallel,
-					BatchSize: &intstr.IntOrString{
-						Type:   intstr.String,
-						StrVal: "0",
-					},
-				},
-			},
-			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
-		},
-		{
-			Desp: "invalid parallel string format",
-			Model: State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: StateTypeForEach,
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ForEachState: &ForEachState{
-					InputCollection: "3",
-					Actions: []Action{{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindAsync,
-						},
-					}},
-					Mode: ForEachModeTypeParallel,
-					BatchSize: &intstr.IntOrString{
-						Type:   intstr.String,
-						StrVal: "a",
-					},
-				},
-			},
-			Err: `Key: 'State.ForEachState.BatchSize' Error:Field validation for 'BatchSize' failed on the 'gt0' tag`,
+		ForEachState: &ForEachState{
+			InputCollection: "3",
+			Mode:            ForEachModeTypeSequential,
 		},
 	}
 
-	workflow := &Workflow{
-		Functions: Functions{{
-			Name: "function 1",
-		}},
+	workflow.States = append(workflow.States, state)
+	return &workflow.States[len(workflow.States)-1]
+}
+
+func TestForEachStateStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	forEachState := buildForEachState(baseWorkflow, "start state")
+	buildEndByState(forEachState, true, false)
+	action1 := buildActionByForEachState(forEachState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.Mode = ForEachModeTypeParallel
+				model.States[0].ForEachState.BatchSize = &intstr.IntOrString{
+					Type:   intstr.Int,
+					IntVal: 1,
+				}
+				return *model
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.InputCollection = ""
+				model.States[0].ForEachState.Mode = ""
+				model.States[0].ForEachState.Actions = []Action{}
+				return *model
+			},
+			Err: `workflow.states[0].forEachState.inputCollection is required
+Key: 'Workflow.States[0].ForEachState.Actions' Error:Field validation for 'Actions' failed on the 'min' tag
+workflow.states[0].forEachState.mode is required`,
+		},
 	}
-	StructLevelValidationCtx(t, NewValidatorContext(workflow), testCases)
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestForEachStateTimeoutStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
 }

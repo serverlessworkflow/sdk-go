@@ -17,170 +17,200 @@ package model
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
+func buildParallelState(workflow *Workflow, name string) *State {
+	state := State{
+		BaseState: BaseState{
+			Name: name,
+			Type: StateTypeParallel,
+		},
+		ParallelState: &ParallelState{
+			CompletionType: CompletionTypeAllOf,
+		},
+	}
+
+	workflow.States = append(workflow.States, state)
+	return &workflow.States[len(workflow.States)-1]
+}
+
+func buildBranch(state *State, name string) *Branch {
+	branch := Branch{
+		Name: name,
+	}
+
+	state.ParallelState.Branches = append(state.ParallelState.Branches, branch)
+	return &state.ParallelState.Branches[len(state.ParallelState.Branches)-1]
+}
+
+func buildBranchTimeouts(branch *Branch) *BranchTimeouts {
+	branch.Timeouts = &BranchTimeouts{}
+	return branch.Timeouts
+}
+
+func buildParallelStateTimeout(state *State) *ParallelStateTimeout {
+	state.ParallelState.Timeouts = &ParallelStateTimeout{}
+	return state.ParallelState.Timeouts
+}
+
 func TestParallelStateStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		desp  string
-		state *State
-		err   string
-	}
-	testCases := []testCase{
-		{
-			desp: "normal",
-			state: &State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "parallel",
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ParallelState: &ParallelState{
-					Branches: []Branch{
-						{
-							Name: "b1",
-							Actions: []Action{{
-								FunctionRef: &FunctionRef{
-									RefName: "test",
-									Invoke:  InvokeKindAsync,
-								},
-							}},
-						},
-					},
-					CompletionType: CompletionTypeAllOf,
-					NumCompleted:   intstr.FromInt(1),
-				},
-			},
-			err: ``,
-		},
-		{
-			desp: "invalid completeType",
-			state: &State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "parallel",
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ParallelState: &ParallelState{
-					Branches: []Branch{
-						{
-							Name: "b1",
-							Actions: []Action{{
-								FunctionRef: &FunctionRef{
-									RefName: "test",
-									Invoke:  InvokeKindAsync,
-								},
-							}},
-						},
-					},
-					CompletionType: CompletionTypeAllOf + "1",
-				},
-			},
-			err: `Key: 'State.ParallelState.CompletionType' Error:Field validation for 'CompletionType' failed on the 'oneofkind' tag`,
-		},
-		{
-			desp: "invalid numCompleted `int`",
-			state: &State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "parallel",
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ParallelState: &ParallelState{
-					Branches: []Branch{
-						{
-							Name: "b1",
-							Actions: []Action{{
-								FunctionRef: &FunctionRef{
-									RefName: "test",
-									Invoke:  InvokeKindAsync,
-								},
-							}},
-						},
-					},
-					CompletionType: CompletionTypeAtLeast,
-					NumCompleted:   intstr.FromInt(0),
-				},
-			},
-			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
-		},
-		{
-			desp: "invalid numCompleted string format",
-			state: &State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "parallel",
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ParallelState: &ParallelState{
-					Branches: []Branch{
-						{
-							Name: "b1",
-							Actions: []Action{{
-								FunctionRef: &FunctionRef{
-									RefName: "test",
-									Invoke:  InvokeKindAsync,
-								},
-							}},
-						},
-					},
-					CompletionType: CompletionTypeAtLeast,
-					NumCompleted:   intstr.FromString("a"),
-				},
-			},
-			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
-		},
-		{
-			desp: "normal",
-			state: &State{
-				BaseState: BaseState{
-					Name: "1",
-					Type: "parallel",
-					End: &End{
-						Terminate: true,
-					},
-				},
-				ParallelState: &ParallelState{
-					Branches: []Branch{
-						{
-							Name: "b1",
-							Actions: []Action{{
-								FunctionRef: &FunctionRef{
-									RefName: "test",
-									Invoke:  InvokeKindAsync,
-								},
-							}},
-						},
-					},
-					CompletionType: CompletionTypeAtLeast,
-					NumCompleted:   intstr.FromString("0"),
-				},
-			},
-			err: `Key: 'State.ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.state)
+	baseWorkflow := buildWorkflow()
 
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
+	parallelState := buildParallelState(baseWorkflow, "start state")
+	buildEndByState(parallelState, true, false)
+	branch := buildBranch(parallelState, "brach 1")
+	action1 := buildActionByBranch(branch, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
 
-			assert.NoError(t, err)
-		})
+	testCases := []ValidationCase{
+		{
+			Desp: "success completionTypeAllOf",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "success completionTypeAtLeast",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.CompletionType = CompletionTypeAtLeast
+				model.States[0].ParallelState.NumCompleted = intstr.FromInt(1)
+				return *model
+			},
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.CompletionType = CompletionTypeAtLeast + " invalid"
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.completionType need by one of [allOf atLeast]`,
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches = []Branch{}
+				model.States[0].ParallelState.CompletionType = ""
+				return *model
+			},
+			Err: `Key: 'Workflow.States[0].ParallelState.Branches' Error:Field validation for 'Branches' failed on the 'min' tag
+workflow.states[0].parallelState.completionType is required`,
+		},
+		{
+			Desp: "required numCompleted",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.CompletionType = CompletionTypeAtLeast
+				return *model
+			},
+			Err: `Key: 'Workflow.States[0].ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
+		},
 	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestBranchStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	parallelState := buildParallelState(baseWorkflow, "start state")
+	buildEndByState(parallelState, true, false)
+	branch := buildBranch(parallelState, "brach 1")
+	action1 := buildActionByBranch(branch, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches[0].Name = ""
+				model.States[0].ParallelState.Branches[0].Actions = []Action{}
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.branches[0].name is required
+Key: 'Workflow.States[0].ParallelState.Branches[0].Actions' Error:Field validation for 'Actions' failed on the 'min' tag`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestBranchTimeoutsStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	parallelState := buildParallelState(baseWorkflow, "start state")
+	buildEndByState(parallelState, true, false)
+	branch := buildBranch(parallelState, "brach 1")
+	buildBranchTimeouts(branch)
+	action1 := buildActionByBranch(branch, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches[0].Timeouts.ActionExecTimeout = "PT5S"
+				model.States[0].ParallelState.Branches[0].Timeouts.BranchExecTimeout = "PT5S"
+				return *model
+			},
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches[0].Timeouts.ActionExecTimeout = "P5S"
+				model.States[0].ParallelState.Branches[0].Timeouts.BranchExecTimeout = "P5S"
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.branches[0].timeouts.actionExecTimeout invalid iso8601 duration "P5S"
+workflow.states[0].parallelState.branches[0].timeouts.branchExecTimeout invalid iso8601 duration "P5S"`,
+		},
+	}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestParallelStateTimeoutStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	parallelState := buildParallelState(baseWorkflow, "start state")
+	buildParallelStateTimeout(parallelState)
+	buildEndByState(parallelState, true, false)
+	branch := buildBranch(parallelState, "brach 1")
+	action1 := buildActionByBranch(branch, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Timeouts.BranchExecTimeout = "PT5S"
+				return *model
+			},
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Timeouts.BranchExecTimeout = "P5S"
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.timeouts.branchExecTimeout invalid iso8601 duration "P5S"`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
 }

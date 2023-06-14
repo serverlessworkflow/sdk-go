@@ -44,5 +44,6 @@ if [ "${GENS}" = "all" ] || grep -qw "deepcopy" <<<"${GENS}"; then
   "${GOPATH}/bin/deepcopy-gen" -v 1 \
       --input-dirs ./model -O zz_generated.deepcopy \
       --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.txt" \
+      --output-base ./
       "$@"
 fi

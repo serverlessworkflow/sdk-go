@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // AuthType can be "basic", "bearer", or "oauth2". Default is "basic"
@@ -95,7 +97,7 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 		PropertiesRaw json.RawMessage `json:"properties"`
 	}{}
 
-	err := unmarshalObjectOrFile("auth", data, &authTmp)
+	err := util.UnmarshalObjectOrFile("auth", data, &authTmp)
 	if err != nil {
 		return err
 	}
@@ -108,13 +110,13 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	switch a.Scheme {
 	case AuthTypeBasic:
 		a.Properties.Basic = &BasicAuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Basic)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Basic)
 	case AuthTypeBearer:
 		a.Properties.Bearer = &BearerAuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Bearer)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Bearer)
 	case AuthTypeOAuth2:
 		a.Properties.OAuth2 = &OAuth2AuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.OAuth2)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.OAuth2)
 	default:
 		return fmt.Errorf("failed to parse auth properties")
 	}

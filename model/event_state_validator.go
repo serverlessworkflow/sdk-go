@@ -21,19 +21,19 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(eventStateStructLevelValidationCtx), EventState{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(onEventsStructLevelValidationCtx), OnEvents{})
+	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(eventStateStructLevelValidationCtx), EventState{})
+	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(onEventsStructLevelValidationCtx), OnEvents{})
 }
 
-func eventStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+func eventStateStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	// EventRefs
 }
 
-func onEventsStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+func onEventsStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	onEvent := structLevel.Current().Interface().(OnEvents)
 	for _, eventRef := range onEvent.EventRefs {
-		if eventRef != "" && !ctx.MapEvents.contain(eventRef) {
-			structLevel.ReportError(eventRef, "eventRefs", "EventRefs", TagExists, "")
+		if eventRef != "" && !ctx.MapEvents.Contain(eventRef) {
+			structLevel.ReportError(eventRef, "eventRefs", "EventRefs", val.TagExists, "")
 		}
 	}
 }

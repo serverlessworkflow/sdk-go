@@ -21,10 +21,10 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(baseStateStructLevelValidationCtx), BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(baseStateStructLevelValidationCtx), BaseState{})
 }
 
-func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+func baseStateStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.Type != StateTypeSwitch {
 		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
@@ -32,19 +32,19 @@ func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validat
 
 	if baseState.CompensatedBy != "" {
 		if baseState.UsedForCompensation {
-			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagRecursiveCompensation, "")
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagRecursiveCompensation, "")
 		}
 
-		if ctx.MapStates.contain(baseState.CompensatedBy) {
-			val := ctx.MapStates.ValuesMap[baseState.CompensatedBy]
-			if !val.UsedForCompensation {
-				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagCompensatedby, "")
+		if ctx.MapStates.Contain(baseState.CompensatedBy) {
+			value := ctx.MapStates.ValuesMap[baseState.CompensatedBy].(State)
+			if !value.UsedForCompensation {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedby, "")
 			}
-			if val.Type == StateTypeEvent {
-				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagEventState, "")
+			if value.Type == StateTypeEvent {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagEventState, "")
 			}
 		} else {
-			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", TagExists, "")
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagExists, "")
 		}
 	}
 }

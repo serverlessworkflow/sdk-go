@@ -17,6 +17,7 @@ package model
 import (
 	"encoding/json"
 
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -78,7 +79,7 @@ type parallelStateUnmarshal ParallelState
 // UnmarshalJSON unmarshal ParallelState object from json bytes
 func (ps *ParallelState) UnmarshalJSON(data []byte) error {
 	ps.ApplyDefault()
-	return unmarshalObject("parallelState", data, (*parallelStateUnmarshal)(ps))
+	return util.UnmarshalObject("parallelState", data, (*parallelStateUnmarshal)(ps))
 }
 
 // ApplyDefault set the default values for Parallel State
@@ -93,7 +94,7 @@ type Branch struct {
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
 	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions" validate:"required,min=1,dive"`
+	Actions []Action `json:"actions" validate:"min=1,dive"`
 	// Branch specific timeout settings
 	// +optional
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`

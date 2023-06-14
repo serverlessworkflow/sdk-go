@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // CompletionType define on how to complete branch execution.
 type OnParentCompleteType string
 
@@ -59,7 +61,7 @@ type workflowRefUnmarshal WorkflowRef
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 	s.ApplyDefault()
-	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
+	return util.UnmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
 }
 
 // ApplyDefault set the default values for Workflow Ref

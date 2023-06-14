@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
 
@@ -66,7 +68,7 @@ type eventUnmarshal Event
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("event", data, (*eventUnmarshal)(e))
+	return util.UnmarshalObject("event", data, (*eventUnmarshal)(e))
 }
 
 // ApplyDefault set the default values for Event
@@ -116,7 +118,7 @@ type eventRefUnmarshal EventRef
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
+	return util.UnmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
 }
 
 // ApplyDefault set the default values for Event Ref

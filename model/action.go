@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // Action specify invocations of services or other workflows during workflow execution.
 type Action struct {
 	// Defines Unique action identifier.
@@ -61,7 +63,7 @@ type actionUnmarshal Action
 // UnmarshalJSON implements json.Unmarshaler
 func (a *Action) UnmarshalJSON(data []byte) error {
 	a.ApplyDefault()
-	return unmarshalObject("action", data, (*actionUnmarshal)(a))
+	return util.UnmarshalObject("action", data, (*actionUnmarshal)(a))
 }
 
 // ApplyDefault set the default values for Action
@@ -93,7 +95,7 @@ type functionRefUnmarshal FunctionRef
 // UnmarshalJSON implements json.Unmarshaler
 func (f *FunctionRef) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalPrimitiveOrObject("functionRef", data, &f.RefName, (*functionRefUnmarshal)(f))
+	return util.UnmarshalPrimitiveOrObject("functionRef", data, &f.RefName, (*functionRefUnmarshal)(f))
 }
 
 // ApplyDefault set the default values for Function Ref
@@ -117,5 +119,5 @@ type sleepUnmarshal Sleep
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Sleep) UnmarshalJSON(data []byte) error {
-	return unmarshalObject("sleep", data, (*sleepUnmarshal)(s))
+	return util.UnmarshalObject("sleep", data, (*sleepUnmarshal)(s))
 }

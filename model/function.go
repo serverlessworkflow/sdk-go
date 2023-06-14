@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 const (
 	// FunctionTypeREST a combination of the function/service OpenAPI definition document URI and the particular service
 	// operation that needs to be invoked, separated by a '#'.
@@ -83,7 +85,7 @@ type functionUnmarshal Function
 // UnmarshalJSON implements json unmarshaler interface
 func (f *Function) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalObject("function", data, (*functionUnmarshal)(f))
+	return util.UnmarshalObject("function", data, (*functionUnmarshal)(f))
 }
 
 // ApplyDefault set the default values for Function

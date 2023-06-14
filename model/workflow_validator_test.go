@@ -15,7 +15,6 @@
 package model
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,458 +22,412 @@ import (
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
-var workflowStructDefault = Workflow{
-	BaseWorkflow: BaseWorkflow{
-		ID:          "id",
-		SpecVersion: "0.8",
-		Auth: Auths{
-			{
-				Name: "auth name",
-			},
+func buildWorkflow() *Workflow {
+	return &Workflow{
+		BaseWorkflow: BaseWorkflow{
+			ID:             "id",
+			Key:            "key",
+			Name:           "name",
+			SpecVersion:    "0.8",
+			Version:        "0.1",
+			ExpressionLang: JqExpressionLang,
 		},
-		Errors: []Error{
-			{
-				Name: "error 1",
-			},
-			{
-				Name: "error 2",
-			},
-		},
-		Secrets: Secrets{
-			"Secret1",
-		},
-		Start: &Start{
-			StateName: "name state",
-		},
-	},
-	Events: []Event{
-		{
-			Name: "event 1",
-			Type: "consumer",
-			Kind: EventKindConsumed,
-		},
-	},
-	Functions: []Function{
-		{
-			Name:      "function 1",
-			Operation: "rest",
-			Type:      FunctionTypeREST,
-		},
-		{
-			Name:      "function 2",
-			Operation: "rest",
-			Type:      FunctionTypeREST,
-		},
-	},
-	Retries: []Retry{
-		{
-			Name: "retry 1",
-		},
-	},
-	States: []State{
-		{
-			BaseState: BaseState{
-				Name: "name state",
-				Type: StateTypeOperation,
-				Transition: &Transition{
-					NextState: "next name state",
-				},
-				OnErrors: []OnError{
-					{
-						ErrorRefs: []string{
-							"error 1",
-						},
-					},
-				},
-			},
-			OperationState: &OperationState{
-				ActionMode: "sequential",
-				Actions: []Action{
-					{
-						FunctionRef: &FunctionRef{
-							RefName: "function 1",
-							Invoke:  InvokeKindSync,
-						},
-						RetryRef: "retry 1",
-					},
-				},
-			},
-		},
-		{
-			BaseState: BaseState{
-				Name: "next name state",
-				Type: StateTypeOperation,
-				OnErrors: []OnError{
-					{
-						ErrorRef: "error 2",
-					},
-				},
-				CompensatedBy: "compensation state",
-				End: &End{
-					Terminate: true,
-				},
-			},
-			OperationState: &OperationState{
-				ActionMode: "sequential",
-				Actions: []Action{
-					{
-						EventRef: &EventRef{
-							TriggerEventRef: "event 1",
-							ResultEventRef:  "event 1",
-							Invoke:          InvokeKindSync,
-						},
-					},
-				},
-			},
-		},
-		{
-			BaseState: BaseState{
-				Name: "compensation state",
-				Type: StateTypeOperation,
-				OnErrors: []OnError{
-					{
-						ErrorRef: "error 2",
-					},
-				},
-				UsedForCompensation: true,
-				End: &End{
-					Terminate: true,
-				},
-			},
-			OperationState: &OperationState{
-				ActionMode: "sequential",
-				Actions: []Action{
-					{
-						FunctionRef: &FunctionRef{
-							RefName: "function 2",
-							Invoke:  InvokeKindSync,
-						},
-						RetryRef: "retry 1",
-					},
-				},
-			},
-		},
-	},
-}
-
-type ValidationCase[T any] struct {
-	Desp  string
-	Model T
-	Err   string
-}
-
-func StructLevelValidationCtx[T any](t *testing.T, ctx context.Context, testCases []ValidationCase[T]) {
-	for _, tc := range testCases {
-		t.Run(tc.Desp, func(t *testing.T) {
-			err := val.GetValidator().StructCtx(ctx, tc.Model)
-			err = WorkflowError(err)
-			if tc.Err != "" {
-				if assert.Error(t, err) {
-					assert.Equal(t, tc.Err, err.Error())
-				}
-				return
-			}
-			assert.NoError(t, err)
-		})
 	}
 }
 
-func TestWorkflowStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[Workflow]{
+func buildEndByState(state *State, terminate, compensate bool) *End {
+	end := &End{
+		Terminate:  terminate,
+		Compensate: compensate,
+	}
+	state.BaseState.End = end
+	return end
+}
+
+func buildEndByDefaultCondition(defaultCondition *DefaultCondition, terminate, compensate bool) *End {
+	end := &End{
+		Terminate:  terminate,
+		Compensate: compensate,
+	}
+	defaultCondition.End = end
+	return end
+}
+
+func buildEndByDataCondition(dataCondition *DataCondition, terminate, compensate bool) *End {
+	end := &End{
+		Terminate:  terminate,
+		Compensate: compensate,
+	}
+	dataCondition.End = end
+	return end
+}
+
+func buildEndByEventCondition(eventCondition *EventCondition, terminate, compensate bool) *End {
+	end := &End{
+		Terminate:  terminate,
+		Compensate: compensate,
+	}
+	eventCondition.End = end
+	return end
+}
+
+func buildStart(workflow *Workflow, state *State) {
+	start := &Start{
+		StateName: state.BaseState.Name,
+	}
+	workflow.BaseWorkflow.Start = start
+}
+
+func buildTransitionByState(state, nextState *State, compensate bool) {
+	state.BaseState.Transition = &Transition{
+		NextState:  nextState.BaseState.Name,
+		Compensate: compensate,
+	}
+}
+
+func buildTransitionByDataCondition(dataCondition *DataCondition, state *State, compensate bool) {
+	dataCondition.Transition = &Transition{
+		NextState:  state.BaseState.Name,
+		Compensate: compensate,
+	}
+}
+
+func buildTransitionByEventCondition(eventCondition *EventCondition, state *State, compensate bool) {
+	eventCondition.Transition = &Transition{
+		NextState:  state.BaseState.Name,
+		Compensate: compensate,
+	}
+}
+
+func buildTimeouts(workflow *Workflow) *Timeouts {
+	timeouts := Timeouts{}
+	workflow.BaseWorkflow.Timeouts = &timeouts
+	return workflow.BaseWorkflow.Timeouts
+}
+
+func TestBaseWorkflowStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
 		{
-			Desp:  "workflow success",
-			Model: workflowStructDefault,
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
 		},
 		{
-			Desp: "workflow state.name repeat",
+			Desp: "id exclude key",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.States = append(w.States, w.States[0])
-				return w
-			}(),
-			Err: `states has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.ID = "id"
+				model.Key = ""
+				return *model
+			},
 		},
 		{
-			Desp: "workflow event.name repeat",
+			Desp: "key exclude id",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Events = append(w.Events, w.Events[0])
-				return w
-			}(),
-			Err: `events has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.ID = ""
+				model.Key = "key"
+				return *model
+			},
 		},
 		{
-			Desp: "workflow function.name repeat",
+			Desp: "without id and key",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Functions = append(w.Functions, w.Functions[0])
-				return w
-			}(),
-			Err: `functions has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.ID = ""
+				model.Key = ""
+				return *model
+			},
+			Err: `workflow.id required when "workflow.key" is not defined
+workflow.key required when "workflow.id" is not defined`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestContinueAsStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	baseWorkflow.States[0].BaseState.End.ContinueAs = &ContinueAs{
+		WorkflowID: "sub workflow",
+		WorkflowExecTimeout: WorkflowExecTimeout{
+			Duration: "P1M",
+		},
+	}
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
 		},
 		{
-			Desp: "workflow retrie.name repeat",
+			Desp: "required",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Retries = append(w.Retries, w.Retries[0])
-				return w
-			}(),
-			Err: `retries has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.End.ContinueAs.WorkflowID = ""
+				return *model
+			},
+			Err: `workflow.states[0].end.continueAs.workflowID is required`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestOnErrorStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	baseWorkflow.BaseWorkflow.Errors = Errors{{
+		Name: "error 1",
+	}, {
+		Name: "error 2",
+	}}
+	baseWorkflow.States[0].BaseState.OnErrors = []OnError{{
+		ErrorRef: "error 1",
+	}, {
+		ErrorRefs: []string{"error 1", "error 2"},
+	}}
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
 		},
 		{
-			Desp: "workflow auth.name repeat",
+			Desp: "required",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Auth = append(w.Auth, w.Auth[0])
-				return w
-			}(),
-			Err: `auth has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.OnErrors[0].ErrorRef = ""
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[0].errorRef is required`,
 		},
 		{
-			Desp: "workflow error.name repeat",
+			Desp: "exclusive",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Errors = append(w.Errors, w.Errors[0])
-				return w
-			}(),
-			Err: `errors has duplicate "name"`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OnErrors[0].ErrorRef = "error 1"
+				model.States[0].OnErrors[0].ErrorRefs = []string{"error 2"}
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[0].errorRef or workflow.states[0].onErrors[0].errorRefs are exclusive`,
 		},
 		{
-			Desp: "workflow secrets.name repeat",
+			Desp: "not exists",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Secrets = append(w.Secrets, w.Secrets[0])
-				return w
-			}(),
-			Err: `secrets has duplicate value`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.OnErrors[0].ErrorRef = "invalid error name"
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[0].errorRef don't exist "invalid error name"`,
 		},
 		{
-			Desp: "function not exists",
+			Desp: "duplicate",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				f := w.Functions[0]
-				f.Name = "function renamed to fail"
-				w.Functions = []Function{f, w.Functions[1]}
-				return w
-			}(),
-			Err: `states[0].operationState.actions[0].functionRef.refName don't exists "function 1"`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OnErrors[1].ErrorRefs = []string{"error 1", "error 1"}
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[1].errorRefs has duplicate value`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestStartStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildStart(baseWorkflow, operationState)
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
 		},
 		{
-			Desp: "event not exists",
+			Desp: "required",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				e := w.Events[0]
-				e.Name = "event renamed to fail"
-				w.Events = []Event{e}
-				return w
-			}(),
-			Err: `states[1].operationState.actions[0].eventRef.triggerEventRef don't exists "event 1"
-states[1].operationState.actions[0].eventRef.triggerEventRef don't exists "event 1"`,
+				model := baseWorkflow.DeepCopy()
+				model.Start.StateName = ""
+				return *model
+			},
+			Err: `workflow.start.stateName is required`,
 		},
 		{
-			Desp: "retry not exists",
+			Desp: "exists",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				r := w.Retries[0]
-				r.Name = "retry renamed to fail"
-				w.Retries = []Retry{r}
-				return w
-			}(),
-			Err: `states[0].operationState.actions[0].retryRef don't exists "retry 1"
-states[2].operationState.actions[0].retryRef don't exists "retry 1"`,
+				model := baseWorkflow.DeepCopy()
+				model.Start.StateName = "start state not found"
+				return *model
+			},
+			Err: `workflow.start.stateName don't exist "start state not found"`,
 		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestTransitionStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.States = make(States, 0, 2)
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	operationState2 := buildOperationState(baseWorkflow, "next state")
+	buildEndByState(operationState2, true, false)
+	action2 := buildActionByOperationState(operationState2, "action 1")
+	buildFunctionRef(baseWorkflow, action2, "function 2")
+
+	buildTransitionByState(operationState, operationState2, false)
+
+	testCases := []ValidationCase{
 		{
-			Desp: "error 1 not exists",
+			Desp: "success",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				e := w.Errors[0]
-				e.Name = "error fail exists"
-				w.Errors = []Error{e, w.Errors[1]}
-				return w
-			}(),
-			Err: `states[0].onErrors[0].errorRefs don't exists ["error 1"]`,
-		},
-		{
-			Desp: "error 2 not exists",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				e := w.Errors[1]
-				e.Name = "error fail exists"
-				w.Errors = []Error{w.Errors[0], e}
-				return w
-			}(),
-			Err: `states[1].onErrors[0].errorRef don't exists "error 2"
-states[2].onErrors[0].errorRef don't exists "error 2"`,
-		},
-		{
-			Desp: "workflow id exclude key",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				w.ID = "id"
-				w.Key = ""
-				return w
-			}(),
-			Err: ``,
-		},
-		{
-			Desp: "workflow key exclude id",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				w.ID = ""
-				w.Key = "key"
-				return w
-			}(),
-			Err: ``,
-		},
-		{
-			Desp: "workflow id and key",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				w.ID = "id"
-				w.Key = "key"
-				return w
-			}(),
-			Err: ``,
-		},
-		{
-			Desp: "workflow without id and key",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				w.ID = ""
-				w.Key = ""
-				return w
-			}(),
-			Err: `key required when not defined "id"
-id required when not defined "key"`,
-		},
-		{
-			Desp: "workflow start",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				w.Start = &Start{
-					StateName: "start state not found",
-				}
-				return w
-			}(),
-			Err: `start.stateName don't exists "start state not found"`,
-		},
-		{
-			Desp: "workflow transition no exists",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				s := w.States[0]
-				t := *s.Transition
-				t.NextState = "transtion not exists"
-				s.Transition = &t
-				w.States = []State{s, w.States[1], w.States[2]}
-				return w
-			}(),
-			Err: `states[0].transition.nextState don't exists "transtion not exists"`,
-		},
-		{
-			Desp: "transition compensation",
-			Model: func() Workflow {
-				w := workflowStructDefault
-				s := w.States[2]
-				s.UsedForCompensation = false
-				w.States = []State{w.States[0], w.States[1], s}
-				return w
-			}(),
-			Err: `states[1].compensatedBy compensatedBy don't exists "compensation state"`,
+				return *baseWorkflow.DeepCopy()
+			},
 		},
 		{
 			Desp: "state recursive",
 			Model: func() Workflow {
-				w := workflowStructDefault
-				s := w.States[0]
-				t := *s.Transition
-				t.NextState = s.Name
-				s.Transition = &t
-				w.States = []State{s}
-				return w
-			}(),
-			Err: `states[0].transition.nextState can't no be recursive "name state"`,
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.Transition.NextState = model.States[0].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].transition.nextState can't no be recursive "start state"`,
+		},
+		{
+			Desp: "workflow transition not exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.Transition.NextState = "invalid next state"
+				return *model
+			},
+			Err: `workflow.states[0].transition.nextState don't exist "invalid next state"`,
 		},
 	}
 
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestSecretsStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "workflow secrets.name repeat",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Secrets = []string{"secret 1", "secret 1"}
+				return *model
+			},
+			Err: `workflow.secrets has duplicate value`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestErrorStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	baseWorkflow.BaseWorkflow.Errors = Errors{{
+		Name: "error 1",
+	}, {
+		Name: "error 2",
+	}}
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Errors[0].Name = ""
+				return *model
+			},
+			Err: `workflow.errors[0].name is required`,
+		},
+		{
+			Desp: "repeat",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Errors = Errors{model.Errors[0], model.Errors[0]}
+				return *model
+			},
+			Err: `workflow.errors has duplicate "name"`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
+type ValidationCase struct {
+	Desp  string
+	Model func() Workflow
+	Err   string
+}
+
+func StructLevelValidationCtx(t *testing.T, testCases []ValidationCase) {
 	for _, tc := range testCases {
 		t.Run(tc.Desp, func(t *testing.T) {
-			StructLevelValidationCtx(t, NewValidatorContext(&tc.Model), []ValidationCase[Workflow]{tc})
+			model := tc.Model()
+			err := val.GetValidator().StructCtx(NewValidatorContext(&model), model)
+			err = val.WorkflowError(err)
+			if tc.Err != "" {
+				if assert.Error(t, err) {
+					assert.Equal(t, tc.Err, err.Error())
+				}
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
-}
-
-func TestContinueAsStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[ContinueAs]{
-		{
-			Desp: "valid ContinueAs",
-			Model: ContinueAs{
-				WorkflowID: "another-test",
-				Version:    "2",
-				Data:       FromString("${ del(.customerCount) }"),
-				WorkflowExecTimeout: WorkflowExecTimeout{
-					Duration:  "PT1H",
-					Interrupt: false,
-					RunBefore: "test",
-				},
-			},
-			Err: ``,
-		},
-		{
-			Desp: "invalid WorkflowExecTimeout",
-			Model: ContinueAs{
-				WorkflowID: "test",
-				Version:    "1",
-				Data:       FromString("${ del(.customerCount) }"),
-				WorkflowExecTimeout: WorkflowExecTimeout{
-					Duration: "invalid",
-				},
-			},
-			Err: `Key: 'ContinueAs.WorkflowExecTimeout.Duration' Error:Field validation for 'Duration' failed on the 'iso8601duration' tag`,
-		},
-	}
-
-	StructLevelValidationCtx(t, NewValidatorContext(&Workflow{}), testCases)
-}
-
-func TestOnErrorStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[OnError]{
-		{
-			Desp: "duplicate ErrorRefs",
-			Model: OnError{
-				ErrorRefs: []string{"error 1", "error 1"},
-			},
-			Err: `errorRefs has duplicate value`,
-		},
-		{
-			Desp: "valid OnError",
-			Model: OnError{
-				ErrorRef: "error 1",
-			},
-			Err: ``,
-		},
-		{
-			Desp: "valid OnError",
-			Model: OnError{
-				ErrorRefs: []string{"error 1"},
-			},
-			Err: ``,
-		},
-		{
-			Desp:  "required errorRef",
-			Model: OnError{},
-			Err:   `Key: 'OnError.ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'required' tag`,
-		},
-
-		{
-			Desp: "required errorRef",
-			Model: OnError{
-				ErrorRef:  "error 1",
-				ErrorRefs: []string{"error 1"},
-			},
-			Err: `Key: 'OnError.ErrorRef' Error:Field validation for 'ErrorRef' failed on the 'exclusive' tag`,
-		},
-	}
-
-	StructLevelValidationCtx(t, NewValidatorContext(&workflowStructDefault), testCases)
 }

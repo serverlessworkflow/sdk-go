@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package util
 
 import (
 	"bytes"
@@ -41,7 +41,7 @@ type Kind interface {
 }
 
 // TODO: Remove global variable
-var httpClient = http.Client{Timeout: time.Duration(1) * time.Second}
+var HttpClient = http.Client{Timeout: time.Duration(1) * time.Second}
 
 // UnmarshalError ...
 // +k8s:deepcopy-gen=false
@@ -175,7 +175,7 @@ func getBytesFromHttp(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	resp, err := httpClient.Do(req)
+	resp, err := HttpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -189,9 +189,10 @@ func getBytesFromHttp(url string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
+// +k8s:deepcopy-gen=false
+func UnmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *U) error {
 	var valString string
-	err := unmarshalPrimitiveOrObject(parameterName, data, &valString, valObject)
+	err := UnmarshalPrimitiveOrObject(parameterName, data, &valString, valObject)
 	if err != nil || valString == "" {
 		return err
 	}
@@ -230,10 +231,10 @@ func unmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 		}
 	}
 
-	return unmarshalObject(parameterName, data, valObject)
+	return UnmarshalObject(parameterName, data, valObject)
 }
 
-func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
+func UnmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, data []byte, valPrimitive *T, valStruct *U) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {
 		// TODO: Normalize error messages
@@ -243,7 +244,7 @@ func unmarshalPrimitiveOrObject[T string | bool, U any](parameterName string, da
 	isObject := data[0] == '{' || data[0] == '['
 	var err error
 	if isObject {
-		err = unmarshalObject(parameterName, data, valStruct)
+		err = UnmarshalObject(parameterName, data, valStruct)
 	} else {
 		err = unmarshalPrimitive(parameterName, data, valPrimitive)
 	}
@@ -274,7 +275,7 @@ func unmarshalPrimitive[T string | bool](parameterName string, data []byte, valu
 	return nil
 }
 
-func unmarshalObject[U any](parameterName string, data []byte, value *U) error {
+func UnmarshalObject[U any](parameterName string, data []byte, value *U) error {
 	if value == nil {
 		return nil
 	}

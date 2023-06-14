@@ -33,24 +33,22 @@ func init() {
 func parallelStateStructLevelValidation(_ context.Context, structLevel validator.StructLevel) {
 	parallelStateObj := structLevel.Current().Interface().(ParallelState)
 
-	if parallelStateObj.CompletionType == CompletionTypeAllOf {
-		return
-	}
+	if parallelStateObj.CompletionType == CompletionTypeAtLeast {
+		switch parallelStateObj.NumCompleted.Type {
+		case intstr.Int:
+			if parallelStateObj.NumCompleted.IntVal <= 0 {
+				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
+			}
+		case intstr.String:
+			v, err := strconv.Atoi(parallelStateObj.NumCompleted.StrVal)
+			if err != nil {
+				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", err.Error())
+				return
+			}
 
-	switch parallelStateObj.NumCompleted.Type {
-	case intstr.Int:
-		if parallelStateObj.NumCompleted.IntVal <= 0 {
-			structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
-		}
-	case intstr.String:
-		v, err := strconv.Atoi(parallelStateObj.NumCompleted.StrVal)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", err.Error())
-			return
-		}
-
-		if v <= 0 {
-			structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
+			if v <= 0 {
+				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
+			}
 		}
 	}
 }

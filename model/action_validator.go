@@ -21,12 +21,18 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(actionStructLevelValidationCtx), Action{})
-	val.GetValidator().RegisterStructValidationCtx(validationWrap(functionRefStructLevelValidation), FunctionRef{})
+	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(actionStructLevelValidationCtx), Action{})
+	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(functionRefStructLevelValidation), FunctionRef{})
 }
 
-func actionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+func actionStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	action := structLevel.Current().Interface().(Action)
+
+	if action.FunctionRef == nil && action.EventRef == nil && action.SubFlowRef == nil {
+		structLevel.ReportError(action.FunctionRef, "FunctionRef", "FunctionRef", "required_without", "")
+		return
+	}
+
 	values := []bool{
 		action.FunctionRef != nil,
 		action.EventRef != nil,
@@ -34,19 +40,19 @@ func actionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.
 	}
 
 	if validationNotExclusiveParamters(values) {
-		structLevel.ReportError(action.FunctionRef, "functionRef", "FunctionRef", TagExclusive, "")
-		structLevel.ReportError(action.EventRef, "EventRef", "eventRef", TagExclusive, "")
-		structLevel.ReportError(action.SubFlowRef, "SubFlowRef", "subFlowRef", TagExclusive, "")
+		structLevel.ReportError(action.FunctionRef, "FunctionRef", "FunctionRef", val.TagExclusive, "")
+		structLevel.ReportError(action.EventRef, "EventRef", "EventRef", val.TagExclusive, "")
+		structLevel.ReportError(action.SubFlowRef, "SubFlowRef", "SubFlowRef", val.TagExclusive, "")
 	}
 
-	if action.RetryRef != "" && !ctx.MapRetries.contain(action.RetryRef) {
-		structLevel.ReportError(action.RetryRef, "retryRef", "RetryRef", TagExists, "")
+	if action.RetryRef != "" && !ctx.MapRetries.Contain(action.RetryRef) {
+		structLevel.ReportError(action.RetryRef, "RetryRef", "RetryRef", val.TagExists, "")
 	}
 }
 
-func functionRefStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
+func functionRefStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	functionRef := structLevel.Current().Interface().(FunctionRef)
-	if !ctx.MapFunctions.contain(functionRef.RefName) {
-		structLevel.ReportError(functionRef.RefName, "refName", "RefName", TagExists, functionRef.RefName)
+	if !ctx.MapFunctions.Contain(functionRef.RefName) {
+		structLevel.ReportError(functionRef.RefName, "RefName", "RefName", val.TagExists, functionRef.RefName)
 	}
 }

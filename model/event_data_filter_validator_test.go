@@ -13,3 +13,10 @@
 // limitations under the License.
 
 package model
+
+import "testing"
+
+func TestEventDataFilterStateStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}

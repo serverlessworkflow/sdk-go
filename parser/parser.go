@@ -53,7 +53,7 @@ func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
 
 	ctx := model.NewValidatorContext(workflow)
 	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
-		return nil, model.WorkflowError(err)
+		return nil, err
 	}
 	return workflow, nil
 }

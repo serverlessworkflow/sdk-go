@@ -16,6 +16,8 @@ package model
 
 import (
 	"encoding/json"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
@@ -49,7 +51,7 @@ type operationStateUnmarshal OperationState
 // UnmarshalJSON unmarshal OperationState object from json bytes
 func (o *OperationState) UnmarshalJSON(data []byte) error {
 	o.ApplyDefault()
-	return unmarshalObject("operationState", data, (*operationStateUnmarshal)(o))
+	return util.UnmarshalObject("operationState", data, (*operationStateUnmarshal)(o))
 }
 
 // ApplyDefault set the default values for Operation State

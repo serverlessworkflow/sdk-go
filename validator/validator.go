@@ -17,8 +17,9 @@ package validator
 import (
 	"context"
 
-	validator "github.com/go-playground/validator/v10"
 	"github.com/senseyeio/duration"
+
+	validator "github.com/go-playground/validator/v10"
 )
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
@@ -63,7 +64,7 @@ func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel)
 func oneOfKind(fl validator.FieldLevel) bool {
 	if val, ok := fl.Field().Interface().(Kind); ok {
 		for _, value := range val.KindValues() {
-			if value == val.String() {
+			if value != "" && value == val.String() {
 				return true
 			}
 		}

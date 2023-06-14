@@ -18,104 +18,74 @@ import (
 	"testing"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
-	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestRetryStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		desp     string
-		retryObj Retry
-		err      string
-	}
-	testCases := []testCase{
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildRetryRef(baseWorkflow, action1, "retry 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
 		{
-			desp: "normal",
-			retryObj: Retry{
-				Name:      "1",
-				Delay:     "PT5S",
-				MaxDelay:  "PT5S",
-				Increment: "PT5S",
-				Jitter:    floatstr.FromString("PT5S"),
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Retries[0].Delay = "PT5S"
+				model.Retries[0].MaxDelay = "PT5S"
+				model.Retries[0].Increment = "PT5S"
+				model.Retries[0].Jitter = floatstr.FromString("PT5S")
+				return *model
 			},
-			err: ``,
 		},
 		{
-			desp: "normal with all optinal",
-			retryObj: Retry{
-				Name: "1",
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Retries[0].Name = ""
+				model.States[0].OperationState.Actions[0].RetryRef = ""
+				return *model
 			},
-			err: ``,
+			Err: `workflow.retries[0].name is required`,
 		},
 		{
-			desp: "missing required name",
-			retryObj: Retry{
-				Name:      "",
-				Delay:     "PT5S",
-				MaxDelay:  "PT5S",
-				Increment: "PT5S",
-				Jitter:    floatstr.FromString("PT5S"),
+			Desp: "repeat",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Retries = append(model.Retries, model.Retries[0])
+				return *model
 			},
-			err: `Key: 'Retry.Name' Error:Field validation for 'Name' failed on the 'required' tag`,
+			Err: `workflow.retries has duplicate "name"`,
 		},
 		{
-			desp: "invalid delay duration",
-			retryObj: Retry{
-				Name:      "1",
-				Delay:     "P5S",
-				MaxDelay:  "PT5S",
-				Increment: "PT5S",
-				Jitter:    floatstr.FromString("PT5S"),
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].RetryRef = "invalid retry"
+				return *model
 			},
-			err: `Key: 'Retry.Delay' Error:Field validation for 'Delay' failed on the 'iso8601duration' tag`,
+			Err: `workflow.states[0].actions[0].retryRef don't exist "invalid retry"`,
 		},
 		{
-			desp: "invdalid max delay duration",
-			retryObj: Retry{
-				Name:      "1",
-				Delay:     "PT5S",
-				MaxDelay:  "P5S",
-				Increment: "PT5S",
-				Jitter:    floatstr.FromString("PT5S"),
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Retries[0].Delay = "P5S"
+				model.Retries[0].MaxDelay = "P5S"
+				model.Retries[0].Increment = "P5S"
+				model.Retries[0].Jitter = floatstr.FromString("P5S")
+
+				return *model
 			},
-			err: `Key: 'Retry.MaxDelay' Error:Field validation for 'MaxDelay' failed on the 'iso8601duration' tag`,
-		},
-		{
-			desp: "invalid increment duration",
-			retryObj: Retry{
-				Name:      "1",
-				Delay:     "PT5S",
-				MaxDelay:  "PT5S",
-				Increment: "P5S",
-				Jitter:    floatstr.FromString("PT5S"),
-			},
-			err: `Key: 'Retry.Increment' Error:Field validation for 'Increment' failed on the 'iso8601duration' tag`,
-		},
-		{
-			desp: "invalid jitter duration",
-			retryObj: Retry{
-				Name:      "1",
-				Delay:     "PT5S",
-				MaxDelay:  "PT5S",
-				Increment: "PT5S",
-				Jitter:    floatstr.FromString("P5S"),
-			},
-			err: `Key: 'Retry.Jitter' Error:Field validation for 'Jitter' failed on the 'iso8601duration' tag`,
+			Err: `workflow.retries[0].delay invalid iso8601 duration "P5S"
+workflow.retries[0].maxDelay invalid iso8601 duration "P5S"
+workflow.retries[0].increment invalid iso8601 duration "P5S"
+workflow.retries[0].jitter invalid iso8601 duration "P5S"`,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.retryObj)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-
-			assert.NoError(t, err)
-		})
-	}
+	StructLevelValidationCtx(t, testCases)
 }

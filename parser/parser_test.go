@@ -26,6 +26,7 @@ import (
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/serverlessworkflow/sdk-go/v2/test"
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 func TestBasicValidation(t *testing.T) {
@@ -33,7 +34,7 @@ func TestBasicValidation(t *testing.T) {
 	files, err := os.ReadDir(rootPath)
 	assert.NoError(t, err)
 
-	model.SetIncludePaths(append(model.IncludePaths(), filepath.Join(test.CurrentProjectPath(), "./parser/testdata")))
+	util.SetIncludePaths(append(util.IncludePaths(), filepath.Join(test.CurrentProjectPath(), "./parser/testdata")))
 
 	for _, file := range files {
 		if !file.IsDir() {
@@ -746,6 +747,10 @@ events:
 - name: StoreBidFunction
   type: store
 - name: CarBidEvent
+  type: store
+- name: visaRejectedEvent
+  type: store
+- name: visaApprovedEventRef
   type: store
 functions:
 - name: callCreditCheckMicroservice

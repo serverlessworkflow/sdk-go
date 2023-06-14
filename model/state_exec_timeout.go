@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // StateExecTimeout defines workflow state execution timeout
 type StateExecTimeout struct {
 	// Single state execution timeout, not including retries (ISO 8601 duration format)
@@ -28,5 +30,5 @@ type stateExecTimeoutUnmarshal StateExecTimeout
 
 // UnmarshalJSON unmarshal StateExecTimeout object from json bytes
 func (s *StateExecTimeout) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, (*stateExecTimeoutUnmarshal)(s))
+	return util.UnmarshalPrimitiveOrObject("stateExecTimeout", data, &s.Total, (*stateExecTimeoutUnmarshal)(s))
 }

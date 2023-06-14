@@ -18,31 +18,99 @@ import (
 	"testing"
 )
 
-func TestEventRefStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase[EventRef]{
+func buildEventRef(workflow *Workflow, action *Action, triggerEvent, resultEvent string) *EventRef {
+	produceEvent := Event{
+		Name: triggerEvent,
+		Type: "event type",
+		Kind: EventKindProduced,
+	}
+
+	consumeEvent := Event{
+		Name: resultEvent,
+		Type: "event type",
+		Kind: EventKindProduced,
+	}
+
+	workflow.Events = append(workflow.Events, produceEvent)
+	workflow.Events = append(workflow.Events, consumeEvent)
+
+	eventRef := &EventRef{
+		TriggerEventRef: triggerEvent,
+		ResultEventRef:  resultEvent,
+		Invoke:          InvokeKindSync,
+	}
+
+	action.EventRef = eventRef
+	return action.EventRef
+}
+
+func TestEventStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.Events = Events{{
+		Name: "event 1",
+	}}
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
 		{
-			Desp: "valid resultEventTimeout",
-			Model: EventRef{
-				TriggerEventRef:    "test",
-				ResultEventRef:     "test",
-				ResultEventTimeout: "PT1H",
-				Invoke:             InvokeKindSync,
+			Desp: "workflow event.name repeat",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events = append(model.Events, model.Events[0])
+				return *model
+			},
+			Err: `workflow.events has duplicate "name"`,
+		},
+	}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestCorrelationStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestEventRefStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	eventRef := buildEventRef(baseWorkflow, action1, "event 1", "event 2")
+	eventRef.ResultEventTimeout = "PT1H"
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
 			},
 		},
 		{
-			Desp: "invalid resultEventTimeout",
-			Model: EventRef{
-				TriggerEventRef:    "test",
-				ResultEventRef:     "test",
-				ResultEventTimeout: "10hs",
-				Invoke:             InvokeKindSync,
+			Desp: "event not exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.TriggerEventRef = "invalid event"
+				model.States[0].OperationState.Actions[0].EventRef.ResultEventRef = "invalid event 2"
+				return *model
 			},
-			Err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
+			Err: `workflow.states[0].actions[0].eventRef.triggerEventRef don't exist "invalid event"
+workflow.states[0].actions[0].eventRef.triggerEventRef don't exist "invalid event 2"`,
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.ResultEventTimeout = "10hs"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].eventRef.resultEventTimeout invalid iso8601 duration "10hs"`,
 		},
 	}
 
-	workflow := &Workflow{
-		Events: Events{{Name: "test"}},
-	}
-	StructLevelValidationCtx(t, NewValidatorContext(workflow), testCases)
+	StructLevelValidationCtx(t, testCases)
 }

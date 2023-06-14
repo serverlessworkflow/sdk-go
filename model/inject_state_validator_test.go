@@ -13,3 +13,16 @@
 // limitations under the License.
 
 package model
+
+import "testing"
+
+func TestInjectStateStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestInjectStateTimeoutStateStructLevelValidation(t *testing.T) {
+	testCases := []ValidationCase{}
+
+	StructLevelValidationCtx(t, testCases)
+}

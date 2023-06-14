@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // ActionDataFilter used to filter action data results.
 // +optional
 // +optional
@@ -40,7 +42,7 @@ type actionDataFilterUnmarshal ActionDataFilter
 // UnmarshalJSON implements json.Unmarshaler
 func (a *ActionDataFilter) UnmarshalJSON(data []byte) error {
 	a.ApplyDefault()
-	return unmarshalObject("actionDataFilter", data, (*actionDataFilterUnmarshal)(a))
+	return util.UnmarshalObject("actionDataFilter", data, (*actionDataFilterUnmarshal)(a))
 }
 
 // ApplyDefault set the default values for Action Data Filter

@@ -160,6 +160,8 @@ func WorkflowError(err error) error {
 			} else {
 				workflowErrors = append(workflowErrors, fmt.Errorf("%s has duplicate %q", namespace, strings.ToLower(err.Param())))
 			}
+		case "min":
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s min > %s", namespace, err.Param()))
 		case "required_without":
 			if namespace == "workflow.iD" {
 				workflowErrors = append(workflowErrors, errors.New("workflow.id required when \"workflow.key\" is not defined"))
@@ -171,7 +173,6 @@ func WorkflowError(err error) error {
 		case "oneofkind":
 			value := reflect.New(err.Type()).Elem().Interface().(Kind)
 			workflowErrors = append(workflowErrors, fmt.Errorf("%s need by one of %s", namespace, value.KindValues()))
-
 		case TagExists:
 			workflowErrors = append(workflowErrors, fmt.Errorf("%s don't exist %q", namespace, err.Value()))
 		case TagRequired:

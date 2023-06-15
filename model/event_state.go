@@ -74,7 +74,7 @@ type OnEvents struct {
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed if expression matches
 	// +optional
-	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
+	Actions []Action `json:"actions,omitempty" validate:"dive"`
 	// eventDataFilter defines the callback event data filter definition
 	// +optional
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`

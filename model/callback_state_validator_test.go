@@ -91,6 +91,15 @@ func TestCallbackStateTimeoutStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
+			Desp: `omitempty`,
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].CallbackState.Timeouts.ActionExecTimeout = ""
+				model.States[0].CallbackState.Timeouts.EventTimeout = ""
+				return *model
+			},
+		},
+		{
 			Desp: "iso8601duration",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()

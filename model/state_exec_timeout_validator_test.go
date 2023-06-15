@@ -16,26 +16,29 @@ package model
 
 import "testing"
 
-func buildStateExecTimeoutByTimeouts(timeouts *Timeouts, total string) *StateExecTimeout {
+func buildStateExecTimeoutByTimeouts(timeouts *Timeouts) *StateExecTimeout {
 	stateExecTimeout := StateExecTimeout{
-		Total: total,
+		Total:  "PT5S",
+		Single: "PT5S",
 	}
 	timeouts.StateExecTimeout = &stateExecTimeout
 	return timeouts.StateExecTimeout
 }
 
-func buildStateExecTimeoutBySleepStateTimeout(timeouts *SleepStateTimeout, total string) *StateExecTimeout {
+func buildStateExecTimeoutBySleepStateTimeout(timeouts *SleepStateTimeout) *StateExecTimeout {
 	stateExecTimeout := StateExecTimeout{
-		Total: total,
+		Total: "PT5S",
 	}
 	timeouts.StateExecTimeout = &stateExecTimeout
 	return timeouts.StateExecTimeout
 }
 
-func buildStateExecTimeoutByOperationStateTimeout(timeouts *OperationStateTimeout, total string) *StateExecTimeout {
+func buildStateExecTimeoutByOperationStateTimeout(timeouts *OperationStateTimeout) *StateExecTimeout {
 	stateExecTimeout := StateExecTimeout{
-		Total: total,
+		Total:  "PT5S",
+		Single: "PT5S",
 	}
+	timeouts.ActionExecTimeout = "PT5S"
 	timeouts.StateExecTimeout = &stateExecTimeout
 	return timeouts.StateExecTimeout
 }
@@ -43,7 +46,7 @@ func buildStateExecTimeoutByOperationStateTimeout(timeouts *OperationStateTimeou
 func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
 	timeouts := buildTimeouts(baseWorkflow)
-	buildStateExecTimeoutByTimeouts(timeouts, "PT5S")
+	buildStateExecTimeoutByTimeouts(timeouts)
 
 	callbackState := buildCallbackState(baseWorkflow, "start state", "event 1")
 	buildEndByState(callbackState, true, false)
@@ -55,7 +58,14 @@ func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 			Desp: "success",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.BaseWorkflow.Timeouts.StateExecTimeout.Single = "PT5S"
+				return *model
+			},
+		},
+		{
+			Desp: "omitempty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.BaseWorkflow.Timeouts.StateExecTimeout.Single = ""
 				return *model
 			},
 		},

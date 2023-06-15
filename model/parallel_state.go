@@ -94,7 +94,7 @@ type Branch struct {
 	Name string `json:"name" validate:"required"`
 	// Actions to be executed in this branch
 	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions" validate:"min=1,dive"`
+	Actions []Action `json:"actions" validate:"required,min=1,dive"`
 	// Branch specific timeout settings
 	// +optional
 	Timeouts *BranchTimeouts `json:"timeouts,omitempty"`

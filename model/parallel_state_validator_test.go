@@ -50,7 +50,9 @@ func buildBranchTimeouts(branch *Branch) *BranchTimeouts {
 }
 
 func buildParallelStateTimeout(state *State) *ParallelStateTimeout {
-	state.ParallelState.Timeouts = &ParallelStateTimeout{}
+	state.ParallelState.Timeouts = &ParallelStateTimeout{
+		BranchExecTimeout: "PT5S",
+	}
 	return state.ParallelState.Timeouts
 }
 
@@ -93,12 +95,21 @@ func TestParallelStateStructLevelValidation(t *testing.T) {
 			Desp: "required",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.States[0].ParallelState.Branches = []Branch{}
+				model.States[0].ParallelState.Branches = nil
 				model.States[0].ParallelState.CompletionType = ""
 				return *model
 			},
-			Err: `Key: 'Workflow.States[0].ParallelState.Branches' Error:Field validation for 'Branches' failed on the 'min' tag
+			Err: `workflow.states[0].parallelState.branches is required
 workflow.states[0].parallelState.completionType is required`,
+		},
+		{
+			Desp: "min",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches = []Branch{}
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.branches min > 1`,
 		},
 		{
 			Desp: "required numCompleted",
@@ -136,11 +147,20 @@ func TestBranchStructLevelValidation(t *testing.T) {
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].ParallelState.Branches[0].Name = ""
-				model.States[0].ParallelState.Branches[0].Actions = []Action{}
+				model.States[0].ParallelState.Branches[0].Actions = nil
 				return *model
 			},
 			Err: `workflow.states[0].parallelState.branches[0].name is required
-Key: 'Workflow.States[0].ParallelState.Branches[0].Actions' Error:Field validation for 'Actions' failed on the 'min' tag`,
+workflow.states[0].parallelState.branches[0].actions is required`,
+		},
+		{
+			Desp: "min",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches[0].Actions = []Action{}
+				return *model
+			},
+			Err: `workflow.states[0].parallelState.branches[0].actions min > 1`,
 		},
 	}
 
@@ -164,6 +184,15 @@ func TestBranchTimeoutsStructLevelValidation(t *testing.T) {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].ParallelState.Branches[0].Timeouts.ActionExecTimeout = "PT5S"
 				model.States[0].ParallelState.Branches[0].Timeouts.BranchExecTimeout = "PT5S"
+				return *model
+			},
+		},
+		{
+			Desp: "omitempty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Branches[0].Timeouts.ActionExecTimeout = ""
+				model.States[0].ParallelState.Branches[0].Timeouts.BranchExecTimeout = ""
 				return *model
 			},
 		},
@@ -197,7 +226,14 @@ func TestParallelStateTimeoutStructLevelValidation(t *testing.T) {
 			Desp: "success",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.States[0].ParallelState.Timeouts.BranchExecTimeout = "PT5S"
+				return *model
+			},
+		},
+		{
+			Desp: "omitempty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ParallelState.Timeouts.BranchExecTimeout = ""
 				return *model
 			},
 		},

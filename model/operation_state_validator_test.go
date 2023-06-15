@@ -63,7 +63,7 @@ func TestOperationStateStructLevelValidation(t *testing.T) {
 				model.States[0].OperationState.Actions = []Action{}
 				return *model
 			},
-			Err: `Key: 'Workflow.States[0].OperationState.Actions' Error:Field validation for 'Actions' failed on the 'min' tag`,
+			Err: `workflow.states[0].actions min > 1`,
 		},
 		{
 			Desp: "oneofkind",
@@ -85,7 +85,7 @@ func TestOperationStateTimeoutStructLevelValidation(t *testing.T) {
 	operationState := buildOperationState(baseWorkflow, "start state")
 	buildEndByState(operationState, true, false)
 	operationStateTimeout := buildOperationStateTimeout(operationState)
-	buildStateExecTimeoutByOperationStateTimeout(operationStateTimeout, "PT5S")
+	buildStateExecTimeoutByOperationStateTimeout(operationStateTimeout)
 
 	action1 := buildActionByOperationState(operationState, "action 1")
 	buildFunctionRef(baseWorkflow, action1, "function 1")
@@ -95,6 +95,14 @@ func TestOperationStateTimeoutStructLevelValidation(t *testing.T) {
 			Desp: "success",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "omitempty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Timeouts.ActionExecTimeout = ""
 				return *model
 			},
 		},

@@ -18,6 +18,5 @@ import "testing"
 
 func TestActionDataFilterStructLevelValidation(t *testing.T) {
 	testCases := []ValidationCase{}
-
 	StructLevelValidationCtx(t, testCases)
 }

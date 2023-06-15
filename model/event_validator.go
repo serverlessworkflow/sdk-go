@@ -15,8 +15,6 @@
 package model
 
 import (
-	"reflect"
-
 	validator "github.com/go-playground/validator/v10"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -25,23 +23,18 @@ import (
 func init() {
 	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(eventStructLevelValidation), Event{})
 	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(eventRefStructLevelValidation), EventRef{})
-
 }
 
 // eventStructLevelValidation custom validator for event kind consumed
 func eventStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
-	event := structLevel.Current().Interface().(Event)
-	if event.Kind == EventKindConsumed && len(event.Type) == 0 {
-		structLevel.ReportError(reflect.ValueOf(event.Type), "Type", "type", "reqtypeconsumed", "")
-	}
 }
 
 func eventRefStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
 	model := structLevel.Current().Interface().(EventRef)
-	if !ctx.MapEvents.Contain(model.TriggerEventRef) {
+	if model.TriggerEventRef != "" && !ctx.MapEvents.Contain(model.TriggerEventRef) {
 		structLevel.ReportError(model.TriggerEventRef, "triggerEventRef", "TriggerEventRef", val.TagExists, "")
 	}
-	if !ctx.MapEvents.Contain(model.ResultEventRef) {
+	if model.ResultEventRef != "" && !ctx.MapEvents.Contain(model.ResultEventRef) {
 		structLevel.ReportError(model.ResultEventRef, "triggerEventRef", "TriggerEventRef", val.TagExists, "")
 	}
 }

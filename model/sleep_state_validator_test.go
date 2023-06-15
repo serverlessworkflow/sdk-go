@@ -79,7 +79,7 @@ func TestSleepStateTimeoutStructLevelValidation(t *testing.T) {
 	sleepState := buildSleepState(baseWorkflow, "start state", "PT5S")
 	buildEndByState(sleepState, true, false)
 	sleepStateTimeout := buildSleepStateTimeout(sleepState)
-	buildStateExecTimeoutBySleepStateTimeout(sleepStateTimeout, "PT5S")
+	buildStateExecTimeoutBySleepStateTimeout(sleepStateTimeout)
 
 	testCases := []ValidationCase{
 		{

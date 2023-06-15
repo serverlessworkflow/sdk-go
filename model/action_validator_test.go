@@ -71,6 +71,14 @@ func buildRetryRef(workflow *Workflow, action *Action, name string) {
 	action.RetryRef = name
 }
 
+func buildSleep(action *Action) *Sleep {
+	action.Sleep = &Sleep{
+		Before: "PT5S",
+		After:  "PT5S",
+	}
+	return action.Sleep
+}
+
 func TestActionStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
 
@@ -131,6 +139,13 @@ func TestFunctionRefStructLevelValidation(t *testing.T) {
 
 	testCases := []ValidationCase{
 		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
 			Desp: "exists",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
@@ -144,6 +159,42 @@ func TestFunctionRefStructLevelValidation(t *testing.T) {
 }
 
 func TestSleepStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase{}
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildSleep(action1)
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "omitempty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].Sleep.Before = ""
+				model.States[0].OperationState.Actions[0].Sleep.After = ""
+				return *model
+			},
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].Sleep.Before = "P5S"
+				model.States[0].OperationState.Actions[0].Sleep.After = "P5S"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].sleep.before invalid iso8601 duration "P5S"
+workflow.states[0].actions[0].sleep.after invalid iso8601 duration "P5S"`,
+		},
+	}
 	StructLevelValidationCtx(t, testCases)
 }

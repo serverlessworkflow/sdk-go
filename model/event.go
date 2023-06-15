@@ -60,7 +60,7 @@ type Event struct {
 	DataOnly bool `json:"dataOnly,omitempty"`
 	// Define event correlation rules for this event. Only used for consumed events.
 	// +optional
-	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
+	Correlation []Correlation `json:"correlation,omitempty" validate:"dive"`
 }
 
 type eventUnmarshal Event

@@ -72,12 +72,21 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].ForEachState.InputCollection = ""
 				model.States[0].ForEachState.Mode = ""
-				model.States[0].ForEachState.Actions = []Action{}
+				model.States[0].ForEachState.Actions = nil
 				return *model
 			},
 			Err: `workflow.states[0].forEachState.inputCollection is required
-Key: 'Workflow.States[0].ForEachState.Actions' Error:Field validation for 'Actions' failed on the 'min' tag
+workflow.states[0].forEachState.actions is required
 workflow.states[0].forEachState.mode is required`,
+		},
+		{
+			Desp: "min",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.Actions = []Action{}
+				return *model
+			},
+			Err: `workflow.states[0].forEachState.actions min > 1`,
 		},
 	}
 

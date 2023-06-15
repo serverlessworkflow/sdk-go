@@ -21,22 +21,52 @@ func TestFunctionStructLevelValidation(t *testing.T) {
 	baseWorkflow.Functions = Functions{{
 		Name:      "function 1",
 		Operation: "http://function/action",
+		Type:      FunctionTypeREST,
 	}}
 
 	operationState := buildOperationState(baseWorkflow, "start state")
 	buildEndByState(operationState, true, false)
 	action1 := buildActionByOperationState(operationState, "action 1")
-	buildFunctionRef(baseWorkflow, action1, "function 1")
+	buildFunctionRef(baseWorkflow, action1, "function 2")
 
 	testCases := []ValidationCase{
 		{
-			Desp: "workflow function.name repeat",
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Functions[0].Name = ""
+				model.Functions[0].Operation = ""
+				model.Functions[0].Type = ""
+				return *model
+			},
+			Err: `workflow.functions[0].name is required
+workflow.functions[0].operation is required
+workflow.functions[0].type is required`,
+		},
+		{
+			Desp: "repeat",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.Functions = append(model.Functions, model.Functions[0])
 				return *model
 			},
 			Err: `workflow.functions has duplicate "name"`,
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Functions[0].Type = FunctionTypeREST + "invalid"
+				return *model
+			},
+			Err: `workflow.functions[0].type need by one of [rest rpc expression graphql asyncapi odata custom]`,
 		},
 	}
 

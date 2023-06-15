@@ -81,7 +81,7 @@ type Auth struct {
 	// +kubebuilder:validation:Enum=basic;bearer;oauth2
 	// +kubebuilder:default=basic
 	// +kubebuilder:validation:Required
-	Scheme AuthType `json:"scheme" validate:"min=1"`
+	Scheme AuthType `json:"scheme" validate:"required,oneofkind"`
 	// Auth scheme properties. Can be one of "Basic properties definition", "Bearer properties definition",
 	// or "OAuth2 properties definition"
 	// +kubebuilder:validation:Required

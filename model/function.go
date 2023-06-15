@@ -77,7 +77,7 @@ type Function struct {
 	Type FunctionType `json:"type,omitempty" validate:"required,oneofkind"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter.
 	// +optional
-	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`
+	AuthRef string `json:"authRef,omitempty"`
 }
 
 type functionUnmarshal Function

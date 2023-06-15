@@ -135,7 +135,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Enum=jq;jsonpath
 	// +kubebuilder:default=jq
 	// +optional
-	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneofkind"`
+	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"required,oneofkind"`
 	// Defines the workflow default timeout settings.
 	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
@@ -160,7 +160,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth Auths `json:"auth,omitempty" validate:"unique=Name,omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"unique=Name,dive"`
 }
 
 type Auths []Auth

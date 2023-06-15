@@ -33,14 +33,81 @@ func buildOperationState(workflow *Workflow, name string) *State {
 	return &workflow.States[len(workflow.States)-1]
 }
 
+func buildOperationStateTimeout(state *State) *OperationStateTimeout {
+	state.OperationState.Timeouts = &OperationStateTimeout{
+		ActionExecTimeout: "PT5S",
+	}
+	return state.OperationState.Timeouts
+}
+
 func TestOperationStateStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase{}
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions = []Action{}
+				return *model
+			},
+			Err: `Key: 'Workflow.States[0].OperationState.Actions' Error:Field validation for 'Actions' failed on the 'min' tag`,
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.ActionMode = ActionModeParallel + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].actionMode need by one of [sequential parallel]`,
+		},
+	}
 
 	StructLevelValidationCtx(t, testCases)
 }
 
 func TestOperationStateTimeoutStructLevelValidation(t *testing.T) {
-	testCases := []ValidationCase{}
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	operationStateTimeout := buildOperationStateTimeout(operationState)
+	buildStateExecTimeoutByOperationStateTimeout(operationStateTimeout, "PT5S")
+
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Timeouts.ActionExecTimeout = "P5S"
+				return *model
+			},
+			Err: `workflow.states[0].timeouts.actionExecTimeout invalid iso8601 duration "P5S"`,
+		},
+	}
 
 	StructLevelValidationCtx(t, testCases)
 }

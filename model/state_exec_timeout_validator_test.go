@@ -32,6 +32,14 @@ func buildStateExecTimeoutBySleepStateTimeout(timeouts *SleepStateTimeout, total
 	return timeouts.StateExecTimeout
 }
 
+func buildStateExecTimeoutByOperationStateTimeout(timeouts *OperationStateTimeout, total string) *StateExecTimeout {
+	stateExecTimeout := StateExecTimeout{
+		Total: total,
+	}
+	timeouts.StateExecTimeout = &stateExecTimeout
+	return timeouts.StateExecTimeout
+}
+
 func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
 	timeouts := buildTimeouts(baseWorkflow)

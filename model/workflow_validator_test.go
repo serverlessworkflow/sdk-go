@@ -149,6 +149,15 @@ func TestBaseWorkflowStructLevelValidation(t *testing.T) {
 			Err: `workflow.id required when "workflow.key" is not defined
 workflow.key required when "workflow.id" is not defined`,
 		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.BaseWorkflow.ExpressionLang = JqExpressionLang + "invalid"
+				return *model
+			},
+			Err: `workflow.expressionLang need by one of [jq jsonpath]`,
+		},
 	}
 
 	StructLevelValidationCtx(t, testCases)

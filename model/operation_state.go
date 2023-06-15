@@ -28,7 +28,7 @@ type OperationState struct {
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed
 	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions" validate:"required,min=1,dive"`
+	Actions []Action `json:"actions" validate:"min=1,dive"`
 	// State specific timeouts
 	// +optional
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`

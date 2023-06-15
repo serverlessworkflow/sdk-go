@@ -52,7 +52,7 @@ workflow.states[0].actions[0].subFlowRef.invoke is required
 workflow.states[0].actions[0].subFlowRef.onParentComplete is required`,
 		},
 		{
-			Desp: "invalid type",
+			Desp: "oneofkind",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].OperationState.Actions[0].SubFlowRef.Invoke = "invalid invoce"

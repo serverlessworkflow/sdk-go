@@ -89,6 +89,15 @@ func TestStateStructLevelValidation(t *testing.T) {
 			},
 			Err: `workflow.states[0].transition exclusive`,
 		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.Type = StateTypeOperation + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].type need by one of [delay event operation parallel switch foreach inject callback sleep]`,
+		},
 	}
 
 	StructLevelValidationCtx(t, testCases)

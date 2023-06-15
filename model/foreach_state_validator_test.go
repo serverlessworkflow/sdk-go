@@ -58,6 +58,15 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.Mode = ForEachModeTypeParallel + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].forEachState.mode need by one of [sequential parallel]`,
+		},
+		{
 			Desp: "required",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()

@@ -107,6 +107,15 @@ func TestActionStructLevelValidation(t *testing.T) {
 workflow.states[0].actions[0].eventRef exclusive
 workflow.states[0].actions[0].subFlowRef exclusive`,
 		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].FunctionRef.Invoke = InvokeKindSync + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].functionRef.invoke need by one of [sync async]`,
+		},
 	}
 
 	StructLevelValidationCtx(t, testCases)

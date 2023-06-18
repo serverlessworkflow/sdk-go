@@ -102,7 +102,7 @@ func TestActionStructLevelValidation(t *testing.T) {
 				model.States[0].OperationState.Actions[0].FunctionRef = nil
 				return *model
 			},
-			Err: `Key: 'Workflow.States[0].OperationState.Actions[0].FunctionRef' Error:Field validation for 'FunctionRef' failed on the 'required_without' tag`,
+			Err: `workflow.states[0].actions[0].functionRef required when "eventRef" or "subFlowRef" is not defined`,
 		},
 		{
 			Desp: "exclude",

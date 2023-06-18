@@ -84,7 +84,7 @@ func TestEventStateStructLevelValidation(t *testing.T) {
 				model.States[0].EventState.OnEvents = []OnEvents{}
 				return *model
 			},
-			Err: `workflow.states[0].eventState.onEvents min > 1`,
+			Err: `workflow.states[0].eventState.onEvents must have the minimum 1`,
 		},
 	}
 	StructLevelValidationCtx(t, testCases)
@@ -106,6 +106,15 @@ func TestOnEventsStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].EventState.OnEvents[0].EventRefs = []string{"event not found"}
+				return *model
+			},
+			Err: `workflow.states[0].eventState.onEvents[0].eventRefs don't exist "event not found"`,
+		},
+		{
 			Desp: "required",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
@@ -123,7 +132,7 @@ workflow.states[0].eventState.onEvents[0].actionMode is required`,
 				model.States[0].EventState.OnEvents[0].EventRefs = []string{}
 				return *model
 			},
-			Err: `workflow.states[0].eventState.onEvents[0].eventRefs min > 1`,
+			Err: `workflow.states[0].eventState.onEvents[0].eventRefs must have the minimum 1`,
 		},
 		{
 			Desp: "oneofkind",

@@ -57,13 +57,13 @@ func TestOperationStateStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
-			Desp: "required",
+			Desp: "min",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].OperationState.Actions = []Action{}
 				return *model
 			},
-			Err: `workflow.states[0].actions min > 1`,
+			Err: `workflow.states[0].actions must have the minimum 1`,
 		},
 		{
 			Desp: "oneofkind",

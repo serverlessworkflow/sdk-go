@@ -109,7 +109,7 @@ workflow.states[0].parallelState.completionType is required`,
 				model.States[0].ParallelState.Branches = []Branch{}
 				return *model
 			},
-			Err: `workflow.states[0].parallelState.branches min > 1`,
+			Err: `workflow.states[0].parallelState.branches must have the minimum 1`,
 		},
 		{
 			Desp: "required numCompleted",
@@ -118,7 +118,7 @@ workflow.states[0].parallelState.completionType is required`,
 				model.States[0].ParallelState.CompletionType = CompletionTypeAtLeast
 				return *model
 			},
-			Err: `Key: 'Workflow.States[0].ParallelState.NumCompleted' Error:Field validation for 'NumCompleted' failed on the 'gt0' tag`,
+			Err: `workflow.states[0].parallelState.numCompleted must be greater than 0`,
 		},
 	}
 
@@ -160,7 +160,7 @@ workflow.states[0].parallelState.branches[0].actions is required`,
 				model.States[0].ParallelState.Branches[0].Actions = []Action{}
 				return *model
 			},
-			Err: `workflow.states[0].parallelState.branches[0].actions min > 1`,
+			Err: `workflow.states[0].parallelState.branches[0].actions must have the minimum 1`,
 		},
 	}
 

@@ -54,7 +54,7 @@ func eventConditionStructLevelValidationCtx(ctx val.ValidatorContext, structLeve
 	validTransitionAndEnd(structLevel, eventCondition, eventCondition.Transition, eventCondition.End)
 
 	if eventCondition.EventRef != "" && !ctx.MapEvents.Contain(eventCondition.EventRef) {
-		structLevel.ReportError(eventCondition, "eventRef", "EventRef", val.TagExists, "")
+		structLevel.ReportError(eventCondition.EventRef, "eventRef", "EventRef", val.TagExists, "")
 	}
 }
 

@@ -16,8 +16,10 @@ package validator
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/senseyeio/duration"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	validator "github.com/go-playground/validator/v10"
 )
@@ -64,11 +66,31 @@ func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel)
 func oneOfKind(fl validator.FieldLevel) bool {
 	if val, ok := fl.Field().Interface().(Kind); ok {
 		for _, value := range val.KindValues() {
-			if value != "" && value == val.String() {
+			if value == val.String() {
 				return true
 			}
 		}
 	}
 
 	return false
+}
+
+func ValidateGt0IntStr(value *intstr.IntOrString) bool {
+	switch value.Type {
+	case intstr.Int:
+		if value.IntVal <= 0 {
+			return false
+		}
+	case intstr.String:
+		v, err := strconv.Atoi(value.StrVal)
+		if err != nil {
+			return false
+		}
+
+		if v <= 0 {
+			return false
+		}
+	}
+
+	return true
 }

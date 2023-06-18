@@ -87,6 +87,7 @@ func onErrorStructLevelValidationCtx(ctx val.ValidatorContext, structLevel valid
 		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "ErrorRef", val.TagRequired, "")
 	} else if hasErrorRef && hasErrorRefs {
 		structLevel.ReportError(onError.ErrorRef, "ErrorRef", "ErrorRef", val.TagExclusive, "")
+		return
 	}
 
 	if onError.ErrorRef != "" && !ctx.MapErrors.Contain(onError.ErrorRef) {
@@ -112,10 +113,11 @@ func transitionStructLevelValidationCtx(ctx val.ValidatorContext, structLevel va
 				structLevel.ReportError(transition.NextState, "NextState", "NextState", val.TagRecursiveState, parentBaseState.Name)
 			}
 
-			if parentBaseState.UsedForCompensation && !ctx.MapStates.ValuesMap[transition.NextState].(State).UsedForCompensation {
+			if parentBaseState.UsedForCompensation && !ctx.MapStates.ValuesMap[transition.NextState].(State).BaseState.UsedForCompensation {
 				structLevel.ReportError(transition.NextState, "NextState", "NextState", val.TagTransitionUseForCompensation, "")
+			}
 
-			} else if !parentBaseState.UsedForCompensation && ctx.MapStates.ValuesMap[transition.NextState].(State).UsedForCompensation {
+			if !parentBaseState.UsedForCompensation && ctx.MapStates.ValuesMap[transition.NextState].(State).BaseState.UsedForCompensation {
 				structLevel.ReportError(transition.NextState, "NextState", "NextState", val.TagTransitionMainWorkflow, "")
 			}
 		}

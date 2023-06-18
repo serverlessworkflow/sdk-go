@@ -36,13 +36,14 @@ func baseStateStructLevelValidationCtx(ctx val.ValidatorContext, structLevel val
 		}
 
 		if ctx.MapStates.Contain(baseState.CompensatedBy) {
-			value := ctx.MapStates.ValuesMap[baseState.CompensatedBy].(State)
-			if !value.UsedForCompensation {
+			value := ctx.MapStates.ValuesMap[baseState.CompensatedBy].(State).BaseState
+			if value.UsedForCompensation && value.Type == StateTypeEvent {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedbyEventState, "")
+
+			} else if !value.UsedForCompensation {
 				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedby, "")
 			}
-			if value.Type == StateTypeEvent {
-				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagEventState, "")
-			}
+
 		} else {
 			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagExists, "")
 		}

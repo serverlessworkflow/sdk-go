@@ -111,7 +111,6 @@ func TestDefaultConditionStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
 	buildSwitchState(baseWorkflow, "start state")
 	buildDefaultCondition(&baseWorkflow.States[0])
-	buildEndByDefaultCondition(&baseWorkflow.States[0].SwitchState.DefaultCondition, true, false)
 
 	buildDataCondition(&baseWorkflow.States[0], "data condition 1", "1=1")
 	buildEndByDataCondition(&baseWorkflow.States[0].SwitchState.DataConditions[0], true, false)
@@ -122,6 +121,7 @@ func TestDefaultConditionStructLevelValidation(t *testing.T) {
 	buildActionByOperationState(&baseWorkflow.States[1], "action 1")
 	buildFunctionRef(baseWorkflow, &baseWorkflow.States[1].OperationState.Actions[0], "function 1")
 
+	buildTransitionByDefaultCondition(&baseWorkflow.States[0].SwitchState.DefaultCondition, &baseWorkflow.States[1])
 	buildTransitionByDataCondition(&baseWorkflow.States[0].SwitchState.DataConditions[1], &baseWorkflow.States[1], false)
 
 	testCases := []ValidationCase{
@@ -191,6 +191,15 @@ func TestEventConditionStructLevelValidation(t *testing.T) {
 			Model: func() Workflow {
 				return *baseWorkflow.DeepCopy()
 			},
+		},
+		{
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].SwitchState.EventConditions[0].EventRef = "event not found"
+				return *model
+			},
+			Err: `workflow.states[0].switchState.eventConditions[0].eventRef don't exist "event not found"`,
 		},
 		{
 			Desp: "required",

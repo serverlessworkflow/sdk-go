@@ -132,6 +132,14 @@ func TestCorrelationStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
+			Desp: "empty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events[0].Correlation = nil
+				return *model
+			},
+		},
+		{
 			Desp: "required",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()

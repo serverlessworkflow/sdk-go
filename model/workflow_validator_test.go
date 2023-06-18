@@ -99,6 +99,12 @@ func buildTransitionByEventCondition(eventCondition *EventCondition, state *Stat
 	}
 }
 
+func buildTransitionByDefaultCondition(defaultCondition *DefaultCondition, state *State) {
+	defaultCondition.Transition = &Transition{
+		NextState: state.BaseState.Name,
+	}
+}
+
 func buildTimeouts(workflow *Workflow) *Timeouts {
 	timeouts := Timeouts{}
 	workflow.BaseWorkflow.Timeouts = &timeouts
@@ -245,13 +251,33 @@ func TestOnErrorStructLevelValidation(t *testing.T) {
 			Err: `workflow.states[0].onErrors[0].errorRef or workflow.states[0].onErrors[0].errorRefs are exclusive`,
 		},
 		{
-			Desp: "not exists",
+			Desp: "exists and exclusive",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.OnErrors[0].ErrorRef = "invalid error name"
+				model.States[0].BaseState.OnErrors[0].ErrorRefs = []string{"invalid error name"}
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[0].errorRef or workflow.states[0].onErrors[0].errorRefs are exclusive`,
+		},
+		{
+			Desp: "exists errorRef",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].BaseState.OnErrors[0].ErrorRef = "invalid error name"
 				return *model
 			},
 			Err: `workflow.states[0].onErrors[0].errorRef don't exist "invalid error name"`,
+		},
+		{
+			Desp: "exists errorRefs",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.OnErrors[0].ErrorRef = ""
+				model.States[0].BaseState.OnErrors[0].ErrorRefs = []string{"invalid error name"}
+				return *model
+			},
+			Err: `workflow.states[0].onErrors[0].errorRefs don't exist ["invalid error name"]`,
 		},
 		{
 			Desp: "duplicate",
@@ -308,7 +334,7 @@ func TestStartStructLevelValidation(t *testing.T) {
 
 func TestTransitionStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
-	baseWorkflow.States = make(States, 0, 2)
+	baseWorkflow.States = make(States, 0, 5)
 
 	operationState := buildOperationState(baseWorkflow, "start state")
 	action1 := buildActionByOperationState(operationState, "action 1")
@@ -316,10 +342,31 @@ func TestTransitionStructLevelValidation(t *testing.T) {
 
 	operationState2 := buildOperationState(baseWorkflow, "next state")
 	buildEndByState(operationState2, true, false)
+	operationState2.BaseState.CompensatedBy = "compensation next state 1"
 	action2 := buildActionByOperationState(operationState2, "action 1")
 	buildFunctionRef(baseWorkflow, action2, "function 2")
 
 	buildTransitionByState(operationState, operationState2, false)
+
+	operationState3 := buildOperationState(baseWorkflow, "compensation next state 1")
+	operationState3.BaseState.UsedForCompensation = true
+	action3 := buildActionByOperationState(operationState3, "action 1")
+	buildFunctionRef(baseWorkflow, action3, "function 3")
+
+	operationState4 := buildOperationState(baseWorkflow, "compensation next state 2")
+	operationState4.BaseState.UsedForCompensation = true
+	action4 := buildActionByOperationState(operationState4, "action 1")
+	buildFunctionRef(baseWorkflow, action4, "function 4")
+
+	buildTransitionByState(operationState3, operationState4, false)
+
+	operationState5 := buildOperationState(baseWorkflow, "compensation next state 3")
+	buildEndByState(operationState5, true, false)
+	operationState5.BaseState.UsedForCompensation = true
+	action5 := buildActionByOperationState(operationState5, "action 5")
+	buildFunctionRef(baseWorkflow, action5, "function 5")
+
+	buildTransitionByState(operationState4, operationState5, false)
 
 	testCases := []ValidationCase{
 		{
@@ -338,13 +385,32 @@ func TestTransitionStructLevelValidation(t *testing.T) {
 			Err: `workflow.states[0].transition.nextState can't no be recursive "start state"`,
 		},
 		{
-			Desp: "workflow transition not exists",
+			Desp: "exists",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].BaseState.Transition.NextState = "invalid next state"
 				return *model
 			},
 			Err: `workflow.states[0].transition.nextState don't exist "invalid next state"`,
+		},
+		{
+			Desp: "transitionusedforcompensation",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[3].BaseState.UsedForCompensation = false
+				return *model
+			},
+			Err: `Key: 'Workflow.States[2].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'transitionusedforcompensation' tag
+Key: 'Workflow.States[3].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'transtionmainworkflow' tag`,
+		},
+		{
+			Desp: "transtionmainworkflow",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.Transition.NextState = model.States[3].BaseState.Name
+				return *model
+			},
+			Err: `Key: 'Workflow.States[0].BaseState.Transition.NextState' Error:Field validation for 'NextState' failed on the 'transtionmainworkflow' tag`,
 		},
 	}
 

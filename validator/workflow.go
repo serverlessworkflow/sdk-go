@@ -33,7 +33,7 @@ const (
 
 	// States referenced by compensatedBy (as well as any other states that they transition to) must obey following rules:
 	TagTransitionMainWorkflow       string = "transtionmainworkflow"         // They should not have any incoming transitions (should not be part of the main workflow control-flow logic)
-	TagEventState                   string = "eventstate"                    // They cannot be an event state
+	TagCompensatedbyEventState      string = "compensatedbyeventstate"       // They cannot be an event state
 	TagRecursiveCompensation        string = "recursivecompensation"         // They cannot themselves set their compensatedBy property to true (compensation is not recursive)
 	TagCompensatedby                string = "compensatedby"                 // They must define the usedForCompensation property and set it to true
 	TagTransitionUseForCompensation string = "transitionusedforcompensation" // They can transition only to states which also have their usedForCompensation property and set to true
@@ -161,18 +161,22 @@ func WorkflowError(err error) error {
 				workflowErrors = append(workflowErrors, fmt.Errorf("%s has duplicate %q", namespace, strings.ToLower(err.Param())))
 			}
 		case "min":
-			workflowErrors = append(workflowErrors, fmt.Errorf("%s min > %s", namespace, err.Param()))
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s must have the minimum %s", namespace, err.Param()))
 		case "required_without":
 			if namespace == "workflow.iD" {
 				workflowErrors = append(workflowErrors, errors.New("workflow.id required when \"workflow.key\" is not defined"))
 			} else if namespace == "workflow.key" {
 				workflowErrors = append(workflowErrors, errors.New("workflow.key required when \"workflow.id\" is not defined"))
+			} else if err.StructField() == "FunctionRef" {
+				workflowErrors = append(workflowErrors, fmt.Errorf("%s required when \"eventRef\" or \"subFlowRef\" is not defined", namespace))
 			} else {
 				workflowErrors = append(workflowErrors, err)
 			}
 		case "oneofkind":
 			value := reflect.New(err.Type()).Elem().Interface().(Kind)
 			workflowErrors = append(workflowErrors, fmt.Errorf("%s need by one of %s", namespace, value.KindValues()))
+		case "gt0":
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s must be greater than 0", namespace))
 		case TagExists:
 			workflowErrors = append(workflowErrors, fmt.Errorf("%s don't exist %q", namespace, err.Value()))
 		case TagRequired:
@@ -184,7 +188,11 @@ func WorkflowError(err error) error {
 				workflowErrors = append(workflowErrors, fmt.Errorf("%s exclusive", namespace))
 			}
 		case TagCompensatedby:
-			workflowErrors = append(workflowErrors, fmt.Errorf("%s compensatedBy don't exist %q", namespace, err.Value()))
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s = %q is not defined as usedForCompensation", namespace, err.Value()))
+		case TagCompensatedbyEventState:
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s = %q is defined as usedForCompensation and cannot be an event state", namespace, err.Value()))
+		case TagRecursiveCompensation:
+			workflowErrors = append(workflowErrors, fmt.Errorf("%s = %q is defined as usedForCompensation (cannot themselves set their compensatedBy)", namespace, err.Value()))
 		case TagRecursiveState:
 			workflowErrors = append(workflowErrors, fmt.Errorf("%s can't no be recursive %q", namespace, strings.ToLower(err.Param())))
 		case TagISO8601Duration:

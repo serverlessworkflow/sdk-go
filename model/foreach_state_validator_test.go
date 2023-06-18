@@ -58,6 +58,28 @@ func TestForEachStateStructLevelValidation(t *testing.T) {
 			},
 		},
 		{
+			Desp: "success without batch size",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.Mode = ForEachModeTypeParallel
+				model.States[0].ForEachState.BatchSize = nil
+				return *model
+			},
+		},
+		{
+			Desp: "gt0 int",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].ForEachState.Mode = ForEachModeTypeParallel
+				model.States[0].ForEachState.BatchSize = &intstr.IntOrString{
+					Type:   intstr.Int,
+					IntVal: 0,
+				}
+				return *model
+			},
+			Err: `workflow.states[0].forEachState.batchSize must be greater than 0`,
+		},
+		{
 			Desp: "oneofkind",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
@@ -86,7 +108,7 @@ workflow.states[0].forEachState.mode is required`,
 				model.States[0].ForEachState.Actions = []Action{}
 				return *model
 			},
-			Err: `workflow.states[0].forEachState.actions min > 1`,
+			Err: `workflow.states[0].forEachState.actions must have the minimum 1`,
 		},
 	}
 

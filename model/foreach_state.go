@@ -17,8 +17,9 @@ package model
 import (
 	"encoding/json"
 
-	"github.com/serverlessworkflow/sdk-go/v2/util"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)

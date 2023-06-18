@@ -17,10 +17,8 @@ package model
 import (
 	"context"
 	"reflect"
-	"strconv"
 
 	validator "github.com/go-playground/validator/v10"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
@@ -41,20 +39,7 @@ func forEachStateStructLevelValidation(_ context.Context, structLevel validator.
 		return
 	}
 
-	switch stateObj.BatchSize.Type {
-	case intstr.Int:
-		if stateObj.BatchSize.IntVal <= 0 {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", "")
-		}
-	case intstr.String:
-		v, err := strconv.Atoi(stateObj.BatchSize.StrVal)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", err.Error())
-			return
-		}
-
-		if v <= 0 {
-			structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", "")
-		}
+	if !val.ValidateGt0IntStr(stateObj.BatchSize) {
+		structLevel.ReportError(reflect.ValueOf(stateObj.BatchSize), "BatchSize", "batchSize", "gt0", "")
 	}
 }

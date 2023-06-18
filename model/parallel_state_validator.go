@@ -17,10 +17,8 @@ package model
 import (
 	"context"
 	"reflect"
-	"strconv"
 
 	validator "github.com/go-playground/validator/v10"
-	"k8s.io/apimachinery/pkg/util/intstr"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
@@ -34,21 +32,8 @@ func parallelStateStructLevelValidation(_ context.Context, structLevel validator
 	parallelStateObj := structLevel.Current().Interface().(ParallelState)
 
 	if parallelStateObj.CompletionType == CompletionTypeAtLeast {
-		switch parallelStateObj.NumCompleted.Type {
-		case intstr.Int:
-			if parallelStateObj.NumCompleted.IntVal <= 0 {
-				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
-			}
-		case intstr.String:
-			v, err := strconv.Atoi(parallelStateObj.NumCompleted.StrVal)
-			if err != nil {
-				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", err.Error())
-				return
-			}
-
-			if v <= 0 {
-				structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "numCompleted", "gt0", "")
-			}
+		if !val.ValidateGt0IntStr(&parallelStateObj.NumCompleted) {
+			structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "NumCompleted", "gt0", "")
 		}
 	}
 }

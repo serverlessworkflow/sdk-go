@@ -20,12 +20,30 @@ import (
 
 func TestBaseStateStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
-	operationState := buildOperationState(baseWorkflow, "start state")
+	baseWorkflow.States = make(States, 0, 3)
+
+	operationState := buildOperationState(baseWorkflow, "start state 1")
 	buildEndByState(operationState, true, false)
 	action1 := buildActionByOperationState(operationState, "action 1")
 	buildFunctionRef(baseWorkflow, action1, "function 1")
 
+	operationState2 := buildOperationState(baseWorkflow, "state 2")
+	buildEndByState(operationState2, true, false)
+	action2 := buildActionByOperationState(operationState2, "action 2")
+	buildFunctionRef(baseWorkflow, action2, "function 2")
+
+	eventState := buildEventState(baseWorkflow, "state 3")
+	buildOnEvents(baseWorkflow, eventState, "event 1")
+	buildEndByState(eventState, true, false)
+
 	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
 		{
 			Desp: "repeat name",
 			Model: func() Workflow {
@@ -43,6 +61,35 @@ func TestBaseStateStructLevelValidation(t *testing.T) {
 				return *model
 			},
 			Err: `workflow.states[0].compensatedBy don't exist "invalid state compensate by"`,
+		},
+		{
+			Desp: "tagcompensatedby",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.CompensatedBy = model.States[1].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "state 2" is not defined as usedForCompensation`,
+		},
+		{
+			Desp: "compensatedbyeventstate",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[2].BaseState.UsedForCompensation = true
+				model.States[0].BaseState.CompensatedBy = model.States[2].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "state 3" is defined as usedForCompensation and cannot be an event state`,
+		},
+		{
+			Desp: "recursivecompensation",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.UsedForCompensation = true
+				model.States[0].BaseState.CompensatedBy = model.States[0].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "start state 1" is defined as usedForCompensation (cannot themselves set their compensatedBy)`,
 		},
 	}
 

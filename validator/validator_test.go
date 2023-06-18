@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestValidateISO8601TimeDuration(t *testing.T) {
@@ -114,4 +115,61 @@ func Test_oneOfKind(t *testing.T) {
 		assert.Error(t, errs)
 
 	})
+}
+
+func TestValidateIntStr(t *testing.T) {
+
+	testCase := []struct {
+		Desp   string
+		Test   *intstr.IntOrString
+		Return bool
+	}{
+		{
+			Desp: "success int",
+			Test: &intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: 1,
+			},
+			Return: true,
+		},
+		{
+			Desp: "success string",
+			Test: &intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "1",
+			},
+			Return: true,
+		},
+		{
+			Desp: "fail int",
+			Test: &intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: 0,
+			},
+			Return: false,
+		},
+		{
+			Desp: "fail string",
+			Test: &intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "0",
+			},
+			Return: false,
+		},
+		{
+			Desp: "fail invalid string",
+			Test: &intstr.IntOrString{
+				Type:   intstr.String,
+				StrVal: "aa",
+			},
+			Return: false,
+		},
+	}
+
+	for _, c := range testCase {
+		t.Run(c.Desp, func(t *testing.T) {
+			valid := ValidateGt0IntStr(c.Test)
+			assert.Equal(t, c.Return, valid)
+		})
+	}
 }

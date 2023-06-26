@@ -526,7 +526,8 @@ func TestFromFile(t *testing.T) {
 				// Inject state
 				assert.Equal(t, "HelloInject", w.States[7].Name)
 				assert.Equal(t, model.StateTypeInject, w.States[7].Type)
-				assert.Equal(t, map[string]model.Object{"result": model.FromString("Hello World, last state!")}, w.States[7].InjectState.Data)
+				assert.Equal(t, model.FromString("Hello World, last state!"), w.States[7].InjectState.Data["result"])
+				assert.Equal(t, model.FromBool(false), w.States[7].InjectState.Data["boolValue"])
 				assert.Equal(t, "PT11M", w.States[7].InjectState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT22M", w.States[7].InjectState.Timeouts.StateExecTimeout.Single)
 

@@ -33,10 +33,11 @@ import (
 //
 // +kubebuilder:validation:Type=object
 type Object struct {
-	Type     Type            `json:"type,inline"`
-	IntVal   int32           `json:"intVal,inline"`
-	StrVal   string          `json:"strVal,inline"`
-	RawValue json.RawMessage `json:"rawValue,inline"`
+	Type      Type            `json:"type,inline"`
+	IntVal    int32           `json:"intVal,inline"`
+	StrVal    string          `json:"strVal,inline"`
+	RawValue  json.RawMessage `json:"rawValue,inline"`
+	BoolValue bool            `json:"boolValue,inline"`
 }
 
 type Type int64
@@ -45,6 +46,7 @@ const (
 	Integer Type = iota
 	String
 	Raw
+	Boolean
 )
 
 func FromInt(val int) Object {
@@ -56,6 +58,10 @@ func FromInt(val int) Object {
 
 func FromString(val string) Object {
 	return Object{Type: String, StrVal: val}
+}
+
+func FromBool(val bool) Object {
+	return Object{Type: Boolean, BoolValue: val}
 }
 
 func FromRaw(val interface{}) Object {
@@ -73,6 +79,9 @@ func (obj *Object) UnmarshalJSON(data []byte) error {
 	if data[0] == '"' {
 		obj.Type = String
 		return json.Unmarshal(data, &obj.StrVal)
+	} else if data[0] == 't' || data[0] == 'f' {
+		obj.Type = Boolean
+		return json.Unmarshal(data, &obj.BoolValue)
 	} else if data[0] == '{' {
 		obj.Type = Raw
 		return json.Unmarshal(data, &obj.RawValue)
@@ -86,6 +95,8 @@ func (obj Object) MarshalJSON() ([]byte, error) {
 	switch obj.Type {
 	case String:
 		return []byte(fmt.Sprintf(`%q`, obj.StrVal)), nil
+	case Boolean:
+		return []byte(fmt.Sprintf(`%t`, obj.BoolValue)), nil
 	case Integer:
 		return []byte(fmt.Sprintf(`%d`, obj.IntVal)), nil
 	case Raw:

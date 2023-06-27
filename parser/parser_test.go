@@ -16,7 +16,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -931,10 +930,8 @@ states:
     terminate: true
 `))
 		assert.Nil(t, err)
-		fmt.Println(err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
-
 		assert.Nil(t, err)
 
 		// workflow and auth metadata
@@ -1023,5 +1020,117 @@ states:
 		assert.Error(t, err)
 		assert.Regexp(t, `validation for \'DataConditions\' failed on the \'required\' tag`, err)
 		assert.Nil(t, workflow)
+	})
+
+	t.Run("Test complex workflow with compensate transitions", func(t *testing.T) {
+		workflow, err := FromYAMLSource([]byte(`
+{
+  "id": "compensation",
+  "version": "1.0",
+  "name": "Workflow Error example",
+  "description": "An example of how compensation works",
+  "specVersion": "0.8",
+  "start": "printStatus",
+  "functions": [
+    {
+      "name": "PrintOutput",
+      "type": "custom",
+      "operation": "sysout"
+    }
+  ],
+  "states": [
+    {
+      "name": "printStatus",
+      "type": "inject",
+      "data": {
+        "compensated": false
+      },
+      "compensatedBy": "compensating",
+      "transition": "branch"
+    },
+    {
+      "name": "branch",
+      "type": "switch",
+      "dataConditions": [
+        {
+          "condition": ".shouldCompensate==true",
+          "transition": {
+            "nextState": "finish_compensate",
+            "compensate": true
+          }
+        },
+        {
+          "condition": ".shouldCompensate==false",
+          "transition": {
+            "nextState": "finish_not_compensate",
+            "compensate": false
+          }
+        }
+      ],
+      "defaultCondition": {
+        "end": true
+      }
+    },
+    {
+      "name": "compensating",
+      "usedForCompensation": true,
+      "type": "inject",
+      "data": {
+        "compensated": true
+      },
+      "transition": "compensating_more"
+    },
+    {
+      "name": "compensating_more",
+      "usedForCompensation": true,
+      "type": "inject",
+      "data": {
+        "compensating_more": "Real Betis Balompie"
+      },
+      "end": true
+    },
+    {
+      "name": "finish_compensate",
+      "type": "operation",
+      "actions": [
+        {
+          "name": "finish_compensate_sysout",
+          "functionRef": {
+            "refName": "PrintOutput",
+            "arguments": {
+              "message": "completed"
+            }
+          }
+        }
+      ],
+      "end": true
+    },
+    {
+      "name": "finish_not_compensate",
+      "type": "operation",
+      "actions": [
+        {
+          "name": "finish_not_compensate_sysout",
+          "functionRef": {
+            "refName": "PrintOutput",
+            "arguments": {
+              "message": "completed"
+            }
+          }
+        }
+      ],
+      "end": true
+    }
+  ]
+}
+`))
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow)
+		b, err := json.Marshal(workflow)
+		assert.Nil(t, err)
+
+		workflow = nil
+		err = json.Unmarshal(b, &workflow)
+		assert.Nil(t, err)
 	})
 }

@@ -21,20 +21,20 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(eventStructLevelValidation), Event{})
-	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(eventRefStructLevelValidation), EventRef{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(eventStructLevelValidation), Event{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(eventRefStructLevelValidation), EventRef{})
 }
 
 // eventStructLevelValidation custom validator for event kind consumed
-func eventStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
+func eventStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 }
 
-func eventRefStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
+func eventRefStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	model := structLevel.Current().Interface().(EventRef)
-	if model.TriggerEventRef != "" && !ctx.MapEvents.Contain(model.TriggerEventRef) {
+	if model.TriggerEventRef != "" && !ctx.ExistEvent(model.TriggerEventRef) {
 		structLevel.ReportError(model.TriggerEventRef, "triggerEventRef", "TriggerEventRef", val.TagExists, "")
 	}
-	if model.ResultEventRef != "" && !ctx.MapEvents.Contain(model.ResultEventRef) {
+	if model.ResultEventRef != "" && !ctx.ExistEvent(model.ResultEventRef) {
 		structLevel.ReportError(model.ResultEventRef, "triggerEventRef", "TriggerEventRef", val.TagExists, "")
 	}
 }

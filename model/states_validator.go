@@ -21,10 +21,10 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(baseStateStructLevelValidationCtx), BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(baseStateStructLevelValidationCtx), BaseState{})
 }
 
-func baseStateStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
+func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.Type != StateTypeSwitch {
 		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
@@ -35,8 +35,8 @@ func baseStateStructLevelValidationCtx(ctx val.ValidatorContext, structLevel val
 			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagRecursiveCompensation, "")
 		}
 
-		if ctx.MapStates.Contain(baseState.CompensatedBy) {
-			value := ctx.MapStates.ValuesMap[baseState.CompensatedBy].(State).BaseState
+		if ctx.ExistState(baseState.CompensatedBy) {
+			value := ctx.States[baseState.CompensatedBy].BaseState
 			if value.UsedForCompensation && value.Type == StateTypeEvent {
 				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedbyEventState, "")
 

@@ -21,11 +21,11 @@ import (
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(actionStructLevelValidationCtx), Action{})
-	val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(functionRefStructLevelValidation), FunctionRef{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(actionStructLevelValidationCtx), Action{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(functionRefStructLevelValidation), FunctionRef{})
 }
 
-func actionStructLevelValidationCtx(ctx val.ValidatorContext, structLevel validator.StructLevel) {
+func actionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	action := structLevel.Current().Interface().(Action)
 
 	if action.FunctionRef == nil && action.EventRef == nil && action.SubFlowRef == nil {
@@ -45,14 +45,14 @@ func actionStructLevelValidationCtx(ctx val.ValidatorContext, structLevel valida
 		structLevel.ReportError(action.SubFlowRef, "SubFlowRef", "SubFlowRef", val.TagExclusive, "")
 	}
 
-	if action.RetryRef != "" && !ctx.MapRetries.Contain(action.RetryRef) {
+	if action.RetryRef != "" && !ctx.ExistRetry(action.RetryRef) {
 		structLevel.ReportError(action.RetryRef, "RetryRef", "RetryRef", val.TagExists, "")
 	}
 }
 
-func functionRefStructLevelValidation(ctx val.ValidatorContext, structLevel validator.StructLevel) {
+func functionRefStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	functionRef := structLevel.Current().Interface().(FunctionRef)
-	if !ctx.MapFunctions.Contain(functionRef.RefName) {
+	if !ctx.ExistFunction(functionRef.RefName) {
 		structLevel.ReportError(functionRef.RefName, "RefName", "RefName", val.TagExists, functionRef.RefName)
 	}
 }

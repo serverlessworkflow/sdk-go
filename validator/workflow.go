@@ -15,7 +15,6 @@
 package validator
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -38,63 +37,6 @@ const (
 	TagCompensatedby                string = "compensatedby"                 // They must define the usedForCompensation property and set it to true
 	TagTransitionUseForCompensation string = "transitionusedforcompensation" // They can transition only to states which also have their usedForCompensation property and set to true
 )
-
-type contextValueKey string
-
-const ValidatorContextValue contextValueKey = "value"
-
-type WorkflowValidator func(mapValues ValidatorContext, sl validator.StructLevel)
-
-type MapValues struct {
-	ValuesMap map[string]any
-}
-
-func (c *MapValues) init(values any, field string) {
-	if reflect.TypeOf(values).Kind() != reflect.Slice {
-		return
-	}
-
-	valuesTypeOf := reflect.ValueOf(values)
-	n := valuesTypeOf.Len()
-
-	c.ValuesMap = make(map[string]any, n)
-	for i := 0; i < n; i++ {
-		v := valuesTypeOf.Index(i)
-		name := v.FieldByName(field).String()
-		if name != "" {
-			c.ValuesMap[name] = v.Interface()
-		}
-	}
-}
-
-func (c *MapValues) Contain(name string) bool {
-	_, ok := c.ValuesMap[name]
-	return ok
-}
-
-type ValidatorContext struct {
-	MapStates    MapValues
-	MapFunctions MapValues
-	MapEvents    MapValues
-	MapRetries   MapValues
-	MapErrors    MapValues
-}
-
-func ValidationWrap(fnCtx WorkflowValidator) validator.StructLevelFuncCtx {
-	return func(ctx context.Context, structLevel validator.StructLevel) {
-		if fnCtx != nil {
-			if mapValues, ok := ctx.Value(ValidatorContextValue).(ValidatorContext); ok {
-				fnCtx(mapValues, structLevel)
-			}
-		}
-	}
-}
-
-func NewMapValues(values any, field string) MapValues {
-	c := MapValues{}
-	c.init(values, field)
-	return c
-}
 
 type WorkflowErrors []error
 

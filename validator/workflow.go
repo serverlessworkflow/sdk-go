@@ -63,26 +63,14 @@ func WorkflowError(err error) error {
 		return err
 	}
 
+	removeNamespace := []string{
+		"BaseWorkflow",
+		"BaseState",
+		"OperationState",
+	}
+
 	workflowErrors := []error{}
 	for _, err := range validationErrors {
-		// fmt.Println("Namespace", err.Namespace())
-		// fmt.Println("Field", err.Field())
-		// fmt.Println("StructNamespace", err.StructNamespace())
-		// fmt.Println("StructField", err.StructField())
-		// fmt.Println("Tag", err.Tag())
-		// // fmt.Println(err.ActualTag())
-		// // fmt.Println(err.Kind())
-		// // fmt.Println(err.Type())
-		// fmt.Println("value", err.Value())
-		// fmt.Println("param", err.Param())
-		// fmt.Println()
-
-		removeNamespace := []string{
-			"BaseWorkflow",
-			"BaseState",
-			"OperationState",
-		}
-
 		// normalize namespace
 		namespaceList := strings.Split(err.Namespace(), ".")
 		normalizedNamespaceList := []string{}

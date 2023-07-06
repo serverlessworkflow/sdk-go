@@ -170,6 +170,7 @@ states:
     type: inject
     data:
       result: Hello World, last state!
+      boolValue: false
     timeouts:
       stateExecTimeout:
         total: PT11M

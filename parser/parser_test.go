@@ -16,7 +16,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -526,7 +525,8 @@ func TestFromFile(t *testing.T) {
 				// Inject state
 				assert.Equal(t, "HelloInject", w.States[7].Name)
 				assert.Equal(t, model.StateTypeInject, w.States[7].Type)
-				assert.Equal(t, map[string]model.Object{"result": model.FromString("Hello World, last state!")}, w.States[7].InjectState.Data)
+				assert.Equal(t, model.FromString("Hello World, last state!"), w.States[7].InjectState.Data["result"])
+				assert.Equal(t, model.FromBool(false), w.States[7].InjectState.Data["boolValue"])
 				assert.Equal(t, "PT11M", w.States[7].InjectState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT22M", w.States[7].InjectState.Timeouts.StateExecTimeout.Single)
 
@@ -930,10 +930,8 @@ states:
     terminate: true
 `))
 		assert.Nil(t, err)
-		fmt.Println(err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
-
 		assert.Nil(t, err)
 
 		// workflow and auth metadata
@@ -1022,5 +1020,18 @@ states:
 		assert.Error(t, err)
 		assert.Regexp(t, `validation for \'DataConditions\' failed on the \'required\' tag`, err)
 		assert.Nil(t, workflow)
+	})
+
+	t.Run("Test complex workflow with compensate transitions", func(t *testing.T) {
+		workflow, err := FromFile("./testdata/workflows/compensate.sw.json")
+
+		assert.Nil(t, err)
+		assert.NotNil(t, workflow)
+		b, err := json.Marshal(workflow)
+		assert.Nil(t, err)
+
+		workflow = nil
+		err = json.Unmarshal(b, &workflow)
+		assert.Nil(t, err)
 	})
 }

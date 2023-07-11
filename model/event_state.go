@@ -16,6 +16,8 @@ package model
 
 import (
 	"encoding/json"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // EventState await one or more events and perform actions when they are received. If defined as the
@@ -53,7 +55,7 @@ type eventStateUnmarshal EventState
 // UnmarshalJSON unmarshal EventState object from json bytes
 func (e *EventState) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("eventState", data, (*eventStateUnmarshal)(e))
+	return util.UnmarshalObject("eventState", data, (*eventStateUnmarshal)(e))
 }
 
 // ApplyDefault set the default values for Event State
@@ -69,10 +71,10 @@ type OnEvents struct {
 	// Should actions be performed sequentially or in parallel. Default is sequential.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=sequential
-	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
+	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed if expression matches
 	// +optional
-	Actions []Action `json:"actions,omitempty" validate:"omitempty,dive"`
+	Actions []Action `json:"actions,omitempty" validate:"dive"`
 	// eventDataFilter defines the callback event data filter definition
 	// +optional
 	EventDataFilter EventDataFilter `json:"eventDataFilter,omitempty"`
@@ -83,7 +85,7 @@ type onEventsUnmarshal OnEvents
 // UnmarshalJSON unmarshal OnEvents object from json bytes
 func (o *OnEvents) UnmarshalJSON(data []byte) error {
 	o.ApplyDefault()
-	return unmarshalObject("onEvents", data, (*onEventsUnmarshal)(o))
+	return util.UnmarshalObject("onEvents", data, (*onEventsUnmarshal)(o))
 }
 
 // ApplyDefault set the default values for On Events

@@ -34,19 +34,19 @@
     ],
     "functions": [
         {
-            "name": "checkTirePressure",
+            "name": "Check Tire Pressure",
             "operation": "mycarservices.json#checktirepressure"
         },
         {
-            "name": "checkOilPressure",
+            "name": "Check Oil Pressure",
             "operation": "mycarservices.json#checkoilpressure"
         },
         {
-            "name": "checkCoolantLevel",
+            "name": "Check Coolant Level",
             "operation": "mycarservices.json#checkcoolantlevel"
         },
         {
-            "name": "checkBattery",
+            "name": "Check Battery",
             "operation": "mycarservices.json#checkbattery"
         }
     ]

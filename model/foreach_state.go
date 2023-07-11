@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // ForEachModeType Specifies how iterations are to be performed (sequentially or in parallel)
@@ -86,7 +88,7 @@ type forEachStateUnmarshal ForEachState
 // UnmarshalJSON implements json.Unmarshaler
 func (f *ForEachState) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalObject("forEachState", data, (*forEachStateUnmarshal)(f))
+	return util.UnmarshalObject("forEachState", data, (*forEachStateUnmarshal)(f))
 }
 
 // ApplyDefault set the default values for ForEach State

@@ -28,6 +28,23 @@ functions:
     type: graphql
   - name: greetingFunction
     operation: file://myapis/greetingapis.json#greeting
+  - name: StoreBidFunction
+    operation: http://myapis.org/inboxapi.json#storeBidFunction
+  - name: callCreditCheckMicroservice
+    operation: http://myapis.org/inboxapi.json#callCreditCheckMicroservice
+events:
+  - name: StoreBidFunction
+    type: StoreBidFunction
+    source: StoreBidFunction
+  - name: CarBidEvent
+    type: typeCarBidEvent
+    source: sourceCarBidEvent
+  - name: visaApprovedEventRef
+    type: typeVisaApprovedEventRef
+    source: sourceVisaApprovedEventRef
+  - name: visaRejectedEvent
+    type: typeVisaRejectedEvent
+    source: sourceVisaRejectedEvent
 states:
   - name: GreetDelay
     type: delay
@@ -129,11 +146,6 @@ states:
             name: "${ .greet | .name }"
         actionDataFilter:
           dataResultsPath: "${ .payload | .greeting }"
-        eventRef:
-          triggerEventRef: example
-          resultEventRef: example
-          # Added "resultEventTimeout" for action eventref
-          resultEventTimeout: PT1H
     timeouts:
       actionExecTimeout: PT1H
       stateExecTimeout:
@@ -155,11 +167,6 @@ states:
           refName: sendTextFunction
           arguments:
             message: "${ .singlemessage }"
-        eventRef:
-          triggerEventRef: example1
-          resultEventRef: example2
-          # Added "resultEventTimeout" for action eventref
-          resultEventTimeout: PT12H
     timeouts:
       actionExecTimeout: PT11H
       stateExecTimeout:
@@ -221,4 +228,46 @@ states:
         transition:
           nextState: HandleRejectedVisa
     defaultCondition: SendTextForHighPriority
+    end: true
+  - name: RejectApplication
+    type: switch
+    dataConditions:
+      - condition: ${ true }
+        transition: HandleApprovedVisa
+      - condition: ${ false }
+        transition:
+          nextState: HandleRejectedVisa
+    defaultCondition: SendTextForHighPriority
+    end: true
+  - name: HandleNoVisaDecision
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: StartApplication
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: HandleApprovedVisa
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
+    end: true
+  - name: HandleRejectedVisa
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: greetingCustomFunction
+        functionRef:
+          refName: greetingCustomFunction
     end: true

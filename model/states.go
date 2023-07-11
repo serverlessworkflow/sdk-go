@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // StateType ...
@@ -204,7 +206,7 @@ type unmarshalState State
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *State) UnmarshalJSON(data []byte) error {
-	if err := unmarshalObject("state", data, (*unmarshalState)(s)); err != nil {
+	if err := util.UnmarshalObject("state", data, (*unmarshalState)(s)); err != nil {
 		return err
 	}
 
@@ -225,7 +227,7 @@ func (s *State) UnmarshalJSON(data []byte) error {
 
 	case StateTypeOperation:
 		state := &OperationState{}
-		if err := unmarshalObject("states", data, state); err != nil {
+		if err := util.UnmarshalObject("states", data, state); err != nil {
 			return err
 		}
 		s.OperationState = state

@@ -15,19 +15,37 @@
 package model
 
 import (
-	"reflect"
-
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidation(baseStateStructLevelValidation, BaseState{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(baseStateStructLevelValidationCtx), BaseState{})
 }
 
-func baseStateStructLevelValidation(structLevel validator.StructLevel) {
+func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
 	if baseState.Type != StateTypeSwitch {
-		validTransitionAndEnd(structLevel, reflect.ValueOf(baseState), baseState.Transition, baseState.End)
+		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
+	}
+
+	if baseState.CompensatedBy != "" {
+		if baseState.UsedForCompensation {
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagRecursiveCompensation, "")
+		}
+
+		if ctx.ExistState(baseState.CompensatedBy) {
+			value := ctx.States[baseState.CompensatedBy].BaseState
+			if value.UsedForCompensation && value.Type == StateTypeEvent {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedbyEventState, "")
+
+			} else if !value.UsedForCompensation {
+				structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagCompensatedby, "")
+			}
+
+		} else {
+			structLevel.ReportError(baseState.CompensatedBy, "CompensatedBy", "compensatedBy", val.TagExists, "")
+		}
 	}
 }

@@ -19,8 +19,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestWorkflowRefUnmarshalJSON(t *testing.T) {
@@ -102,79 +100,6 @@ func TestWorkflowRefUnmarshalJSON(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expect, v)
-		})
-	}
-}
-
-func TestWorkflowRefValidate(t *testing.T) {
-	type testCase struct {
-		desp        string
-		workflowRef WorkflowRef
-		err         string
-	}
-	testCases := []testCase{
-		{
-			desp: "all field & defaults",
-			workflowRef: WorkflowRef{
-				WorkflowID:       "1",
-				Version:          "2",
-				Invoke:           InvokeKindSync,
-				OnParentComplete: "terminate",
-			},
-			err: ``,
-		},
-		{
-			desp: "all field",
-			workflowRef: WorkflowRef{
-				WorkflowID:       "1",
-				Version:          "2",
-				Invoke:           InvokeKindAsync,
-				OnParentComplete: "continue",
-			},
-			err: ``,
-		},
-		{
-			desp: "missing workflowId",
-			workflowRef: WorkflowRef{
-				WorkflowID:       "",
-				Version:          "2",
-				Invoke:           InvokeKindSync,
-				OnParentComplete: "terminate",
-			},
-			err: `Key: 'WorkflowRef.WorkflowID' Error:Field validation for 'WorkflowID' failed on the 'required' tag`,
-		},
-		{
-			desp: "invalid invoke",
-			workflowRef: WorkflowRef{
-				WorkflowID:       "1",
-				Version:          "2",
-				Invoke:           "sync1",
-				OnParentComplete: "terminate",
-			},
-			err: `Key: 'WorkflowRef.Invoke' Error:Field validation for 'Invoke' failed on the 'oneofkind' tag`,
-		},
-		{
-			desp: "invalid onParentComplete",
-			workflowRef: WorkflowRef{
-				WorkflowID:       "1",
-				Version:          "2",
-				Invoke:           InvokeKindSync,
-				OnParentComplete: "terminate1",
-			},
-			err: `Key: 'WorkflowRef.OnParentComplete' Error:Field validation for 'OnParentComplete' failed on the 'oneof' tag`,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.workflowRef)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-
-			assert.NoError(t, err)
 		})
 	}
 }

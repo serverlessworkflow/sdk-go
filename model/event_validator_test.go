@@ -16,51 +16,201 @@ package model
 
 import (
 	"testing"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"github.com/stretchr/testify/assert"
 )
 
+func buildEventRef(workflow *Workflow, action *Action, triggerEvent, resultEvent string) *EventRef {
+	produceEvent := Event{
+		Name: triggerEvent,
+		Type: "event type",
+		Kind: EventKindProduced,
+	}
+
+	consumeEvent := Event{
+		Name: resultEvent,
+		Type: "event type",
+		Kind: EventKindProduced,
+	}
+
+	workflow.Events = append(workflow.Events, produceEvent)
+	workflow.Events = append(workflow.Events, consumeEvent)
+
+	eventRef := &EventRef{
+		TriggerEventRef: triggerEvent,
+		ResultEventRef:  resultEvent,
+		Invoke:          InvokeKindSync,
+	}
+
+	action.EventRef = eventRef
+	return action.EventRef
+}
+
+func buildCorrelation(event *Event) *Correlation {
+	event.Correlation = append(event.Correlation, Correlation{
+		ContextAttributeName: "attribute name",
+	})
+
+	return &event.Correlation[len(event.Correlation)-1]
+}
+
+func TestEventStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.Events = Events{{
+		Name: "event 1",
+		Type: "event type",
+		Kind: EventKindConsumed,
+	}}
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "repeat",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events = append(model.Events, model.Events[0])
+				return *model
+			},
+			Err: `workflow.events has duplicate "name"`,
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events[0].Name = ""
+				model.Events[0].Type = ""
+				model.Events[0].Kind = ""
+				return *model
+			},
+			Err: `workflow.events[0].name is required
+workflow.events[0].type is required
+workflow.events[0].kind is required`,
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events[0].Kind = EventKindConsumed + "invalid"
+				return *model
+			},
+			Err: `workflow.events[0].kind need by one of [consumed produced]`,
+		},
+	}
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestCorrelationStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.Events = Events{{
+		Name: "event 1",
+		Type: "event type",
+		Kind: EventKindConsumed,
+	}}
+
+	buildCorrelation(&baseWorkflow.Events[0])
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
+			},
+		},
+		{
+			Desp: "empty",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events[0].Correlation = nil
+				return *model
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.Events[0].Correlation[0].ContextAttributeName = ""
+				return *model
+			},
+			Err: `workflow.events[0].correlation[0].contextAttributeName is required`,
+		},
+		//TODO: Add test: correlation only used for `consumed` events
+	}
+
+	StructLevelValidationCtx(t, testCases)
+}
+
 func TestEventRefStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		name     string
-		eventRef EventRef
-		err      string
-	}
+	baseWorkflow := buildWorkflow()
 
-	testCases := []testCase{
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	eventRef := buildEventRef(baseWorkflow, action1, "event 1", "event 2")
+	eventRef.ResultEventTimeout = "PT1H"
+
+	testCases := []ValidationCase{
 		{
-			name: "valid resultEventTimeout",
-			eventRef: EventRef{
-				TriggerEventRef:    "example valid",
-				ResultEventRef:     "example valid",
-				ResultEventTimeout: "PT1H",
-				Invoke:             InvokeKindSync,
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
 			},
-			err: ``,
 		},
 		{
-			name: "invalid resultEventTimeout",
-			eventRef: EventRef{
-				TriggerEventRef:    "example invalid",
-				ResultEventRef:     "example invalid red",
-				ResultEventTimeout: "10hs",
-				Invoke:             InvokeKindSync,
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.TriggerEventRef = ""
+				model.States[0].OperationState.Actions[0].EventRef.ResultEventRef = ""
+				return *model
 			},
-			err: `Key: 'EventRef.ResultEventTimeout' Error:Field validation for 'ResultEventTimeout' failed on the 'iso8601duration' tag`,
+			Err: `workflow.states[0].actions[0].eventRef.triggerEventRef is required
+workflow.states[0].actions[0].eventRef.resultEventRef is required`,
+		},
+		{
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.TriggerEventRef = "invalid event"
+				model.States[0].OperationState.Actions[0].EventRef.ResultEventRef = "invalid event 2"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].eventRef.triggerEventRef don't exist "invalid event"
+workflow.states[0].actions[0].eventRef.triggerEventRef don't exist "invalid event 2"`,
+		},
+		{
+			Desp: "iso8601duration",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.ResultEventTimeout = "10hs"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].eventRef.resultEventTimeout invalid iso8601 duration "10hs"`,
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].OperationState.Actions[0].EventRef.Invoke = InvokeKindSync + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].actions[0].eventRef.invoke need by one of [sync async]`,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.eventRef)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-			assert.NoError(t, err)
-		})
-	}
+	StructLevelValidationCtx(t, testCases)
 }

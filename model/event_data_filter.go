@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // EventDataFilter used to filter consumed event payloads.
 type EventDataFilter struct {
 	// If set to false, event payload is not added/merged to state data. In this case 'data' and 'toStateData'
@@ -34,7 +36,7 @@ type eventDataFilterUnmarshal EventDataFilter
 // UnmarshalJSON implements json.Unmarshaler
 func (f *EventDataFilter) UnmarshalJSON(data []byte) error {
 	f.ApplyDefault()
-	return unmarshalObject("eventDataFilter", data, (*eventDataFilterUnmarshal)(f))
+	return util.UnmarshalObject("eventDataFilter", data, (*eventDataFilterUnmarshal)(f))
 }
 
 // ApplyDefault set the default values for Event Data Filter

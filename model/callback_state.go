@@ -22,7 +22,7 @@ import (
 type CallbackState struct {
 	// Defines the action to be executed.
 	// +kubebuilder:validation:Required
-	Action Action `json:"action" validate:"required"`
+	Action Action `json:"action"`
 	// References a unique callback event name in the defined workflow events.
 	// +kubebuilder:validation:Required
 	EventRef string `json:"eventRef" validate:"required"`

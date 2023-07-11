@@ -15,25 +15,25 @@
 package model
 
 import (
-	"context"
-	"reflect"
-
 	validator "github.com/go-playground/validator/v10"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidationCtx(parallelStateStructLevelValidation, ParallelState{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(eventStateStructLevelValidationCtx), EventState{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(onEventsStructLevelValidationCtx), OnEvents{})
 }
 
-// ParallelStateStructLevelValidation custom validator for ParallelState
-func parallelStateStructLevelValidation(_ context.Context, structLevel validator.StructLevel) {
-	parallelStateObj := structLevel.Current().Interface().(ParallelState)
+func eventStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+	// EventRefs
+}
 
-	if parallelStateObj.CompletionType == CompletionTypeAtLeast {
-		if !val.ValidateGt0IntStr(&parallelStateObj.NumCompleted) {
-			structLevel.ReportError(reflect.ValueOf(parallelStateObj.NumCompleted), "NumCompleted", "NumCompleted", "gt0", "")
+func onEventsStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
+	onEvent := structLevel.Current().Interface().(OnEvents)
+	for _, eventRef := range onEvent.EventRefs {
+		if eventRef != "" && !ctx.ExistEvent(eventRef) {
+			structLevel.ReportError(eventRef, "eventRefs", "EventRefs", val.TagExists, "")
 		}
 	}
 }

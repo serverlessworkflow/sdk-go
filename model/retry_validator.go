@@ -19,6 +19,7 @@ import (
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 

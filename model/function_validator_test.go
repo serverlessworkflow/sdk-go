@@ -14,30 +14,26 @@
 
 package model
 
-import (
-	"testing"
+import "testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
-)
-
-func TestRetryStructLevelValidation(t *testing.T) {
+func TestFunctionStructLevelValidation(t *testing.T) {
 	baseWorkflow := buildWorkflow()
+	baseWorkflow.Functions = Functions{{
+		Name:      "function 1",
+		Operation: "http://function/action",
+		Type:      FunctionTypeREST,
+	}}
 
 	operationState := buildOperationState(baseWorkflow, "start state")
 	buildEndByState(operationState, true, false)
 	action1 := buildActionByOperationState(operationState, "action 1")
-	buildRetryRef(baseWorkflow, action1, "retry 1")
-	buildFunctionRef(baseWorkflow, action1, "function 1")
+	buildFunctionRef(baseWorkflow, action1, "function 2")
 
 	testCases := []ValidationCase{
 		{
 			Desp: "success",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.Retries[0].Delay = "PT5S"
-				model.Retries[0].MaxDelay = "PT5S"
-				model.Retries[0].Increment = "PT5S"
-				model.Retries[0].Jitter = floatstr.FromString("PT5S")
 				return *model
 			},
 		},
@@ -45,45 +41,32 @@ func TestRetryStructLevelValidation(t *testing.T) {
 			Desp: "required",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.Retries[0].Name = ""
-				model.States[0].OperationState.Actions[0].RetryRef = ""
+				model.Functions[0].Name = ""
+				model.Functions[0].Operation = ""
+				model.Functions[0].Type = ""
 				return *model
 			},
-			Err: `workflow.retries[0].name is required`,
+			Err: `workflow.functions[0].name is required
+workflow.functions[0].operation is required
+workflow.functions[0].type is required`,
 		},
 		{
 			Desp: "repeat",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.Retries = append(model.Retries, model.Retries[0])
+				model.Functions = append(model.Functions, model.Functions[0])
 				return *model
 			},
-			Err: `workflow.retries has duplicate "name"`,
+			Err: `workflow.functions has duplicate "name"`,
 		},
 		{
-			Desp: "exists",
+			Desp: "oneofkind",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
-				model.States[0].OperationState.Actions[0].RetryRef = "invalid retry"
+				model.Functions[0].Type = FunctionTypeREST + "invalid"
 				return *model
 			},
-			Err: `workflow.states[0].actions[0].retryRef don't exist "invalid retry"`,
-		},
-		{
-			Desp: "iso8601duration",
-			Model: func() Workflow {
-				model := baseWorkflow.DeepCopy()
-				model.Retries[0].Delay = "P5S"
-				model.Retries[0].MaxDelay = "P5S"
-				model.Retries[0].Increment = "P5S"
-				model.Retries[0].Jitter = floatstr.FromString("P5S")
-
-				return *model
-			},
-			Err: `workflow.retries[0].delay invalid iso8601 duration "P5S"
-workflow.retries[0].maxDelay invalid iso8601 duration "P5S"
-workflow.retries[0].increment invalid iso8601 duration "P5S"
-workflow.retries[0].jitter invalid iso8601 duration "P5S"`,
+			Err: `workflow.functions[0].type need by one of [rest rpc expression graphql asyncapi odata custom]`,
 		},
 	}
 

@@ -14,8 +14,21 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 // EventKind defines this event as either `consumed` or `produced`
 type EventKind string
+
+func (i EventKind) KindValues() []string {
+	return []string{
+		string(EventKindConsumed),
+		string(EventKindProduced),
+	}
+}
+
+func (i EventKind) String() string {
+	return string(i)
+}
 
 const (
 	// EventKindConsumed means the event continuation of workflow instance execution
@@ -40,14 +53,14 @@ type Event struct {
 	// Defines the CloudEvent as either 'consumed' or 'produced' by the workflow. Defaults to `consumed`.
 	// +kubebuilder:validation:Enum=consumed;produced
 	// +kubebuilder:default=consumed
-	Kind EventKind `json:"kind,omitempty"`
+	Kind EventKind `json:"kind,omitempty" validate:"required,oneofkind"`
 	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload
 	// and context attributes should be accessible. Defaults to true.
 	// +optional
 	DataOnly bool `json:"dataOnly,omitempty"`
 	// Define event correlation rules for this event. Only used for consumed events.
 	// +optional
-	Correlation []Correlation `json:"correlation,omitempty" validate:"omitempty,dive"`
+	Correlation []Correlation `json:"correlation,omitempty" validate:"dive"`
 }
 
 type eventUnmarshal Event
@@ -55,7 +68,7 @@ type eventUnmarshal Event
 // UnmarshalJSON unmarshal Event object from json bytes
 func (e *Event) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("event", data, (*eventUnmarshal)(e))
+	return util.UnmarshalObject("event", data, (*eventUnmarshal)(e))
 }
 
 // ApplyDefault set the default values for Event
@@ -105,7 +118,7 @@ type eventRefUnmarshal EventRef
 // UnmarshalJSON implements json.Unmarshaler
 func (e *EventRef) UnmarshalJSON(data []byte) error {
 	e.ApplyDefault()
-	return unmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
+	return util.UnmarshalObject("eventRef", data, (*eventRefUnmarshal)(e))
 }
 
 // ApplyDefault set the default values for Event Ref

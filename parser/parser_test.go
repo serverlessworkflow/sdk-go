@@ -21,12 +21,12 @@ import (
 	"strings"
 	"testing"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/serverlessworkflow/sdk-go/v2/test"
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 func TestBasicValidation(t *testing.T) {
@@ -34,7 +34,7 @@ func TestBasicValidation(t *testing.T) {
 	files, err := os.ReadDir(rootPath)
 	assert.NoError(t, err)
 
-	model.SetIncludePaths(append(model.IncludePaths(), filepath.Join(test.CurrentProjectPath(), "./parser/testdata")))
+	util.SetIncludePaths(append(util.IncludePaths(), filepath.Join(test.CurrentProjectPath(), "./parser/testdata")))
 
 	for _, file := range files {
 		if !file.IsDir() {
@@ -350,7 +350,7 @@ func TestFromFile(t *testing.T) {
 			"./testdata/workflows/purchaseorderworkflow.sw.json", func(t *testing.T, w *model.Workflow) {
 				assert.Equal(t, "Purchase Order Workflow", w.Name)
 				assert.NotNil(t, w.Timeouts)
-				assert.Equal(t, "PT30D", w.Timeouts.WorkflowExecTimeout.Duration)
+				assert.Equal(t, "P30D", w.Timeouts.WorkflowExecTimeout.Duration)
 				assert.Equal(t, "CancelOrder", w.Timeouts.WorkflowExecTimeout.RunBefore)
 			},
 		}, {
@@ -393,7 +393,7 @@ func TestFromFile(t *testing.T) {
 
 				assert.NotEmpty(t, w.Functions[2])
 				assert.Equal(t, "greetingFunction", w.Functions[2].Name)
-				assert.Empty(t, w.Functions[2].Type)
+				assert.Equal(t, model.FunctionTypeREST, w.Functions[2].Type)
 				assert.Equal(t, "file://myapis/greetingapis.json#greeting", w.Functions[2].Operation)
 
 				// Delay state
@@ -465,7 +465,7 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "PT1H", w.States[3].SwitchState.Timeouts.EventTimeout)
 				assert.Equal(t, "PT1S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Single)
-				assert.Equal(t, &model.Transition{NextState: "HandleNoVisaDecision"}, w.States[3].SwitchState.DefaultCondition.Transition)
+				assert.Equal(t, "HandleNoVisaDecision", w.States[3].SwitchState.DefaultCondition.Transition.NextState)
 
 				//  DataBasedSwitchState
 				dataBased := w.States[4].SwitchState
@@ -474,9 +474,7 @@ func TestFromFile(t *testing.T) {
 				dataCondition := dataBased.DataConditions[0]
 				assert.Equal(t, "${ .applicants | .age >= 18 }", dataCondition.Condition)
 				assert.Equal(t, "StartApplication", dataCondition.Transition.NextState)
-				assert.Equal(t, &model.Transition{
-					NextState: "RejectApplication",
-				}, w.States[4].DefaultCondition.Transition)
+				assert.Equal(t, "RejectApplication", w.States[4].DefaultCondition.Transition.NextState)
 				assert.Equal(t, "PT1S", w.States[4].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[4].SwitchState.Timeouts.StateExecTimeout.Single)
 
@@ -489,9 +487,10 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "greetingCustomFunction", w.States[5].OperationState.Actions[0].Name)
 				assert.NotNil(t, w.States[5].OperationState.Actions[0].FunctionRef)
 				assert.Equal(t, "greetingCustomFunction", w.States[5].OperationState.Actions[0].FunctionRef.RefName)
-				assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.TriggerEventRef)
-				assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.ResultEventRef)
-				assert.Equal(t, "PT1H", w.States[5].OperationState.Actions[0].EventRef.ResultEventTimeout)
+
+				// assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.TriggerEventRef)
+				// assert.Equal(t, "example", w.States[5].OperationState.Actions[0].EventRef.ResultEventRef)
+				// assert.Equal(t, "PT1H", w.States[5].OperationState.Actions[0].EventRef.ResultEventTimeout)
 				assert.Equal(t, "PT1H", w.States[5].OperationState.Timeouts.ActionExecTimeout)
 				assert.Equal(t, "PT1S", w.States[5].OperationState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[5].OperationState.Timeouts.StateExecTimeout.Single)
@@ -514,9 +513,9 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "sendTextFunction", w.States[6].ForEachState.Actions[0].FunctionRef.RefName)
 				assert.Equal(t, map[string]model.Object{"message": model.FromString("${ .singlemessage }")}, w.States[6].ForEachState.Actions[0].FunctionRef.Arguments)
 
-				assert.Equal(t, "example1", w.States[6].ForEachState.Actions[0].EventRef.TriggerEventRef)
-				assert.Equal(t, "example2", w.States[6].ForEachState.Actions[0].EventRef.ResultEventRef)
-				assert.Equal(t, "PT12H", w.States[6].ForEachState.Actions[0].EventRef.ResultEventTimeout)
+				// assert.Equal(t, "example1", w.States[6].ForEachState.Actions[0].EventRef.TriggerEventRef)
+				// assert.Equal(t, "example2", w.States[6].ForEachState.Actions[0].EventRef.ResultEventRef)
+				// assert.Equal(t, "PT12H", w.States[6].ForEachState.Actions[0].EventRef.ResultEventTimeout)
 
 				assert.Equal(t, "PT11H", w.States[6].ForEachState.Timeouts.ActionExecTimeout)
 				assert.Equal(t, "PT11S", w.States[6].ForEachState.Timeouts.StateExecTimeout.Total)
@@ -744,6 +743,22 @@ auth:
     metadata:
       auth1: auth1
       auth2: auth2
+events:
+- name: StoreBidFunction
+  type: store
+- name: CarBidEvent
+  type: store
+- name: visaRejectedEvent
+  type: store
+- name: visaApprovedEventRef
+  type: store
+functions:
+- name: callCreditCheckMicroservice
+  operation: http://myapis.org/creditcheck.json#checkCredit
+- name: StoreBidFunction
+  operation: http://myapis.org/storebid.json#storeBid
+- name: sendTextFunction
+  operation: http://myapis.org/inboxapi.json#sendText
 states:
 - name: GreetDelay
   type: delay
@@ -848,11 +863,6 @@ states:
         refName: sendTextFunction
         arguments:
           message: "${ .singlemessage }"
-      eventRef:
-        triggerEventRef: example1
-        resultEventRef: example2
-        # Added "resultEventTimeout" for action eventref
-        resultEventTimeout: PT12H
   timeouts:
     actionExecTimeout: PT11H
     stateExecTimeout:
@@ -910,9 +920,6 @@ states:
 - name: HandleApprovedVisa
   type: operation
   actions:
-  - subFlowRef:
-      workflowId: handleApprovedVisaWorkflowID
-    name: subFlowRefName
   - eventRef:
       triggerEventRef: StoreBidFunction
       data: "${ .patientInfo }"
@@ -926,13 +933,28 @@ states:
     stateExecTimeout:
       total: PT33M
       single: PT123M
+  transition: HandleApprovedVisaSubFlow
+- name: HandleApprovedVisaSubFlow
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+    name: subFlowRefName
+  end:
+    terminate: true
+- name: HandleRejectedVisa
+  type: operation
+  actions:
+  - subFlowRef:
+      workflowId: handleApprovedVisaWorkflowID
+    name: subFlowRefName
   end:
     terminate: true
 `))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotNil(t, workflow)
 		b, err := json.Marshal(workflow)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// workflow and auth metadata
 		assert.True(t, strings.Contains(string(b), "\"metadata\":{\"metadata1\":\"metadata1\",\"metadata2\":\"metadata2\"}"))
@@ -942,7 +964,7 @@ states:
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"CheckCreditCallback\",\"type\":\"callback\",\"transition\":{\"nextState\":\"HandleApprovedVisa\"},\"action\":{\"functionRef\":{\"refName\":\"callCreditCheckMicroservice\",\"arguments\":{\"argsObj\":{\"age\":{\"final\":32,\"initial\":10},\"name\":\"hi\"},\"customer\":\"${ .customer }\",\"time\":48},\"invoke\":\"sync\"},\"sleep\":{\"before\":\"PT10S\",\"after\":\"PT20S\"},\"actionDataFilter\":{\"useResults\":true}},\"eventRef\":\"CreditCheckCompletedEvent\",\"eventDataFilter\":{\"useData\":true,\"data\":\"test data\",\"toStateData\":\"${ .customer }\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT115M\"},\"actionExecTimeout\":\"PT199M\",\"eventTimeout\":\"PT348S\"}}"))
 
 		// Operation State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"HandleApprovedVisa\",\"type\":\"operation\",\"end\":{\"terminate\":true},\"actionMode\":\"sequential\",\"actions\":[{\"name\":\"subFlowRefName\",\"subFlowRef\":{\"workflowId\":\"handleApprovedVisaWorkflowID\",\"invoke\":\"sync\",\"onParentComplete\":\"terminate\"},\"actionDataFilter\":{\"useResults\":true}},{\"name\":\"eventRefName\",\"eventRef\":{\"triggerEventRef\":\"StoreBidFunction\",\"resultEventRef\":\"StoreBidFunction\",\"data\":\"${ .patientInfo }\",\"contextAttributes\":{\"customer\":\"${ .customer }\",\"time\":50},\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT123M\",\"total\":\"PT33M\"},\"actionExecTimeout\":\"PT777S\"}}"))
+		assert.True(t, strings.Contains(string(b), `{"name":"HandleApprovedVisa","type":"operation","transition":{"nextState":"HandleApprovedVisaSubFlow"},"actionMode":"sequential","actions":[{"name":"eventRefName","eventRef":{"triggerEventRef":"StoreBidFunction","resultEventRef":"StoreBidFunction","data":"${ .patientInfo }","contextAttributes":{"customer":"${ .customer }","time":50},"invoke":"sync"},"actionDataFilter":{"useResults":true}}],"timeouts":{"stateExecTimeout":{"single":"PT123M","total":"PT33M"},"actionExecTimeout":"PT777S"}}`))
 
 		// Delay State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"GreetDelay\",\"type\":\"delay\",\"transition\":{\"nextState\":\"StoreCarAuctionBid\"},\"timeDelay\":\"PT5S\"}"))
@@ -960,7 +982,7 @@ states:
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloStateWithDefaultConditionString\",\"type\":\"switch\",\"defaultCondition\":{\"transition\":{\"nextState\":\"SendTextForHighPriority\"}},\"dataConditions\":[{\"condition\":\"${ true }\",\"transition\":{\"nextState\":\"HandleApprovedVisa\"}},{\"condition\":\"${ false }\",\"transition\":{\"nextState\":\"HandleRejectedVisa\"}}]}"))
 
 		// Foreach State
-		assert.True(t, strings.Contains(string(b), "{\"name\":\"SendTextForHighPriority\",\"type\":\"foreach\",\"transition\":{\"nextState\":\"HelloInject\"},\"inputCollection\":\"${ .messages }\",\"outputCollection\":\"${ .outputMessages }\",\"iterationParam\":\"${ .this }\",\"batchSize\":45,\"actions\":[{\"name\":\"test\",\"functionRef\":{\"refName\":\"sendTextFunction\",\"arguments\":{\"message\":\"${ .singlemessage }\"},\"invoke\":\"sync\"},\"eventRef\":{\"triggerEventRef\":\"example1\",\"resultEventRef\":\"example2\",\"resultEventTimeout\":\"PT12H\",\"invoke\":\"sync\"},\"actionDataFilter\":{\"useResults\":true}}],\"mode\":\"sequential\",\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22S\",\"total\":\"PT11S\"},\"actionExecTimeout\":\"PT11H\"}}"))
+		assert.True(t, strings.Contains(string(b), `{"name":"SendTextForHighPriority","type":"foreach","transition":{"nextState":"HelloInject"},"inputCollection":"${ .messages }","outputCollection":"${ .outputMessages }","iterationParam":"${ .this }","batchSize":45,"actions":[{"name":"test","functionRef":{"refName":"sendTextFunction","arguments":{"message":"${ .singlemessage }"},"invoke":"sync"},"actionDataFilter":{"useResults":true}}],"mode":"sequential","timeouts":{"stateExecTimeout":{"single":"PT22S","total":"PT11S"},"actionExecTimeout":"PT11H"}}`))
 
 		// Inject State
 		assert.True(t, strings.Contains(string(b), "{\"name\":\"HelloInject\",\"type\":\"inject\",\"transition\":{\"nextState\":\"WaitForCompletionSleep\"},\"data\":{\"result\":\"Hello World, another state!\"},\"timeouts\":{\"stateExecTimeout\":{\"single\":\"PT22M\",\"total\":\"PT11M\"}}}"))

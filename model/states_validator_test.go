@@ -16,120 +16,136 @@ package model
 
 import (
 	"testing"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
-	"github.com/stretchr/testify/assert"
 )
 
-var stateTransitionDefault = State{
-	BaseState: BaseState{
-		Name: "name state",
-		Type: StateTypeOperation,
-		Transition: &Transition{
-			NextState: "next name state",
-		},
-	},
-	OperationState: &OperationState{
-		ActionMode: "sequential",
-		Actions: []Action{
-			{},
-		},
-	},
-}
+func TestBaseStateStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.States = make(States, 0, 3)
 
-var stateEndDefault = State{
-	BaseState: BaseState{
-		Name: "name state",
-		Type: StateTypeOperation,
-		End: &End{
-			Terminate: true,
-		},
-	},
-	OperationState: &OperationState{
-		ActionMode: "sequential",
-		Actions: []Action{
-			{},
-		},
-	},
-}
+	operationState := buildOperationState(baseWorkflow, "start state 1")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
 
-var switchStateTransitionDefault = State{
-	BaseState: BaseState{
-		Name: "name state",
-		Type: StateTypeSwitch,
-	},
-	SwitchState: &SwitchState{
-		DataConditions: []DataCondition{
-			{
-				Condition: "${ .applicant | .age >= 18 }",
-				Transition: &Transition{
-					NextState: "nex state",
-				},
+	operationState2 := buildOperationState(baseWorkflow, "state 2")
+	buildEndByState(operationState2, true, false)
+	action2 := buildActionByOperationState(operationState2, "action 2")
+	buildFunctionRef(baseWorkflow, action2, "function 2")
+
+	eventState := buildEventState(baseWorkflow, "state 3")
+	buildOnEvents(baseWorkflow, eventState, "event 1")
+	buildEndByState(eventState, true, false)
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				return *model
 			},
 		},
-		DefaultCondition: DefaultCondition{
-			Transition: &Transition{
-				NextState: "nex state",
+		{
+			Desp: "repeat name",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States = []State{model.States[0], model.States[0]}
+				return *model
 			},
+			Err: `workflow.states has duplicate "name"`,
 		},
-	},
+		{
+			Desp: "exists",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.CompensatedBy = "invalid state compensate by"
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy don't exist "invalid state compensate by"`,
+		},
+		{
+			Desp: "tagcompensatedby",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.CompensatedBy = model.States[1].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "state 2" is not defined as usedForCompensation`,
+		},
+		{
+			Desp: "compensatedbyeventstate",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[2].BaseState.UsedForCompensation = true
+				model.States[0].BaseState.CompensatedBy = model.States[2].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "state 3" is defined as usedForCompensation and cannot be an event state`,
+		},
+		{
+			Desp: "recursivecompensation",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.UsedForCompensation = true
+				model.States[0].BaseState.CompensatedBy = model.States[0].BaseState.Name
+				return *model
+			},
+			Err: `workflow.states[0].compensatedBy = "start state 1" is defined as usedForCompensation (cannot themselves set their compensatedBy)`,
+		},
+	}
+
+	StructLevelValidationCtx(t, testCases)
 }
 
 func TestStateStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		name     string
-		instance State
-		err      string
+	baseWorkflow := buildWorkflow()
+	baseWorkflow.States = make(States, 0, 2)
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	operationState2 := buildOperationState(baseWorkflow, "next state")
+	buildEndByState(operationState2, true, false)
+	action2 := buildActionByOperationState(operationState2, "action 2")
+	buildFunctionRef(baseWorkflow, action2, "function 2")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "success",
+			Model: func() Workflow {
+				return *baseWorkflow.DeepCopy()
+			},
+		},
+		{
+			Desp: "required",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.End = nil
+				return *model
+			},
+			Err: `workflow.states[0].transition is required`,
+		},
+		{
+			Desp: "exclusive",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				buildTransitionByState(&model.States[0], &model.States[1], false)
+
+				return *model
+			},
+			Err: `workflow.states[0].transition exclusive`,
+		},
+		{
+			Desp: "oneofkind",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.States[0].BaseState.Type = StateTypeOperation + "invalid"
+				return *model
+			},
+			Err: `workflow.states[0].type need by one of [delay event operation parallel switch foreach inject callback sleep]`,
+		},
 	}
 
-	testCases := []testCase{
-		{
-			name:     "state transition success",
-			instance: stateTransitionDefault,
-			err:      ``,
-		},
-		{
-			name:     "state end success",
-			instance: stateEndDefault,
-			err:      ``,
-		},
-		{
-			name:     "switch state success",
-			instance: switchStateTransitionDefault,
-			err:      ``,
-		},
-		{
-			name: "state end and transition",
-			instance: func() State {
-				s := stateTransitionDefault
-				s.End = stateEndDefault.End
-				return s
-			}(),
-			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'exclusive' tag`,
-		},
-		{
-			name: "basestate without end and transition",
-			instance: func() State {
-				s := stateTransitionDefault
-				s.Transition = nil
-				return s
-			}(),
-			err: `Key: 'State.BaseState.Transition' Error:Field validation for 'Transition' failed on the 'required' tag`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.instance)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				if err != nil {
-					assert.Equal(t, tc.err, err.Error())
-				}
-				return
-			}
-			assert.NoError(t, err)
-		})
-	}
+	StructLevelValidationCtx(t, testCases)
 }

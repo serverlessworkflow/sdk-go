@@ -18,10 +18,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // AuthType can be "basic", "bearer", or "oauth2". Default is "basic"
 type AuthType string
+
+func (i AuthType) KindValues() []string {
+	return []string{
+		string(AuthTypeBasic),
+		string(AuthTypeBearer),
+		string(AuthTypeOAuth2),
+	}
+}
+
+func (i AuthType) String() string {
+	return string(i)
+}
 
 const (
 	// AuthTypeBasic ...
@@ -34,6 +48,18 @@ const (
 
 // GrantType ...
 type GrantType string
+
+func (i GrantType) KindValues() []string {
+	return []string{
+		string(GrantTypePassword),
+		string(GrantTypeClientCredentials),
+		string(GrantTypeTokenExchange),
+	}
+}
+
+func (i GrantType) String() string {
+	return string(i)
+}
 
 const (
 	// GrantTypePassword ...
@@ -55,7 +81,7 @@ type Auth struct {
 	// +kubebuilder:validation:Enum=basic;bearer;oauth2
 	// +kubebuilder:default=basic
 	// +kubebuilder:validation:Required
-	Scheme AuthType `json:"scheme" validate:"min=1"`
+	Scheme AuthType `json:"scheme" validate:"required,oneofkind"`
 	// Auth scheme properties. Can be one of "Basic properties definition", "Bearer properties definition",
 	// or "OAuth2 properties definition"
 	// +kubebuilder:validation:Required
@@ -71,7 +97,7 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 		PropertiesRaw json.RawMessage `json:"properties"`
 	}{}
 
-	err := unmarshalObjectOrFile("auth", data, &authTmp)
+	err := util.UnmarshalObjectOrFile("auth", data, &authTmp)
 	if err != nil {
 		return err
 	}
@@ -84,13 +110,13 @@ func (a *Auth) UnmarshalJSON(data []byte) error {
 	switch a.Scheme {
 	case AuthTypeBasic:
 		a.Properties.Basic = &BasicAuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Basic)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Basic)
 	case AuthTypeBearer:
 		a.Properties.Bearer = &BearerAuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Bearer)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.Bearer)
 	case AuthTypeOAuth2:
 		a.Properties.OAuth2 = &OAuth2AuthProperties{}
-		return unmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.OAuth2)
+		return util.UnmarshalObject("properties", authTmp.PropertiesRaw, a.Properties.OAuth2)
 	default:
 		return fmt.Errorf("failed to parse auth properties")
 	}
@@ -162,7 +188,7 @@ type OAuth2AuthProperties struct {
 	// 	Defines the grant type. Can be "password", "clientCredentials", or "tokenExchange"
 	// +kubebuilder:validation:Enum=password;clientCredentials;tokenExchange
 	// +kubebuilder:validation:Required
-	GrantType GrantType `json:"grantType" validate:"required"`
+	GrantType GrantType `json:"grantType" validate:"required,oneofkind"`
 	// String or a workflow expression. Contains the client identifier.
 	// +kubebuilder:validation:Required
 	ClientID string `json:"clientId" validate:"required"`

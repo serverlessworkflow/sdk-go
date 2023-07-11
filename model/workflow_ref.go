@@ -14,6 +14,27 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
+// CompletionType define on how to complete branch execution.
+type OnParentCompleteType string
+
+func (i OnParentCompleteType) KindValues() []string {
+	return []string{
+		string(OnParentCompleteTypeTerminate),
+		string(OnParentCompleteTypeContinue),
+	}
+}
+
+func (i OnParentCompleteType) String() string {
+	return string(i)
+}
+
+const (
+	OnParentCompleteTypeTerminate OnParentCompleteType = "terminate"
+	OnParentCompleteTypeContinue  OnParentCompleteType = "continue"
+)
+
 // WorkflowRef holds a reference for a workflow definition
 type WorkflowRef struct {
 	// Sub-workflow unique id
@@ -32,7 +53,7 @@ type WorkflowRef struct {
 	// is 'async'. Defaults to terminate.
 	// +kubebuilder:validation:Enum=terminate;continue
 	// +kubebuilder:default=terminate
-	OnParentComplete string `json:"onParentComplete,omitempty" validate:"required,oneof=terminate continue"`
+	OnParentComplete OnParentCompleteType `json:"onParentComplete,omitempty" validate:"required,oneofkind"`
 }
 
 type workflowRefUnmarshal WorkflowRef
@@ -40,7 +61,7 @@ type workflowRefUnmarshal WorkflowRef
 // UnmarshalJSON implements json.Unmarshaler
 func (s *WorkflowRef) UnmarshalJSON(data []byte) error {
 	s.ApplyDefault()
-	return unmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
+	return util.UnmarshalPrimitiveOrObject("subFlowRef", data, &s.WorkflowID, (*workflowRefUnmarshal)(s))
 }
 
 // ApplyDefault set the default values for Workflow Ref

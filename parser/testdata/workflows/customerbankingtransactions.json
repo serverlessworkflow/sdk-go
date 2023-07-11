@@ -35,7 +35,7 @@
             "operation": "banking.yaml#largerTransation"
         },
         {
-            "name": "Banking Service - Smaller T",
+            "name": "Banking Service - Smaller Tx",
             "type": "asyncapi",
             "operation": "banking.yaml#smallerTransation"
         }

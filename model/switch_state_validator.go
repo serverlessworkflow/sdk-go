@@ -18,42 +18,47 @@ import (
 	"reflect"
 
 	validator "github.com/go-playground/validator/v10"
+
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func init() {
-	val.GetValidator().RegisterStructValidation(switchStateStructLevelValidation, SwitchState{})
-	val.GetValidator().RegisterStructValidation(defaultConditionStructLevelValidation, DefaultCondition{})
-	val.GetValidator().RegisterStructValidation(eventConditionStructLevelValidation, EventCondition{})
-	val.GetValidator().RegisterStructValidation(dataConditionStructLevelValidation, DataCondition{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(switchStateStructLevelValidation), SwitchState{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(defaultConditionStructLevelValidation), DefaultCondition{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(eventConditionStructLevelValidationCtx), EventCondition{})
+	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(dataConditionStructLevelValidation), DataCondition{})
 }
 
 // SwitchStateStructLevelValidation custom validator for SwitchState
-func switchStateStructLevelValidation(structLevel validator.StructLevel) {
+func switchStateStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	switchState := structLevel.Current().Interface().(SwitchState)
 
 	switch {
 	case len(switchState.DataConditions) == 0 && len(switchState.EventConditions) == 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "required", "must have one of dataConditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", val.TagRequired, "")
 	case len(switchState.DataConditions) > 0 && len(switchState.EventConditions) > 0:
-		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", "exclusive", "must have one of dataConditions, eventConditions")
+		structLevel.ReportError(reflect.ValueOf(switchState), "DataConditions", "dataConditions", val.TagExclusive, "")
 	}
 }
 
 // DefaultConditionStructLevelValidation custom validator for DefaultCondition
-func defaultConditionStructLevelValidation(structLevel validator.StructLevel) {
+func defaultConditionStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	defaultCondition := structLevel.Current().Interface().(DefaultCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(defaultCondition), defaultCondition.Transition, defaultCondition.End)
+	validTransitionAndEnd(structLevel, defaultCondition, defaultCondition.Transition, defaultCondition.End)
 }
 
 // EventConditionStructLevelValidation custom validator for EventCondition
-func eventConditionStructLevelValidation(structLevel validator.StructLevel) {
+func eventConditionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	eventCondition := structLevel.Current().Interface().(EventCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(eventCondition), eventCondition.Transition, eventCondition.End)
+	validTransitionAndEnd(structLevel, eventCondition, eventCondition.Transition, eventCondition.End)
+
+	if eventCondition.EventRef != "" && !ctx.ExistEvent(eventCondition.EventRef) {
+		structLevel.ReportError(eventCondition.EventRef, "eventRef", "EventRef", val.TagExists, "")
+	}
 }
 
 // DataConditionStructLevelValidation custom validator for DataCondition
-func dataConditionStructLevelValidation(structLevel validator.StructLevel) {
+func dataConditionStructLevelValidation(ctx ValidatorContext, structLevel validator.StructLevel) {
 	dataCondition := structLevel.Current().Interface().(DataCondition)
-	validTransitionAndEnd(structLevel, reflect.ValueOf(dataCondition), dataCondition.Transition, dataCondition.End)
+	validTransitionAndEnd(structLevel, dataCondition, dataCondition.Transition, dataCondition.End)
 }

@@ -16,13 +16,18 @@ package model
 
 import (
 	"encoding/json"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // InvokeKind defines how the target is invoked.
 type InvokeKind string
 
 func (i InvokeKind) KindValues() []string {
-	return []string{string(InvokeKindSync), string(InvokeKindAsync)}
+	return []string{
+		string(InvokeKindSync),
+		string(InvokeKindAsync),
+	}
 }
 
 func (i InvokeKind) String() string {
@@ -40,6 +45,17 @@ const (
 // ActionMode specifies how actions are to be performed.
 type ActionMode string
 
+func (i ActionMode) KindValues() []string {
+	return []string{
+		string(ActionModeSequential),
+		string(ActionModeParallel),
+	}
+}
+
+func (i ActionMode) String() string {
+	return string(i)
+}
+
 const (
 	// ActionModeSequential specifies actions should be performed in sequence
 	ActionModeSequential ActionMode = "sequential"
@@ -54,6 +70,17 @@ const (
 )
 
 type ExpressionLangType string
+
+func (i ExpressionLangType) KindValues() []string {
+	return []string{
+		string(JqExpressionLang),
+		string(JsonPathExpressionLang),
+	}
+}
+
+func (i ExpressionLangType) String() string {
+	return string(i)
+}
 
 const (
 	//JqExpressionLang ...
@@ -99,7 +126,7 @@ type BaseWorkflow struct {
 	// Secrets allow you to access sensitive information, such as passwords, OAuth tokens, ssh keys, etc,
 	// inside your Workflow Expressions.
 	// +optional
-	Secrets Secrets `json:"secrets,omitempty"`
+	Secrets Secrets `json:"secrets,omitempty" validate:"unique"`
 	// Constants Workflow constants are used to define static, and immutable, data which is available to
 	// Workflow Expressions.
 	// +optional
@@ -108,13 +135,13 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Enum=jq;jsonpath
 	// +kubebuilder:default=jq
 	// +optional
-	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"omitempty,min=1,oneof=jq jsonpath"`
+	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"required,oneofkind"`
 	// Defines the workflow default timeout settings.
 	// +optional
 	Timeouts *Timeouts `json:"timeouts,omitempty"`
 	// Defines checked errors that can be explicitly handled during workflow execution.
 	// +optional
-	Errors Errors `json:"errors,omitempty"`
+	Errors Errors `json:"errors,omitempty" validate:"unique=Name,dive"`
 	// If "true", workflow instances is not terminated when there are no active execution paths.
 	// Instance can be terminated with "terminate end definition" or reaching defined "workflowExecTimeout"
 	// +optional
@@ -133,7 +160,7 @@ type BaseWorkflow struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Auth Auths `json:"auth,omitempty" validate:"omitempty"`
+	Auth Auths `json:"auth,omitempty" validate:"unique=Name,dive"`
 }
 
 type Auths []Auth
@@ -142,7 +169,7 @@ type authsUnmarshal Auths
 
 // UnmarshalJSON implements json.Unmarshaler
 func (r *Auths) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("auth", data, (*authsUnmarshal)(r))
+	return util.UnmarshalObjectOrFile("auth", data, (*authsUnmarshal)(r))
 }
 
 type Errors []Error
@@ -151,21 +178,20 @@ type errorsUnmarshal Errors
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *Errors) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("errors", data, (*errorsUnmarshal)(e))
+	return util.UnmarshalObjectOrFile("errors", data, (*errorsUnmarshal)(e))
 }
 
 // Workflow base definition
 type Workflow struct {
 	BaseWorkflow `json:",inline"`
-	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:pruning:PreserveUnknownFields
-	States []State `json:"states" validate:"required,min=1,dive"`
+	States States `json:"states" validate:"min=1,unique=Name,dive"`
 	// +optional
-	Events Events `json:"events,omitempty"`
+	Events Events `json:"events,omitempty" validate:"unique=Name,dive"`
 	// +optional
-	Functions Functions `json:"functions,omitempty"`
+	Functions Functions `json:"functions,omitempty" validate:"unique=Name,dive"`
 	// +optional
-	Retries Retries `json:"retries,omitempty" validate:"dive"`
+	Retries Retries `json:"retries,omitempty" validate:"unique=Name,dive"`
 }
 
 type workflowUnmarshal Workflow
@@ -173,7 +199,7 @@ type workflowUnmarshal Workflow
 // UnmarshalJSON implementation for json Unmarshal function for the Workflow type
 func (w *Workflow) UnmarshalJSON(data []byte) error {
 	w.ApplyDefault()
-	err := unmarshalObject("workflow", data, (*workflowUnmarshal)(w))
+	err := util.UnmarshalObject("workflow", data, (*workflowUnmarshal)(w))
 	if err != nil {
 		return err
 	}
@@ -192,13 +218,14 @@ func (w *Workflow) ApplyDefault() {
 	w.ExpressionLang = JqExpressionLang
 }
 
+// +kubebuilder:validation:MinItems=1
 type States []State
 
 type statesUnmarshal States
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *States) UnmarshalJSON(data []byte) error {
-	return unmarshalObject("states", data, (*statesUnmarshal)(s))
+	return util.UnmarshalObject("states", data, (*statesUnmarshal)(s))
 }
 
 type Events []Event
@@ -207,7 +234,7 @@ type eventsUnmarshal Events
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *Events) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("events", data, (*eventsUnmarshal)(e))
+	return util.UnmarshalObjectOrFile("events", data, (*eventsUnmarshal)(e))
 }
 
 type Functions []Function
@@ -216,7 +243,7 @@ type functionsUnmarshal Functions
 
 // UnmarshalJSON implements json.Unmarshaler
 func (f *Functions) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("functions", data, (*functionsUnmarshal)(f))
+	return util.UnmarshalObjectOrFile("functions", data, (*functionsUnmarshal)(f))
 }
 
 type Retries []Retry
@@ -225,7 +252,7 @@ type retriesUnmarshal Retries
 
 // UnmarshalJSON implements json.Unmarshaler
 func (r *Retries) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("retries", data, (*retriesUnmarshal)(r))
+	return util.UnmarshalObjectOrFile("retries", data, (*retriesUnmarshal)(r))
 }
 
 // Timeouts ...
@@ -252,7 +279,7 @@ type timeoutsUnmarshal Timeouts
 
 // UnmarshalJSON implements json.Unmarshaler
 func (t *Timeouts) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("timeouts", data, (*timeoutsUnmarshal)(t))
+	return util.UnmarshalObjectOrFile("timeouts", data, (*timeoutsUnmarshal)(t))
 }
 
 // WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
@@ -260,7 +287,7 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 type WorkflowExecTimeout struct {
 	// Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'.
 	// +kubebuilder:default=unlimited
-	Duration string `json:"duration" validate:"required,min=1"`
+	Duration string `json:"duration" validate:"required,min=1,iso8601duration"`
 	// If false, workflow instance is allowed to finish current execution. If true, current workflow execution
 	// is stopped immediately. Default is false.
 	// +optional
@@ -275,7 +302,7 @@ type workflowExecTimeoutUnmarshal WorkflowExecTimeout
 // UnmarshalJSON implements json.Unmarshaler
 func (w *WorkflowExecTimeout) UnmarshalJSON(data []byte) error {
 	w.ApplyDefault()
-	return unmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, (*workflowExecTimeoutUnmarshal)(w))
+	return util.UnmarshalPrimitiveOrObject("workflowExecTimeout", data, &w.Duration, (*workflowExecTimeoutUnmarshal)(w))
 }
 
 // ApplyDefault set the default values for Workflow Exec Timeout
@@ -312,7 +339,7 @@ type startUnmarshal Start
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Start) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("start", data, &s.StateName, (*startUnmarshal)(s))
+	return util.UnmarshalPrimitiveOrObject("start", data, &s.StateName, (*startUnmarshal)(s))
 }
 
 // Schedule ...
@@ -335,7 +362,7 @@ type scheduleUnmarshal Schedule
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Schedule) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("schedule", data, &s.Interval, (*scheduleUnmarshal)(s))
+	return util.UnmarshalPrimitiveOrObject("schedule", data, &s.Interval, (*scheduleUnmarshal)(s))
 }
 
 // Cron ...
@@ -352,12 +379,13 @@ type cronUnmarshal Cron
 
 // UnmarshalJSON custom unmarshal function for Cron
 func (c *Cron) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("cron", data, &c.Expression, (*cronUnmarshal)(c))
+	return util.UnmarshalPrimitiveOrObject("cron", data, &c.Expression, (*cronUnmarshal)(c))
 }
 
 // Transition Serverless workflow states can have one or more incoming and outgoing transitions (from/to other states).
 // Each state can define a transition definition that is used to determine which state to transition to next.
 type Transition struct {
+	stateParent *State `json:"-"` // used in validation
 	// Name of the state to transition to next.
 	// +kubebuilder:validation:Required
 	NextState string `json:"nextState" validate:"required,min=1"`
@@ -374,7 +402,7 @@ type transitionUnmarshal Transition
 
 // UnmarshalJSON implements json.Unmarshaler
 func (t *Transition) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("transition", data, &t.NextState, (*transitionUnmarshal)(t))
+	return util.UnmarshalPrimitiveOrObject("transition", data, &t.NextState, (*transitionUnmarshal)(t))
 }
 
 // OnError ...
@@ -382,7 +410,7 @@ type OnError struct {
 	// ErrorRef Reference to a unique workflow error definition. Used of errorRefs is not used
 	ErrorRef string `json:"errorRef,omitempty"`
 	// ErrorRefs References one or more workflow error definitions. Used if errorRef is not used
-	ErrorRefs []string `json:"errorRefs,omitempty"`
+	ErrorRefs []string `json:"errorRefs,omitempty" validate:"omitempty,unique"`
 	// Transition to next state to handle the error. If retryRef is defined, this transition is taken only if
 	// retries were unsuccessful.
 	// +kubebuilder:validation:Schemaless
@@ -418,7 +446,7 @@ type endUnmarshal End
 
 // UnmarshalJSON implements json.Unmarshaler
 func (e *End) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("end", data, &e.Terminate, (*endUnmarshal)(e))
+	return util.UnmarshalPrimitiveOrObject("end", data, &e.Terminate, (*endUnmarshal)(e))
 }
 
 // ContinueAs can be used to stop the current workflow execution and start another one (of the same or a different type)
@@ -443,7 +471,7 @@ type continueAsUnmarshal ContinueAs
 
 // UnmarshalJSON implements json.Unmarshaler
 func (c *ContinueAs) UnmarshalJSON(data []byte) error {
-	return unmarshalPrimitiveOrObject("continueAs", data, &c.WorkflowID, (*continueAsUnmarshal)(c))
+	return util.UnmarshalPrimitiveOrObject("continueAs", data, &c.WorkflowID, (*continueAsUnmarshal)(c))
 }
 
 // ProduceEvent Defines the event (CloudEvent format) to be produced when workflow execution completes or during a
@@ -483,7 +511,7 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	return unmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
+	return util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
 }
 
 // ApplyDefault set the default values for Data Input Schema
@@ -499,7 +527,7 @@ type secretsUnmarshal Secrets
 
 // UnmarshalJSON implements json.Unmarshaler
 func (s *Secrets) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("secrets", data, (*secretsUnmarshal)(s))
+	return util.UnmarshalObjectOrFile("secrets", data, (*secretsUnmarshal)(s))
 }
 
 // Constants Workflow constants are used to define static, and immutable, data which is available to Workflow Expressions.
@@ -511,7 +539,7 @@ type Constants struct {
 
 // UnmarshalJSON implements json.Unmarshaler
 func (c *Constants) UnmarshalJSON(data []byte) error {
-	return unmarshalObjectOrFile("constants", data, &c.Data)
+	return util.UnmarshalObjectOrFile("constants", data, &c.Data)
 }
 
 type ConstantsData map[string]json.RawMessage

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package util
 
 import (
 	"encoding/json"
@@ -22,8 +22,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/test"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/serverlessworkflow/sdk-go/v2/test"
 )
 
 func TestIncludePaths(t *testing.T) {
@@ -55,7 +56,7 @@ func Test_loadExternalResource(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	httpClient = *server.Client()
+	HttpClient = *server.Client()
 
 	data, err := loadExternalResource(server.URL + "/test.json")
 	assert.NoError(t, err)
@@ -94,39 +95,25 @@ func Test_unmarshalObjectOrFile(t *testing.T) {
 			}
 		}))
 		defer server.Close()
-		httpClient = *server.Client()
+		HttpClient = *server.Client()
 
 		structValue := &structString{}
 		data := []byte(`"fieldValue": "value"`)
-		err := unmarshalObjectOrFile("structString", data, structValue)
+		err := UnmarshalObjectOrFile("structString", data, structValue)
 		assert.Error(t, err)
 		assert.Equal(t, &structString{}, structValue)
 
 		listStructValue := &listStructString{}
 		data = []byte(`[{"fieldValue": "value"}]`)
-		err = unmarshalObjectOrFile("listStructString", data, listStructValue)
+		err = UnmarshalObjectOrFile("listStructString", data, listStructValue)
 		assert.NoError(t, err)
 		assert.Equal(t, listStructString{{FieldValue: "value"}}, *listStructValue)
 
 		listStructValue = &listStructString{}
 		data = []byte(fmt.Sprintf(`"%s/test.json"`, server.URL))
-		err = unmarshalObjectOrFile("listStructString", data, listStructValue)
+		err = UnmarshalObjectOrFile("listStructString", data, listStructValue)
 		assert.NoError(t, err)
 		assert.Equal(t, listStructString{{FieldValue: "value"}}, *listStructValue)
-	})
-
-	t.Run("file://", func(t *testing.T) {
-		retries := &Retries{}
-		data := []byte(`"file://../parser/testdata/applicationrequestretries.json"`)
-		err := unmarshalObjectOrFile("retries", data, retries)
-		assert.NoError(t, err)
-	})
-
-	t.Run("external url", func(t *testing.T) {
-		retries := &Retries{}
-		data := []byte(`"https://raw.githubusercontent.com/serverlessworkflow/sdk-java/main/api/src/test/resources/features/applicantrequestretries.json"`)
-		err := unmarshalObjectOrFile("retries", data, retries)
-		assert.NoError(t, err)
 	})
 }
 
@@ -137,31 +124,31 @@ func Test_primitiveOrMapType(t *testing.T) {
 		var valBool bool
 		valMap := &dataMap{}
 		data := []byte(`"value":true`)
-		err := unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err := UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.Error(t, err)
 
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`{value":true}`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.Error(t, err)
 
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`value":true}`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.Error(t, err)
 
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`"true"`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.Error(t, err)
 
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`true`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.NoError(t, err)
 		assert.Equal(t, &dataMap{}, valMap)
 		assert.True(t, valBool)
@@ -169,7 +156,7 @@ func Test_primitiveOrMapType(t *testing.T) {
 		valString := ""
 		valMap = &dataMap{}
 		data = []byte(`"true"`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valString, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valString, valMap)
 		assert.NoError(t, err)
 		assert.Equal(t, &dataMap{}, valMap)
 		assert.Equal(t, `true`, valString)
@@ -177,7 +164,7 @@ func Test_primitiveOrMapType(t *testing.T) {
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`{"value":true}`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.NoError(t, err)
 		assert.NotNil(t, valMap)
 		assert.Equal(t, valMap, &dataMap{"value": []byte("true")})
@@ -186,7 +173,7 @@ func Test_primitiveOrMapType(t *testing.T) {
 		valBool = false
 		valMap = &dataMap{}
 		data = []byte(`{"value": "true"}`)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valMap)
 		assert.NoError(t, err)
 		assert.NotNil(t, valMap)
 		assert.Equal(t, valMap, &dataMap{"value": []byte(`"true"`)})
@@ -201,12 +188,12 @@ func Test_primitiveOrMapType(t *testing.T) {
 		var valString string
 		valStruct := &structString{}
 		data := []byte(`{"fieldValue": "value"`)
-		err := unmarshalPrimitiveOrObject("structBool", data, &valString, valStruct)
+		err := UnmarshalPrimitiveOrObject("structBool", data, &valString, valStruct)
 		assert.Error(t, err)
 		assert.Equal(t, "structBool has a syntax error \"unexpected end of JSON input\"", err.Error())
 
 		data = []byte(`{\n  "fieldValue": value\n}`)
-		err = unmarshalPrimitiveOrObject("structBool", data, &valString, valStruct)
+		err = UnmarshalPrimitiveOrObject("structBool", data, &valString, valStruct)
 		assert.Error(t, err)
 		assert.Equal(t, "structBool has a syntax error \"invalid character '\\\\\\\\' looking for beginning of object key string\"", err.Error())
 		// assert.Equal(t, `structBool value '{"fieldValue": value}' is not supported, it has a syntax error "invalid character 'v' looking for beginning of value"`, err.Error())
@@ -222,14 +209,14 @@ func Test_primitiveOrMapType(t *testing.T) {
 		data := []byte(`{
   "fieldValue": "true"
 }`)
-		err := unmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
+		err := UnmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
 		assert.Error(t, err)
 		assert.Equal(t, "structBool.fieldValue must be bool", err.Error())
 
 		valBool = false
 		valStruct = &structBool{}
 		data = []byte(`"true"`)
-		err = unmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
+		err = UnmarshalPrimitiveOrObject("structBool", data, &valBool, valStruct)
 		assert.Error(t, err)
 		assert.Equal(t, "structBool must be bool or object", err.Error())
 	})
@@ -238,19 +225,19 @@ func Test_primitiveOrMapType(t *testing.T) {
 		var valBool bool
 		valStruct := &dataMap{}
 		data := []byte(` {"value": "true"} `)
-		err := unmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
+		err := UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
 		assert.NoError(t, err)
 
 		valBool = false
 		valStruct = &dataMap{}
 		data = []byte(` true `)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
 		assert.NoError(t, err)
 
 		valString := ""
 		valStruct = &dataMap{}
 		data = []byte(` "true" `)
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
 		assert.NoError(t, err)
 	})
 
@@ -258,13 +245,13 @@ func Test_primitiveOrMapType(t *testing.T) {
 		valString := ""
 		valStruct := &dataMap{}
 		data := []byte(string('\t') + `"true"` + string('\t'))
-		err := unmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
+		err := UnmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
 		assert.NoError(t, err)
 
 		valBool := false
 		valStruct = &dataMap{}
 		data = []byte(string('\t') + `true` + string('\t'))
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
 		assert.NoError(t, err)
 	})
 
@@ -272,13 +259,13 @@ func Test_primitiveOrMapType(t *testing.T) {
 		valString := ""
 		valStruct := &dataMap{}
 		data := []byte(string('\n') + `"true"` + string('\n'))
-		err := unmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
+		err := UnmarshalPrimitiveOrObject("dataMap", data, &valString, valStruct)
 		assert.NoError(t, err)
 
 		valBool := false
 		valStruct = &dataMap{}
 		data = []byte(string('\n') + `true` + string('\n'))
-		err = unmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
+		err = UnmarshalPrimitiveOrObject("dataMap", data, &valBool, valStruct)
 		assert.NoError(t, err)
 	})
 
@@ -299,5 +286,5 @@ type structBoolUnmarshal structBool
 
 func (s *structBool) UnmarshalJSON(data []byte) error {
 	s.FieldValue = true
-	return unmarshalObject("unmarshalJSON", data, (*structBoolUnmarshal)(s))
+	return UnmarshalObject("unmarshalJSON", data, (*structBoolUnmarshal)(s))
 }

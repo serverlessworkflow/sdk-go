@@ -16,9 +16,12 @@ package validator
 
 import (
 	"context"
+	"strconv"
+
+	"github.com/senseyeio/duration"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	validator "github.com/go-playground/validator/v10"
-	"github.com/senseyeio/duration"
 )
 
 // TODO: expose a better validation message. See: https://pkg.go.dev/gopkg.in/go-playground/validator.v8#section-documentation
@@ -42,7 +45,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // GetValidator gets the default validator.Validate reference
@@ -71,4 +73,24 @@ func oneOfKind(fl validator.FieldLevel) bool {
 	}
 
 	return false
+}
+
+func ValidateGt0IntStr(value *intstr.IntOrString) bool {
+	switch value.Type {
+	case intstr.Int:
+		if value.IntVal <= 0 {
+			return false
+		}
+	case intstr.String:
+		v, err := strconv.Atoi(value.StrVal)
+		if err != nil {
+			return false
+		}
+
+		if v <= 0 {
+			return false
+		}
+	}
+
+	return true
 }

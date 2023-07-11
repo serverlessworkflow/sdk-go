@@ -16,6 +16,8 @@ package model
 
 import (
 	"encoding/json"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
@@ -23,10 +25,10 @@ type OperationState struct {
 	// Specifies whether actions are performed in sequence or in parallel, defaults to sequential.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=sequential
-	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneof=sequential parallel"`
+	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed
 	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions" validate:"required,min=1,dive"`
+	Actions []Action `json:"actions" validate:"min=1,dive"`
 	// State specific timeouts
 	// +optional
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`
@@ -49,7 +51,7 @@ type operationStateUnmarshal OperationState
 // UnmarshalJSON unmarshal OperationState object from json bytes
 func (o *OperationState) UnmarshalJSON(data []byte) error {
 	o.ApplyDefault()
-	return unmarshalObject("operationState", data, (*operationStateUnmarshal)(o))
+	return util.UnmarshalObject("operationState", data, (*operationStateUnmarshal)(o))
 }
 
 // ApplyDefault set the default values for Operation State

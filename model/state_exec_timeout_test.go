@@ -18,8 +18,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
@@ -110,68 +108,6 @@ func TestStateExecTimeoutUnmarshalJSON(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expect, actual)
-		})
-	}
-}
-
-func TestStateExecTimeoutStructLevelValidation(t *testing.T) {
-	type testCase struct {
-		desp    string
-		timeout StateExecTimeout
-		err     string
-	}
-	testCases := []testCase{
-		{
-			desp: "normal total",
-			timeout: StateExecTimeout{
-				Total: "PT10S",
-			},
-			err: ``,
-		},
-		{
-			desp: "normal total & single",
-			timeout: StateExecTimeout{
-				Single: "PT10S",
-				Total:  "PT10S",
-			},
-			err: ``,
-		},
-		{
-			desp: "missing total",
-			timeout: StateExecTimeout{
-				Single: "PT10S",
-				Total:  "",
-			},
-			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'required' tag`,
-		},
-		{
-			desp: "invalid total duration",
-			timeout: StateExecTimeout{
-				Single: "PT10S",
-				Total:  "T10S",
-			},
-			err: `Key: 'StateExecTimeout.Total' Error:Field validation for 'Total' failed on the 'iso8601duration' tag`,
-		},
-		{
-			desp: "invalid single duration",
-			timeout: StateExecTimeout{
-				Single: "T10S",
-				Total:  "PT10S",
-			},
-			err: `Key: 'StateExecTimeout.Single' Error:Field validation for 'Single' failed on the 'iso8601duration' tag`,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desp, func(t *testing.T) {
-			err := val.GetValidator().Struct(tc.timeout)
-
-			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
-				return
-			}
-
-			assert.NoError(t, err)
 		})
 	}
 }

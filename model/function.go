@@ -14,6 +14,8 @@
 
 package model
 
+import "github.com/serverlessworkflow/sdk-go/v2/util"
+
 const (
 	// FunctionTypeREST a combination of the function/service OpenAPI definition document URI and the particular service
 	// operation that needs to be invoked, separated by a '#'.
@@ -40,6 +42,22 @@ const (
 // FunctionType ...
 type FunctionType string
 
+func (i FunctionType) KindValues() []string {
+	return []string{
+		string(FunctionTypeREST),
+		string(FunctionTypeRPC),
+		string(FunctionTypeExpression),
+		string(FunctionTypeGraphQL),
+		string(FunctionTypeAsyncAPI),
+		string(FunctionTypeOData),
+		string(FunctionTypeCustom),
+	}
+}
+
+func (i FunctionType) String() string {
+	return string(i)
+}
+
 // Function ...
 type Function struct {
 	Common `json:",inline"`
@@ -51,13 +69,26 @@ type Function struct {
 	// If type is `expression`, defines the workflow expression. If the type is `custom`,
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Required
-	Operation string `json:"operation" validate:"required,oneof=rest rpc expression"`
+	Operation string `json:"operation" validate:"required"`
 	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `odata` or `asyncapi`.
 	// Default is `rest`.
 	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;odata;asyncapi;custom
 	// +kubebuilder:default=rest
-	Type FunctionType `json:"type,omitempty"`
+	Type FunctionType `json:"type,omitempty" validate:"required,oneofkind"`
 	// References an auth definition name to be used to access to resource defined in the operation parameter.
 	// +optional
-	AuthRef string `json:"authRef,omitempty" validate:"omitempty,min=1"`
+	AuthRef string `json:"authRef,omitempty"`
+}
+
+type functionUnmarshal Function
+
+// UnmarshalJSON implements json unmarshaler interface
+func (f *Function) UnmarshalJSON(data []byte) error {
+	f.ApplyDefault()
+	return util.UnmarshalObject("function", data, (*functionUnmarshal)(f))
+}
+
+// ApplyDefault set the default values for Function
+func (f *Function) ApplyDefault() {
+	f.Type = FunctionTypeREST
 }

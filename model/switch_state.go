@@ -17,7 +17,11 @@ package model
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
+
+type EventConditions []EventCondition
 
 // SwitchState is workflow's gateways: direct transitions onf a workflow based on certain conditions.
 type SwitchState struct {
@@ -25,13 +29,13 @@ type SwitchState struct {
 
 	// Default transition of the workflow if there is no matching data conditions. Can include a transition or
 	// end definition.
-	DefaultCondition DefaultCondition `json:"defaultCondition" validate:"required_without=EventConditions"`
+	DefaultCondition DefaultCondition `json:"defaultCondition"`
 	// Defines conditions evaluated against events.
 	// +optional
-	EventConditions []EventCondition `json:"eventConditions" validate:"required_without=DefaultCondition"`
+	EventConditions EventConditions `json:"eventConditions" validate:"dive"`
 	// Defines conditions evaluated against data
 	// +optional
-	DataConditions []DataCondition `json:"dataConditions" validate:"omitempty,min=1,dive"`
+	DataConditions []DataCondition `json:"dataConditions" validate:"dive"`
 	// SwitchState specific timeouts
 	// +optional
 	Timeouts *SwitchStateTimeout `json:"timeouts,omitempty"`
@@ -74,7 +78,7 @@ type defaultConditionUnmarshal DefaultCondition
 // UnmarshalJSON implements json.Unmarshaler
 func (e *DefaultCondition) UnmarshalJSON(data []byte) error {
 	var nextState string
-	err := unmarshalPrimitiveOrObject("defaultCondition", data, &nextState, (*defaultConditionUnmarshal)(e))
+	err := util.UnmarshalPrimitiveOrObject("defaultCondition", data, &nextState, (*defaultConditionUnmarshal)(e))
 	if err != nil {
 		return err
 	}

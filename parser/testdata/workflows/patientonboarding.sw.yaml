@@ -41,10 +41,12 @@ states:
         end: true
     end: true
 events:
-  - name: StorePatient
+  - name: NewPatientEvent
     type: new.patients.event
     source: newpatient/+
 functions:
+  - name: StorePatient
+    operation: api/services.json#storePatient
   - name: StoreNewPatientInfo
     operation: api/services.json#addPatient
   - name: AssignDoctor

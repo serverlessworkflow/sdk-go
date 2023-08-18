@@ -201,8 +201,9 @@ func transitionStructLevelValidationCtx(ctx ValidatorContext, structLevel valida
 func validTransitionAndEnd(structLevel validator.StructLevel, field any, transition *Transition, end *End) {
 	hasTransition := transition != nil
 	isEnd := end != nil && (end.Terminate || end.ContinueAs != nil || len(end.ProduceEvents) > 0) // TODO: check the spec continueAs/produceEvents to see how it influences the end
+	usedForCompensation := field.(BaseState).UsedForCompensation
 
-	if !hasTransition && !isEnd {
+	if !hasTransition && !isEnd && !usedForCompensation {
 		structLevel.ReportError(field, "Transition", "transition", val.TagRequired, "")
 	} else if hasTransition && isEnd {
 		structLevel.ReportError(field, "Transition", "transition", val.TagExclusive, "")

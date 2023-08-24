@@ -60,8 +60,8 @@ type ForEachState struct {
 	// +optional
 	BatchSize *intstr.IntOrString `json:"batchSize,omitempty"`
 	// Actions to be executed for each of the elements of inputCollection.
-	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions,omitempty" validate:"required,min=1,dive"`
+	// +kubebuilder:validation:MinItems=0
+	Actions []Action `json:"actions,omitempty" validate:"required,min=0,dive"`
 	// State specific timeout.
 	// +optional
 	Timeouts *ForEachStateTimeout `json:"timeouts,omitempty"`

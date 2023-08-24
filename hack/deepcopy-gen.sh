@@ -43,7 +43,6 @@ if [ "${GENS}" = "all" ] || grep -qw "deepcopy" <<<"${GENS}"; then
   # for debug purposes, increase the log level by updating the -v flag to higher numbers, e.g. -v 4
   "${GOPATH}/bin/deepcopy-gen" -v 1 \
       --input-dirs ./model -O zz_generated.deepcopy \
-      --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.txt" \
-      --output-base ./
+      --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.txt"
       "$@"
 fi

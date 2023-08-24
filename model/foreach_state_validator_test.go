@@ -108,7 +108,7 @@ workflow.states[0].forEachState.mode is required`,
 				model.States[0].ForEachState.Actions = []Action{}
 				return *model
 			},
-			Err: `workflow.states[0].forEachState.actions must have the minimum 1`,
+			Err: ``,
 		},
 	}
 

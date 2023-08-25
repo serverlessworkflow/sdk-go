@@ -992,6 +992,9 @@ states:
 
 		workflow = nil
 		err = json.Unmarshal(b, &workflow)
+		// Make sure that the Action FunctionRef is unmarshalled correctly
+		assert.Equal(t, model.FromString("${ .singlemessage }"), workflow.States[5].ForEachState.Actions[0].FunctionRef.Arguments["message"])
+		assert.Equal(t, "sendTextFunction", workflow.States[5].ForEachState.Actions[0].FunctionRef.RefName)
 		assert.Nil(t, err)
 
 	})

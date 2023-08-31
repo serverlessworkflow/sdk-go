@@ -455,13 +455,21 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "visaApprovedEvent", w.States[3].EventConditions[0].Name)
 				assert.Equal(t, "visaApprovedEventRef", w.States[3].EventConditions[0].EventRef)
 				assert.Equal(t, "HandleApprovedVisa", w.States[3].EventConditions[0].Transition.NextState)
-				assert.Equal(t, model.Metadata{"mastercard": model.Object{Type: 1, IntVal: 0, StrVal: "disallowed", RawValue: json.RawMessage(nil)},
-					"visa": model.Object{Type: 1, IntVal: 0, StrVal: "allowed", RawValue: json.RawMessage(nil)}},
-					w.States[3].EventConditions[0].Metadata)
+				assert.Equal(t,
+					model.Metadata{
+						"mastercard": model.FromString("disallowed"),
+						"visa":       model.FromString("allowed"),
+					},
+					w.States[3].EventConditions[0].Metadata,
+				)
 				assert.Equal(t, "visaRejectedEvent", w.States[3].EventConditions[1].EventRef)
 				assert.Equal(t, "HandleRejectedVisa", w.States[3].EventConditions[1].Transition.NextState)
-				assert.Equal(t, model.Metadata{"test": model.Object{Type: 1, IntVal: 0, StrVal: "tested", RawValue: json.RawMessage(nil)}},
-					w.States[3].EventConditions[1].Metadata)
+				assert.Equal(t,
+					model.Metadata{
+						"test": model.FromString("tested"),
+					},
+					w.States[3].EventConditions[1].Metadata,
+				)
 				assert.Equal(t, "PT1H", w.States[3].SwitchState.Timeouts.EventTimeout)
 				assert.Equal(t, "PT1S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Single)
@@ -534,8 +542,14 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckCreditCallback", w.States[8].Name)
 				assert.Equal(t, model.StateTypeCallback, w.States[8].Type)
 				assert.Equal(t, "callCreditCheckMicroservice", w.States[8].CallbackState.Action.FunctionRef.RefName)
-				assert.Equal(t, map[string]model.Object{"argsObj": model.FromRaw(map[string]interface{}{"age": 10, "name": "hi"}), "customer": model.FromString("${ .customer }"), "time": model.FromInt(48)},
-					w.States[8].CallbackState.Action.FunctionRef.Arguments)
+				assert.Equal(t,
+					map[string]model.Object{
+						"argsObj":  model.FromMap(map[string]interface{}{"age": 10, "name": "hi"}),
+						"customer": model.FromString("${ .customer }"),
+						"time":     model.FromInt(48),
+					},
+					w.States[8].CallbackState.Action.FunctionRef.Arguments,
+				)
 				assert.Equal(t, "PT10S", w.States[8].CallbackState.Action.Sleep.Before)
 				assert.Equal(t, "PT20S", w.States[8].CallbackState.Action.Sleep.After)
 				assert.Equal(t, "PT150M", w.States[8].CallbackState.Timeouts.ActionExecTimeout)

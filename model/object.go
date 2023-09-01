@@ -25,13 +25,13 @@ import (
 type Type int8
 
 const (
-	String Type = iota
-	Integer
+	Null Type = iota
+	String
+	Int
 	Float
 	Map
 	Slice
-	Boolean
-	Null
+	Bool
 )
 
 // Object is used to allow integration with DeepCopy tool by replacing 'interface' generic type.
@@ -55,6 +55,67 @@ type Object struct {
 	BoolValue   bool `json:"boolValue,inline"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler
+func (obj *Object) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+
+	if data[0] == '"' {
+		obj.Type = String
+		return json.Unmarshal(data, &obj.StringValue)
+	} else if data[0] == 't' || data[0] == 'f' {
+		obj.Type = Bool
+		return json.Unmarshal(data, &obj.BoolValue)
+	} else if data[0] == 'n' {
+		obj.Type = Null
+		return nil
+	} else if data[0] == '{' {
+		obj.Type = Map
+		return json.Unmarshal(data, &obj.MapValue)
+	} else if data[0] == '[' {
+		obj.Type = Slice
+		return json.Unmarshal(data, &obj.SliceValue)
+	}
+
+	number := string(data)
+	intValue, err := strconv.ParseInt(number, 10, 32)
+	if err == nil {
+		obj.Type = Int
+		obj.IntValue = int32(intValue)
+		return nil
+	}
+
+	floatValue, err := strconv.ParseFloat(number, 64)
+	if err == nil {
+		obj.Type = Float
+		obj.FloatValue = floatValue
+		return nil
+	}
+
+	return fmt.Errorf("json invalid number %q", number)
+}
+
+// MarshalJSON marshal the given json object into the respective Object subtype.
+func (obj Object) MarshalJSON() ([]byte, error) {
+	switch obj.Type {
+	case String:
+		return []byte(fmt.Sprintf(`%q`, obj.StringValue)), nil
+	case Int:
+		return []byte(fmt.Sprintf(`%d`, obj.IntValue)), nil
+	case Float:
+		return []byte(fmt.Sprintf(`%f`, obj.FloatValue)), nil
+	case Map:
+		return json.Marshal(obj.MapValue)
+	case Slice:
+		return json.Marshal(obj.SliceValue)
+	case Bool:
+		return []byte(fmt.Sprintf(`%t`, obj.BoolValue)), nil
+	case Null:
+		return []byte("null"), nil
+	default:
+		panic("object invalid type")
+	}
+}
+
 func FromString(val string) Object {
 	return Object{Type: String, StringValue: val}
 }
@@ -63,7 +124,7 @@ func FromInt(val int) Object {
 	if val > math.MaxInt32 || val < math.MinInt32 {
 		fmt.Println(fmt.Errorf("value: %d overflows int32", val))
 	}
-	return Object{Type: Integer, IntValue: int32(val)}
+	return Object{Type: Int, IntValue: int32(val)}
 }
 
 func FromFloat(val float64) Object {
@@ -90,7 +151,7 @@ func FromSlice(sliceValue []any) Object {
 }
 
 func FromBool(val bool) Object {
-	return Object{Type: Boolean, BoolValue: val}
+	return Object{Type: Bool, BoolValue: val}
 }
 
 func FromNull() Object {
@@ -119,63 +180,30 @@ func FromInterface(value any) Object {
 	panic("invalid type")
 }
 
-// UnmarshalJSON implements json.Unmarshaler
-func (obj *Object) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-
-	if data[0] == '"' {
-		obj.Type = String
-		return json.Unmarshal(data, &obj.StringValue)
-	} else if data[0] == 't' || data[0] == 'f' {
-		obj.Type = Boolean
-		return json.Unmarshal(data, &obj.BoolValue)
-	} else if data[0] == 'n' {
-		obj.Type = Null
-		return nil
-	} else if data[0] == '{' {
-		obj.Type = Map
-		return json.Unmarshal(data, &obj.MapValue)
-	} else if data[0] == '[' {
-		obj.Type = Slice
-		return json.Unmarshal(data, &obj.SliceValue)
-	}
-
-	number := string(data)
-	intValue, err := strconv.ParseInt(number, 10, 32)
-	if err == nil {
-		obj.Type = Integer
-		obj.IntValue = int32(intValue)
-		return nil
-	}
-
-	floatValue, err := strconv.ParseFloat(number, 64)
-	if err == nil {
-		obj.Type = Float
-		obj.FloatValue = floatValue
-		return nil
-	}
-
-	return fmt.Errorf("json invalid number %q", number)
-}
-
-// MarshalJSON marshal the given json object into the respective Object subtype.
-func (obj Object) MarshalJSON() ([]byte, error) {
-	switch obj.Type {
+func ToInterface(object Object) any {
+	switch object.Type {
 	case String:
-		return []byte(fmt.Sprintf(`%q`, obj.StringValue)), nil
-	case Integer:
-		return []byte(fmt.Sprintf(`%d`, obj.IntValue)), nil
+		return object.StringValue
+	case Int:
+		return object.IntValue
 	case Float:
-		return []byte(fmt.Sprintf(`%f`, obj.FloatValue)), nil
+		return object.FloatValue
 	case Map:
-		return json.Marshal(obj.MapValue)
+		mapInterface := make(map[string]any, len(object.MapValue))
+		for key, value := range object.MapValue {
+			mapInterface[key] = ToInterface(value)
+		}
+		return mapInterface
 	case Slice:
-		return json.Marshal(obj.SliceValue)
-	case Boolean:
-		return []byte(fmt.Sprintf(`%t`, obj.BoolValue)), nil
+		sliceInterface := make([]any, len(object.SliceValue))
+		for key, value := range object.SliceValue {
+			sliceInterface[key] = ToInterface(value)
+		}
+		return sliceInterface
+	case Bool:
+		return object.BoolValue
 	case Null:
-		return []byte("null"), nil
-	default:
-		panic("object invalid type")
+		return nil
 	}
+	panic("invalid type")
 }

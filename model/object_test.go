@@ -26,47 +26,56 @@ func Test_unmarshal(t *testing.T) {
 		name   string
 		json   string
 		object Object
+		any    any
 		err    string
 	}{
 		{
 			name:   "string",
 			json:   "\"value\"",
 			object: FromString("value"),
+			any:    any("value"),
 		},
 		{
 			name:   "int",
 			json:   "123",
 			object: FromInt(123),
+			any:    any(int32(123)),
 		},
 		{
 			name:   "float",
 			json:   "123.123",
 			object: FromFloat(123.123),
+			any:    any(123.123),
 		},
 		{
 			name:   "map",
 			json:   "{\"key\": \"value\", \"key2\": 123}",
 			object: FromMap(map[string]any{"key": "value", "key2": 123}),
+			any:    any(map[string]any{"key": "value", "key2": int32(123)}),
 		},
 		{
 			name:   "slice",
 			json:   "[\"key\", 123]",
 			object: FromSlice([]any{"key", 123}),
+			any:    any([]any{"key", int32(123)}),
 		},
 		{
 			name:   "bool true",
 			json:   "true",
 			object: FromBool(true),
+			any:    any(true),
 		},
 		{
 			name:   "bool false",
 			json:   "false",
 			object: FromBool(false),
+			any:    any(false),
 		},
 		{
 			name:   "null",
 			json:   "null",
 			object: FromNull(),
+			any:    nil,
 		},
 		{
 			name: "string invalid",
@@ -87,6 +96,7 @@ func Test_unmarshal(t *testing.T) {
 			if tc.err == "" {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.object, o)
+				assert.Equal(t, ToInterface(tc.object), tc.any)
 			} else {
 				assert.Equal(t, tc.err, err.Error())
 			}

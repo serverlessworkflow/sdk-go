@@ -15,9 +15,23 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math"
+	"strconv"
+)
+
+type Type int8
+
+const (
+	Null Type = iota
+	String
+	Int
+	Float
+	Map
+	Slice
+	Bool
 )
 
 // Object is used to allow integration with DeepCopy tool by replacing 'interface' generic type.
@@ -29,80 +43,167 @@ import (
 //   - String	- holds string values
 //   - Integer	- holds int32 values, JSON marshal any number to float64 by default, during the marshaling process it is
 //     parsed to int32
-//   - raw		- holds any not typed value, replaces the interface{} behavior.
 //
 // +kubebuilder:validation:Type=object
 type Object struct {
-	Type      Type            `json:"type,inline"`
-	IntVal    int32           `json:"intVal,inline"`
-	StrVal    string          `json:"strVal,inline"`
-	RawValue  json.RawMessage `json:"rawValue,inline"`
-	BoolValue bool            `json:"boolValue,inline"`
-}
-
-type Type int64
-
-const (
-	Integer Type = iota
-	String
-	Raw
-	Boolean
-)
-
-func FromInt(val int) Object {
-	if val > math.MaxInt32 || val < math.MinInt32 {
-		fmt.Println(fmt.Errorf("value: %d overflows int32", val))
-	}
-	return Object{Type: Integer, IntVal: int32(val)}
-}
-
-func FromString(val string) Object {
-	return Object{Type: String, StrVal: val}
-}
-
-func FromBool(val bool) Object {
-	return Object{Type: Boolean, BoolValue: val}
-}
-
-func FromRaw(val interface{}) Object {
-	custom, err := json.Marshal(val)
-	if err != nil {
-		er := fmt.Errorf("failed to parse value to Raw: %w", err)
-		fmt.Println(er.Error())
-		return Object{}
-	}
-	return Object{Type: Raw, RawValue: custom}
+	Type        Type   `json:"type,inline"`
+	StringValue string `json:"strVal,inline"`
+	IntValue    int32  `json:"intVal,inline"`
+	FloatValue  float64
+	MapValue    map[string]Object
+	SliceValue  []Object
+	BoolValue   bool `json:"boolValue,inline"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler
 func (obj *Object) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+
 	if data[0] == '"' {
 		obj.Type = String
-		return json.Unmarshal(data, &obj.StrVal)
+		return json.Unmarshal(data, &obj.StringValue)
 	} else if data[0] == 't' || data[0] == 'f' {
-		obj.Type = Boolean
+		obj.Type = Bool
 		return json.Unmarshal(data, &obj.BoolValue)
+	} else if data[0] == 'n' {
+		obj.Type = Null
+		return nil
 	} else if data[0] == '{' {
-		obj.Type = Raw
-		return json.Unmarshal(data, &obj.RawValue)
+		obj.Type = Map
+		return json.Unmarshal(data, &obj.MapValue)
+	} else if data[0] == '[' {
+		obj.Type = Slice
+		return json.Unmarshal(data, &obj.SliceValue)
 	}
-	obj.Type = Integer
-	return json.Unmarshal(data, &obj.IntVal)
+
+	number := string(data)
+	intValue, err := strconv.ParseInt(number, 10, 32)
+	if err == nil {
+		obj.Type = Int
+		obj.IntValue = int32(intValue)
+		return nil
+	}
+
+	floatValue, err := strconv.ParseFloat(number, 64)
+	if err == nil {
+		obj.Type = Float
+		obj.FloatValue = floatValue
+		return nil
+	}
+
+	return fmt.Errorf("json invalid number %q", number)
 }
 
 // MarshalJSON marshal the given json object into the respective Object subtype.
 func (obj Object) MarshalJSON() ([]byte, error) {
 	switch obj.Type {
 	case String:
-		return []byte(fmt.Sprintf(`%q`, obj.StrVal)), nil
-	case Boolean:
+		return []byte(fmt.Sprintf(`%q`, obj.StringValue)), nil
+	case Int:
+		return []byte(fmt.Sprintf(`%d`, obj.IntValue)), nil
+	case Float:
+		return []byte(fmt.Sprintf(`%f`, obj.FloatValue)), nil
+	case Map:
+		return json.Marshal(obj.MapValue)
+	case Slice:
+		return json.Marshal(obj.SliceValue)
+	case Bool:
 		return []byte(fmt.Sprintf(`%t`, obj.BoolValue)), nil
-	case Integer:
-		return []byte(fmt.Sprintf(`%d`, obj.IntVal)), nil
-	case Raw:
-		val, _ := json.Marshal(obj.RawValue)
-		return val, nil
+	case Null:
+		return []byte("null"), nil
 	default:
-		return []byte(fmt.Sprintf("%+v", obj)), nil
+		panic("object invalid type")
 	}
+}
+
+func FromString(val string) Object {
+	return Object{Type: String, StringValue: val}
+}
+
+func FromInt(val int) Object {
+	if val > math.MaxInt32 || val < math.MinInt32 {
+		fmt.Println(fmt.Errorf("value: %d overflows int32", val))
+	}
+	return Object{Type: Int, IntValue: int32(val)}
+}
+
+func FromFloat(val float64) Object {
+	if val > math.MaxFloat64 || val < -math.MaxFloat64 {
+		fmt.Println(fmt.Errorf("value: %f overflows float64", val))
+	}
+	return Object{Type: Float, FloatValue: float64(val)}
+}
+
+func FromMap(mapValue map[string]any) Object {
+	mapValueObject := make(map[string]Object, len(mapValue))
+	for key, value := range mapValue {
+		mapValueObject[key] = FromInterface(value)
+	}
+	return Object{Type: Map, MapValue: mapValueObject}
+}
+
+func FromSlice(sliceValue []any) Object {
+	sliceValueObject := make([]Object, len(sliceValue))
+	for key, value := range sliceValue {
+		sliceValueObject[key] = FromInterface(value)
+	}
+	return Object{Type: Slice, SliceValue: sliceValueObject}
+}
+
+func FromBool(val bool) Object {
+	return Object{Type: Bool, BoolValue: val}
+}
+
+func FromNull() Object {
+	return Object{Type: Null}
+}
+
+func FromInterface(value any) Object {
+	switch v := value.(type) {
+	case string:
+		return FromString(v)
+	case int:
+		return FromInt(v)
+	case int32:
+		return FromInt(int(v))
+	case float64:
+		return FromFloat(v)
+	case map[string]any:
+		return FromMap(v)
+	case []any:
+		return FromSlice(v)
+	case bool:
+		return FromBool(v)
+	case nil:
+		return FromNull()
+	}
+	panic("invalid type")
+}
+
+func ToInterface(object Object) any {
+	switch object.Type {
+	case String:
+		return object.StringValue
+	case Int:
+		return object.IntValue
+	case Float:
+		return object.FloatValue
+	case Map:
+		mapInterface := make(map[string]any, len(object.MapValue))
+		for key, value := range object.MapValue {
+			mapInterface[key] = ToInterface(value)
+		}
+		return mapInterface
+	case Slice:
+		sliceInterface := make([]any, len(object.SliceValue))
+		for key, value := range object.SliceValue {
+			sliceInterface[key] = ToInterface(value)
+		}
+		return sliceInterface
+	case Bool:
+		return object.BoolValue
+	case Null:
+		return nil
+	}
+	panic("invalid type")
 }

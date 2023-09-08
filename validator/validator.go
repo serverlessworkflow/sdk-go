@@ -18,6 +18,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/relvacode/iso8601"
 	"github.com/senseyeio/duration"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -41,6 +42,11 @@ func init() {
 		panic(err)
 	}
 
+	err = validate.RegisterValidationCtx("iso8601datetime", validateISO8601DatetimeFunc)
+	if err != nil {
+		panic(err)
+	}
+
 	err = validate.RegisterValidation("oneofkind", oneOfKind)
 	if err != nil {
 		panic(err)
@@ -60,6 +66,17 @@ func ValidateISO8601TimeDuration(s string) error {
 
 func validateISO8601TimeDurationFunc(_ context.Context, fl validator.FieldLevel) bool {
 	err := ValidateISO8601TimeDuration(fl.Field().String())
+	return err == nil
+}
+
+// ValidateISO8601Datetime validate the string is iso8601 Datetime format
+func ValidateISO8601Datetime(s string) error {
+	_, err := iso8601.ParseString(s)
+	return err
+}
+
+func validateISO8601DatetimeFunc(_ context.Context, fl validator.FieldLevel) bool {
+	err := ValidateISO8601Datetime(fl.Field().String())
 	return err == nil
 }
 

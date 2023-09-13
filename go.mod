@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/pkg/errors v0.9.1
+	github.com/relvacode/iso8601 v1.3.0
 	github.com/senseyeio/duration v0.0.0-20180430131211-7c2a214ada46
 	github.com/stretchr/testify v1.8.0
 	gopkg.in/yaml.v3 v3.0.1

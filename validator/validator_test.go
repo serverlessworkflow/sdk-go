@@ -59,6 +59,54 @@ func TestValidateISO8601TimeDuration(t *testing.T) {
 	}
 }
 
+func TestValidateISO8601Timestamp(t *testing.T) {
+	type testCase struct {
+		desp string
+		s    string
+		err  string
+	}
+	testCases := []testCase{
+		{
+			desp: "workflow_spec_example",
+			s:    "2021-11-05T08:15:30-05:00",
+			err:  ``,
+		},
+		{
+			desp: "datetime",
+			s:    "2023-09-08T20:15:46+00:00",
+			err:  ``,
+		},
+		{
+			desp: "date",
+			s:    "2023-09-08",
+			err:  ``,
+		},
+		{
+			desp: "time",
+			s:    "13:15:33.074-07:00",
+			err:  "iso8601: Unexpected character `:`",
+		},
+		{
+			desp: "empty value",
+			s:    "",
+			err:  `iso8601: Cannot parse "": month 0 is not in range 1-12`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desp, func(t *testing.T) {
+			err := ValidateISO8601Datetime(tc.s)
+
+			if tc.err != "" {
+				assert.Error(t, err)
+				assert.Regexp(t, tc.err, err)
+				return
+			}
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
 type testKind string
 
 func (k testKind) KindValues() []string {

@@ -75,6 +75,7 @@ func (i ExpressionLangType) KindValues() []string {
 	return []string{
 		string(JqExpressionLang),
 		string(JsonPathExpressionLang),
+		string(CELExpressionLang),
 	}
 }
 
@@ -88,6 +89,9 @@ const (
 
 	// JsonPathExpressionLang ...
 	JsonPathExpressionLang ExpressionLangType = "jsonpath"
+
+	// CELExpressionLang
+	CELExpressionLang ExpressionLangType = "cel"
 )
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
@@ -132,7 +136,7 @@ type BaseWorkflow struct {
 	// +optional
 	Constants *Constants `json:"constants,omitempty"`
 	// Identifies the expression language used for workflow expressions. Default is 'jq'.
-	// +kubebuilder:validation:Enum=jq;jsonpath
+	// +kubebuilder:validation:Enum=jq;jsonpath;cel
 	// +kubebuilder:default=jq
 	// +optional
 	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"required,oneofkind"`

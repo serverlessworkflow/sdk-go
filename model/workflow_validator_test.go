@@ -162,7 +162,7 @@ workflow.key required when "workflow.id" is not defined`,
 				model.BaseWorkflow.ExpressionLang = JqExpressionLang + "invalid"
 				return *model
 			},
-			Err: `workflow.expressionLang need by one of [jq jsonpath]`,
+			Err: `workflow.expressionLang need by one of [jq jsonpath cel]`,
 		},
 	}
 

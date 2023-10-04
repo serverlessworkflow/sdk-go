@@ -507,7 +507,8 @@ type DataInputSchema struct {
 	// +kubebuilder:validation:Required
 	Schema string `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
-	FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
+	FailOnValidationErrors bool `json:"failOnValidationErrors"`
+	// FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
 }
 
 type dataInputSchemaUnmarshal DataInputSchema

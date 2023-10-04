@@ -579,6 +579,13 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "SendTextForHighPriority", w.States[10].SwitchState.DefaultCondition.Transition.NextState)
 				assert.Equal(t, true, w.States[10].End.Terminate)
 			},
+		}, {
+			"./testdata/workflows/dataInputSchemaValidation.yaml", func(t *testing.T, w *model.Workflow) {
+				assert.NotNil(t, w.DataInputSchema)
+
+				assert.Equal(t, "sample schema", w.DataInputSchema.Schema)
+				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
+			},
 		},
 	}
 	for _, file := range files {

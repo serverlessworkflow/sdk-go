@@ -21,10 +21,10 @@ import (
 )
 
 func TestBuild(t *testing.T) {
-
 	builder := New()
 	builder.BaseWorkflow().Key("key test")
 	builder.BaseWorkflow().ID("id test")
+
 	function := builder.AddFunction()
 	function.Name("function name")
 	function2 := builder.AddFunction()
@@ -34,15 +34,15 @@ func TestBuild(t *testing.T) {
 
 	assert.Equal(t, "key test", workflow.Key)
 	assert.Equal(t, "id test", workflow.ID)
+	assert.Equal(t, "0.8", workflow.SpecVersion)
+	assert.Equal(t, "jq", workflow.ExpressionLang.String())
 	assert.Equal(t, 2, len(workflow.Functions))
 
 	assert.Equal(t, "function name", workflow.Functions[0].Name)
 	assert.Equal(t, "function name2", workflow.Functions[1].Name)
-
 }
 
 func TestAsJson(t *testing.T) {
-
 	builder := New()
 	builder.BaseWorkflow().Key("key test")
 	builder.BaseWorkflow().ID("id test")
@@ -53,7 +53,7 @@ func TestAsJson(t *testing.T) {
 
 	data, err := AsJson(builder)
 	if assert.NoError(t, err) {
-		d := `{"id":"id test","key":"key test","version":"","start":{"stateName":"","schedule":{"cron":{"expression":""}}},"dataInputSchema":{"schema":"","failOnValidationErrors":false},"specVersion":"","constants":{},"timeouts":{"workflowExecTimeout":{"duration":""},"stateExecTimeout":{"total":""}},"states":[],"functions":[{"name":"function name","operation":""},{"name":"function name2","operation":""}]}`
+		d := `{"id":"id test","key":"key test","version":"","specVersion":"0.8","expressionLang":"jq","states":[],"functions":[{"name":"function name","operation":"","type":"rest"},{"name":"function name2","operation":"","type":"rest"}]}`
 		assert.Equal(t, d, string(data))
 	}
 }
@@ -69,29 +69,18 @@ func TestAsYaml(t *testing.T) {
 
 	data, err := AsYaml(builder)
 	if assert.NoError(t, err) {
-		d := `constants: {}
-dataInputSchema:
-  failOnValidationErrors: false
-  schema: ""
+		d := `expressionLang: jq
 functions:
 - name: function name
   operation: ""
+  type: rest
 - name: function name2
   operation: ""
+  type: rest
 id: id test
 key: key test
-specVersion: ""
-start:
-  schedule:
-    cron:
-      expression: ""
-  stateName: ""
+specVersion: "0.8"
 states: []
-timeouts:
-  stateExecTimeout:
-    total: ""
-  workflowExecTimeout:
-    duration: ""
 version: ""
 `
 		assert.Equal(t, d, string(data))

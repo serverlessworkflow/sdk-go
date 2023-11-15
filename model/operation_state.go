@@ -21,6 +21,7 @@ import (
 )
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
+// +builder-gen:new-call=ApplyDefault
 type OperationState struct {
 	// Specifies whether actions are performed in sequence or in parallel, defaults to sequential.
 	// +kubebuilder:validation:Enum=sequential;parallel

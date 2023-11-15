@@ -36,6 +36,7 @@ const (
 )
 
 // WorkflowRef holds a reference for a workflow definition
+// +builder-gen:new-call=ApplyDefault
 type WorkflowRef struct {
 	// Sub-workflow unique id
 	// +kubebuilder:validation:Required

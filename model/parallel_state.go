@@ -45,6 +45,7 @@ const (
 )
 
 // ParallelState Consists of a number of states that are executed in parallel
+// +builder-gen:new-call=ApplyDefault
 type ParallelState struct {
 	// List of branches for this parallel state.
 	// +kubebuilder:validation:MinItems=1

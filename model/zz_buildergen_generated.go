@@ -9,10 +9,7 @@ package model
 func NewActionBuilder() *ActionBuilder {
 	builder := &ActionBuilder{}
 	builder.model = Action{}
-	builder.functionref = NewFunctionRefBuilder()
-	builder.eventref = NewEventRefBuilder()
-	builder.subflowref = NewWorkflowRefBuilder()
-	builder.sleep = NewSleepBuilder()
+	builder.model.ApplyDefault()
 	builder.actiondatafilter = NewActionDataFilterBuilder()
 	return builder
 }
@@ -35,18 +32,30 @@ func (b *ActionBuilder) Name(input string) {
 }
 
 func (b *ActionBuilder) FunctionRef() *FunctionRefBuilder {
+	if b.functionref == nil {
+		b.functionref = NewFunctionRefBuilder()
+	}
 	return b.functionref
 }
 
 func (b *ActionBuilder) EventRef() *EventRefBuilder {
+	if b.eventref == nil {
+		b.eventref = NewEventRefBuilder()
+	}
 	return b.eventref
 }
 
 func (b *ActionBuilder) SubFlowRef() *WorkflowRefBuilder {
+	if b.subflowref == nil {
+		b.subflowref = NewWorkflowRefBuilder()
+	}
 	return b.subflowref
 }
 
 func (b *ActionBuilder) Sleep() *SleepBuilder {
+	if b.sleep == nil {
+		b.sleep = NewSleepBuilder()
+	}
 	return b.sleep
 }
 
@@ -71,14 +80,22 @@ func (b *ActionBuilder) Condition(input string) {
 }
 
 func (b *ActionBuilder) Build() Action {
-	functionref := b.functionref.Build()
-	b.model.FunctionRef = &functionref
-	eventref := b.eventref.Build()
-	b.model.EventRef = &eventref
-	subflowref := b.subflowref.Build()
-	b.model.SubFlowRef = &subflowref
-	sleep := b.sleep.Build()
-	b.model.Sleep = &sleep
+	if b.functionref != nil {
+		functionref := b.functionref.Build()
+		b.model.FunctionRef = &functionref
+	}
+	if b.eventref != nil {
+		eventref := b.eventref.Build()
+		b.model.EventRef = &eventref
+	}
+	if b.subflowref != nil {
+		subflowref := b.subflowref.Build()
+		b.model.SubFlowRef = &subflowref
+	}
+	if b.sleep != nil {
+		sleep := b.sleep.Build()
+		b.model.Sleep = &sleep
+	}
 	b.model.ActionDataFilter = b.actiondatafilter.Build()
 	return b.model
 }
@@ -87,6 +104,7 @@ func (b *ActionBuilder) Build() Action {
 func NewActionDataFilterBuilder() *ActionDataFilterBuilder {
 	builder := &ActionDataFilterBuilder{}
 	builder.model = ActionDataFilter{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -148,9 +166,6 @@ func (b *AuthBuilder) Build() Auth {
 func NewAuthPropertiesBuilder() *AuthPropertiesBuilder {
 	builder := &AuthPropertiesBuilder{}
 	builder.model = AuthProperties{}
-	builder.basic = NewBasicAuthPropertiesBuilder()
-	builder.bearer = NewBearerAuthPropertiesBuilder()
-	builder.oauth2 = NewOAuth2AuthPropertiesBuilder()
 	return builder
 }
 
@@ -162,24 +177,39 @@ type AuthPropertiesBuilder struct {
 }
 
 func (b *AuthPropertiesBuilder) Basic() *BasicAuthPropertiesBuilder {
+	if b.basic == nil {
+		b.basic = NewBasicAuthPropertiesBuilder()
+	}
 	return b.basic
 }
 
 func (b *AuthPropertiesBuilder) Bearer() *BearerAuthPropertiesBuilder {
+	if b.bearer == nil {
+		b.bearer = NewBearerAuthPropertiesBuilder()
+	}
 	return b.bearer
 }
 
 func (b *AuthPropertiesBuilder) OAuth2() *OAuth2AuthPropertiesBuilder {
+	if b.oauth2 == nil {
+		b.oauth2 = NewOAuth2AuthPropertiesBuilder()
+	}
 	return b.oauth2
 }
 
 func (b *AuthPropertiesBuilder) Build() AuthProperties {
-	basic := b.basic.Build()
-	b.model.Basic = &basic
-	bearer := b.bearer.Build()
-	b.model.Bearer = &bearer
-	oauth2 := b.oauth2.Build()
-	b.model.OAuth2 = &oauth2
+	if b.basic != nil {
+		basic := b.basic.Build()
+		b.model.Basic = &basic
+	}
+	if b.bearer != nil {
+		bearer := b.bearer.Build()
+		b.model.Bearer = &bearer
+	}
+	if b.oauth2 != nil {
+		oauth2 := b.oauth2.Build()
+		b.model.OAuth2 = &oauth2
+	}
 	return b.model
 }
 
@@ -203,9 +233,6 @@ func NewBaseStateBuilder() *BaseStateBuilder {
 	builder := &BaseStateBuilder{}
 	builder.model = BaseState{}
 	builder.onerrors = []*OnErrorBuilder{}
-	builder.transition = NewTransitionBuilder()
-	builder.statedatafilter = NewStateDataFilterBuilder()
-	builder.end = NewEndBuilder()
 	return builder
 }
 
@@ -236,10 +263,16 @@ func (b *BaseStateBuilder) AddOnError() *OnErrorBuilder {
 }
 
 func (b *BaseStateBuilder) Transition() *TransitionBuilder {
+	if b.transition == nil {
+		b.transition = NewTransitionBuilder()
+	}
 	return b.transition
 }
 
 func (b *BaseStateBuilder) StateDataFilter() *StateDataFilterBuilder {
+	if b.statedatafilter == nil {
+		b.statedatafilter = NewStateDataFilterBuilder()
+	}
 	return b.statedatafilter
 }
 
@@ -252,6 +285,9 @@ func (b *BaseStateBuilder) UsedForCompensation(input bool) {
 }
 
 func (b *BaseStateBuilder) End() *EndBuilder {
+	if b.end == nil {
+		b.end = NewEndBuilder()
+	}
 	return b.end
 }
 
@@ -260,12 +296,18 @@ func (b *BaseStateBuilder) Build() BaseState {
 	for _, v := range b.onerrors {
 		b.model.OnErrors = append(b.model.OnErrors, v.Build())
 	}
-	transition := b.transition.Build()
-	b.model.Transition = &transition
-	statedatafilter := b.statedatafilter.Build()
-	b.model.StateDataFilter = &statedatafilter
-	end := b.end.Build()
-	b.model.End = &end
+	if b.transition != nil {
+		transition := b.transition.Build()
+		b.model.Transition = &transition
+	}
+	if b.statedatafilter != nil {
+		statedatafilter := b.statedatafilter.Build()
+		b.model.StateDataFilter = &statedatafilter
+	}
+	if b.end != nil {
+		end := b.end.Build()
+		b.model.End = &end
+	}
 	return b.model
 }
 
@@ -273,10 +315,7 @@ func (b *BaseStateBuilder) Build() BaseState {
 func NewBaseWorkflowBuilder() *BaseWorkflowBuilder {
 	builder := &BaseWorkflowBuilder{}
 	builder.model = BaseWorkflow{}
-	builder.start = NewStartBuilder()
-	builder.datainputschema = NewDataInputSchemaBuilder()
-	builder.constants = NewConstantsBuilder()
-	builder.timeouts = NewTimeoutsBuilder()
+	builder.model.ApplyDefault()
 	builder.errors = []*ErrorBuilder{}
 	builder.auth = []*AuthBuilder{}
 	return builder
@@ -313,6 +352,9 @@ func (b *BaseWorkflowBuilder) Version(input string) {
 }
 
 func (b *BaseWorkflowBuilder) Start() *StartBuilder {
+	if b.start == nil {
+		b.start = NewStartBuilder()
+	}
 	return b.start
 }
 
@@ -321,6 +363,9 @@ func (b *BaseWorkflowBuilder) Annotations(input []string) {
 }
 
 func (b *BaseWorkflowBuilder) DataInputSchema() *DataInputSchemaBuilder {
+	if b.datainputschema == nil {
+		b.datainputschema = NewDataInputSchemaBuilder()
+	}
 	return b.datainputschema
 }
 
@@ -333,6 +378,9 @@ func (b *BaseWorkflowBuilder) Secrets(input Secrets) {
 }
 
 func (b *BaseWorkflowBuilder) Constants() *ConstantsBuilder {
+	if b.constants == nil {
+		b.constants = NewConstantsBuilder()
+	}
 	return b.constants
 }
 
@@ -341,6 +389,9 @@ func (b *BaseWorkflowBuilder) ExpressionLang(input ExpressionLangType) {
 }
 
 func (b *BaseWorkflowBuilder) Timeouts() *TimeoutsBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewTimeoutsBuilder()
+	}
 	return b.timeouts
 }
 
@@ -365,14 +416,22 @@ func (b *BaseWorkflowBuilder) AddAuth() *AuthBuilder {
 }
 
 func (b *BaseWorkflowBuilder) Build() BaseWorkflow {
-	start := b.start.Build()
-	b.model.Start = &start
-	datainputschema := b.datainputschema.Build()
-	b.model.DataInputSchema = &datainputschema
-	constants := b.constants.Build()
-	b.model.Constants = &constants
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.start != nil {
+		start := b.start.Build()
+		b.model.Start = &start
+	}
+	if b.datainputschema != nil {
+		datainputschema := b.datainputschema.Build()
+		b.model.DataInputSchema = &datainputschema
+	}
+	if b.constants != nil {
+		constants := b.constants.Build()
+		b.model.Constants = &constants
+	}
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	b.model.Errors = []Error{}
 	for _, v := range b.errors {
 		b.model.Errors = append(b.model.Errors, v.Build())
@@ -453,7 +512,6 @@ func NewBranchBuilder() *BranchBuilder {
 	builder := &BranchBuilder{}
 	builder.model = Branch{}
 	builder.actions = []*ActionBuilder{}
-	builder.timeouts = NewBranchTimeoutsBuilder()
 	return builder
 }
 
@@ -474,6 +532,9 @@ func (b *BranchBuilder) AddAction() *ActionBuilder {
 }
 
 func (b *BranchBuilder) Timeouts() *BranchTimeoutsBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewBranchTimeoutsBuilder()
+	}
 	return b.timeouts
 }
 
@@ -482,8 +543,10 @@ func (b *BranchBuilder) Build() Branch {
 	for _, v := range b.actions {
 		b.model.Actions = append(b.model.Actions, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -515,8 +578,6 @@ func NewCallbackStateBuilder() *CallbackStateBuilder {
 	builder := &CallbackStateBuilder{}
 	builder.model = CallbackState{}
 	builder.action = NewActionBuilder()
-	builder.timeouts = NewCallbackStateTimeoutBuilder()
-	builder.eventdatafilter = NewEventDataFilterBuilder()
 	return builder
 }
 
@@ -536,19 +597,29 @@ func (b *CallbackStateBuilder) EventRef(input string) {
 }
 
 func (b *CallbackStateBuilder) Timeouts() *CallbackStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewCallbackStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
 func (b *CallbackStateBuilder) EventDataFilter() *EventDataFilterBuilder {
+	if b.eventdatafilter == nil {
+		b.eventdatafilter = NewEventDataFilterBuilder()
+	}
 	return b.eventdatafilter
 }
 
 func (b *CallbackStateBuilder) Build() CallbackState {
 	b.model.Action = b.action.Build()
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
-	eventdatafilter := b.eventdatafilter.Build()
-	b.model.EventDataFilter = &eventdatafilter
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
+	if b.eventdatafilter != nil {
+		eventdatafilter := b.eventdatafilter.Build()
+		b.model.EventDataFilter = &eventdatafilter
+	}
 	return b.model
 }
 
@@ -556,7 +627,6 @@ func (b *CallbackStateBuilder) Build() CallbackState {
 func NewCallbackStateTimeoutBuilder() *CallbackStateTimeoutBuilder {
 	builder := &CallbackStateTimeoutBuilder{}
 	builder.model = CallbackStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -566,6 +636,9 @@ type CallbackStateTimeoutBuilder struct {
 }
 
 func (b *CallbackStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -578,8 +651,10 @@ func (b *CallbackStateTimeoutBuilder) EventTimeout(input string) {
 }
 
 func (b *CallbackStateTimeoutBuilder) Build() CallbackStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -715,8 +790,6 @@ func (b *CronBuilder) Build() Cron {
 func NewDataConditionBuilder() *DataConditionBuilder {
 	builder := &DataConditionBuilder{}
 	builder.model = DataCondition{}
-	builder.end = NewEndBuilder()
-	builder.transition = NewTransitionBuilder()
 	return builder
 }
 
@@ -735,18 +808,28 @@ func (b *DataConditionBuilder) Condition(input string) {
 }
 
 func (b *DataConditionBuilder) End() *EndBuilder {
+	if b.end == nil {
+		b.end = NewEndBuilder()
+	}
 	return b.end
 }
 
 func (b *DataConditionBuilder) Transition() *TransitionBuilder {
+	if b.transition == nil {
+		b.transition = NewTransitionBuilder()
+	}
 	return b.transition
 }
 
 func (b *DataConditionBuilder) Build() DataCondition {
-	end := b.end.Build()
-	b.model.End = &end
-	transition := b.transition.Build()
-	b.model.Transition = &transition
+	if b.end != nil {
+		end := b.end.Build()
+		b.model.End = &end
+	}
+	if b.transition != nil {
+		transition := b.transition.Build()
+		b.model.Transition = &transition
+	}
 	return b.model
 }
 
@@ -754,6 +837,7 @@ func (b *DataConditionBuilder) Build() DataCondition {
 func NewDataInputSchemaBuilder() *DataInputSchemaBuilder {
 	builder := &DataInputSchemaBuilder{}
 	builder.model = DataInputSchema{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -777,8 +861,6 @@ func (b *DataInputSchemaBuilder) Build() DataInputSchema {
 func NewDefaultConditionBuilder() *DefaultConditionBuilder {
 	builder := &DefaultConditionBuilder{}
 	builder.model = DefaultCondition{}
-	builder.transition = NewTransitionBuilder()
-	builder.end = NewEndBuilder()
 	return builder
 }
 
@@ -789,18 +871,28 @@ type DefaultConditionBuilder struct {
 }
 
 func (b *DefaultConditionBuilder) Transition() *TransitionBuilder {
+	if b.transition == nil {
+		b.transition = NewTransitionBuilder()
+	}
 	return b.transition
 }
 
 func (b *DefaultConditionBuilder) End() *EndBuilder {
+	if b.end == nil {
+		b.end = NewEndBuilder()
+	}
 	return b.end
 }
 
 func (b *DefaultConditionBuilder) Build() DefaultCondition {
-	transition := b.transition.Build()
-	b.model.Transition = &transition
-	end := b.end.Build()
-	b.model.End = &end
+	if b.transition != nil {
+		transition := b.transition.Build()
+		b.model.Transition = &transition
+	}
+	if b.end != nil {
+		end := b.end.Build()
+		b.model.End = &end
+	}
 	return b.model
 }
 
@@ -828,7 +920,6 @@ func NewEndBuilder() *EndBuilder {
 	builder := &EndBuilder{}
 	builder.model = End{}
 	builder.produceevents = []*ProduceEventBuilder{}
-	builder.continueas = NewContinueAsBuilder()
 	return builder
 }
 
@@ -853,6 +944,9 @@ func (b *EndBuilder) Compensate(input bool) {
 }
 
 func (b *EndBuilder) ContinueAs() *ContinueAsBuilder {
+	if b.continueas == nil {
+		b.continueas = NewContinueAsBuilder()
+	}
 	return b.continueas
 }
 
@@ -861,8 +955,10 @@ func (b *EndBuilder) Build() End {
 	for _, v := range b.produceevents {
 		b.model.ProduceEvents = append(b.model.ProduceEvents, v.Build())
 	}
-	continueas := b.continueas.Build()
-	b.model.ContinueAs = &continueas
+	if b.continueas != nil {
+		continueas := b.continueas.Build()
+		b.model.ContinueAs = &continueas
+	}
 	return b.model
 }
 
@@ -912,6 +1008,7 @@ func (b *ErrorsBuilder) Build() Errors {
 func NewEventBuilder() *EventBuilder {
 	builder := &EventBuilder{}
 	builder.model = Event{}
+	builder.model.ApplyDefault()
 	builder.common = NewCommonBuilder()
 	builder.correlation = []*CorrelationBuilder{}
 	return builder
@@ -966,9 +1063,6 @@ func (b *EventBuilder) Build() Event {
 func NewEventConditionBuilder() *EventConditionBuilder {
 	builder := &EventConditionBuilder{}
 	builder.model = EventCondition{}
-	builder.eventdatafilter = NewEventDataFilterBuilder()
-	builder.end = NewEndBuilder()
-	builder.transition = NewTransitionBuilder()
 	return builder
 }
 
@@ -988,24 +1082,39 @@ func (b *EventConditionBuilder) EventRef(input string) {
 }
 
 func (b *EventConditionBuilder) EventDataFilter() *EventDataFilterBuilder {
+	if b.eventdatafilter == nil {
+		b.eventdatafilter = NewEventDataFilterBuilder()
+	}
 	return b.eventdatafilter
 }
 
 func (b *EventConditionBuilder) End() *EndBuilder {
+	if b.end == nil {
+		b.end = NewEndBuilder()
+	}
 	return b.end
 }
 
 func (b *EventConditionBuilder) Transition() *TransitionBuilder {
+	if b.transition == nil {
+		b.transition = NewTransitionBuilder()
+	}
 	return b.transition
 }
 
 func (b *EventConditionBuilder) Build() EventCondition {
-	eventdatafilter := b.eventdatafilter.Build()
-	b.model.EventDataFilter = &eventdatafilter
-	end := b.end.Build()
-	b.model.End = &end
-	transition := b.transition.Build()
-	b.model.Transition = &transition
+	if b.eventdatafilter != nil {
+		eventdatafilter := b.eventdatafilter.Build()
+		b.model.EventDataFilter = &eventdatafilter
+	}
+	if b.end != nil {
+		end := b.end.Build()
+		b.model.End = &end
+	}
+	if b.transition != nil {
+		transition := b.transition.Build()
+		b.model.Transition = &transition
+	}
 	return b.model
 }
 
@@ -1028,6 +1137,7 @@ func (b *EventConditionsBuilder) Build() EventConditions {
 func NewEventDataFilterBuilder() *EventDataFilterBuilder {
 	builder := &EventDataFilterBuilder{}
 	builder.model = EventDataFilter{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -1055,7 +1165,7 @@ func (b *EventDataFilterBuilder) Build() EventDataFilter {
 func NewEventRefBuilder() *EventRefBuilder {
 	builder := &EventRefBuilder{}
 	builder.model = EventRef{}
-	builder.data = NewObjectBuilder()
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -1077,6 +1187,9 @@ func (b *EventRefBuilder) ResultEventTimeout(input string) {
 }
 
 func (b *EventRefBuilder) Data() *ObjectBuilder {
+	if b.data == nil {
+		b.data = NewObjectBuilder()
+	}
 	return b.data
 }
 
@@ -1085,8 +1198,10 @@ func (b *EventRefBuilder) Invoke(input InvokeKind) {
 }
 
 func (b *EventRefBuilder) Build() EventRef {
-	data := b.data.Build()
-	b.model.Data = &data
+	if b.data != nil {
+		data := b.data.Build()
+		b.model.Data = &data
+	}
 	return b.model
 }
 
@@ -1094,8 +1209,8 @@ func (b *EventRefBuilder) Build() EventRef {
 func NewEventStateBuilder() *EventStateBuilder {
 	builder := &EventStateBuilder{}
 	builder.model = EventState{}
+	builder.model.ApplyDefault()
 	builder.onevents = []*OnEventsBuilder{}
-	builder.timeouts = NewEventStateTimeoutBuilder()
 	return builder
 }
 
@@ -1116,6 +1231,9 @@ func (b *EventStateBuilder) AddOnEvents() *OnEventsBuilder {
 }
 
 func (b *EventStateBuilder) Timeouts() *EventStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewEventStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
@@ -1124,8 +1242,10 @@ func (b *EventStateBuilder) Build() EventState {
 	for _, v := range b.onevents {
 		b.model.OnEvents = append(b.model.OnEvents, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1133,7 +1253,6 @@ func (b *EventStateBuilder) Build() EventState {
 func NewEventStateTimeoutBuilder() *EventStateTimeoutBuilder {
 	builder := &EventStateTimeoutBuilder{}
 	builder.model = EventStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1143,6 +1262,9 @@ type EventStateTimeoutBuilder struct {
 }
 
 func (b *EventStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -1155,8 +1277,10 @@ func (b *EventStateTimeoutBuilder) EventTimeout(input string) {
 }
 
 func (b *EventStateTimeoutBuilder) Build() EventStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1179,8 +1303,8 @@ func (b *EventsBuilder) Build() Events {
 func NewForEachStateBuilder() *ForEachStateBuilder {
 	builder := &ForEachStateBuilder{}
 	builder.model = ForEachState{}
+	builder.model.ApplyDefault()
 	builder.actions = []*ActionBuilder{}
-	builder.timeouts = NewForEachStateTimeoutBuilder()
 	return builder
 }
 
@@ -1209,6 +1333,9 @@ func (b *ForEachStateBuilder) AddAction() *ActionBuilder {
 }
 
 func (b *ForEachStateBuilder) Timeouts() *ForEachStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewForEachStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
@@ -1221,8 +1348,10 @@ func (b *ForEachStateBuilder) Build() ForEachState {
 	for _, v := range b.actions {
 		b.model.Actions = append(b.model.Actions, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1230,7 +1359,6 @@ func (b *ForEachStateBuilder) Build() ForEachState {
 func NewForEachStateTimeoutBuilder() *ForEachStateTimeoutBuilder {
 	builder := &ForEachStateTimeoutBuilder{}
 	builder.model = ForEachStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1240,6 +1368,9 @@ type ForEachStateTimeoutBuilder struct {
 }
 
 func (b *ForEachStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -1248,8 +1379,10 @@ func (b *ForEachStateTimeoutBuilder) ActionExecTimeout(input string) {
 }
 
 func (b *ForEachStateTimeoutBuilder) Build() ForEachStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1257,6 +1390,7 @@ func (b *ForEachStateTimeoutBuilder) Build() ForEachStateTimeout {
 func NewFunctionBuilder() *FunctionBuilder {
 	builder := &FunctionBuilder{}
 	builder.model = Function{}
+	builder.model.ApplyDefault()
 	builder.common = NewCommonBuilder()
 	return builder
 }
@@ -1295,6 +1429,7 @@ func (b *FunctionBuilder) Build() Function {
 func NewFunctionRefBuilder() *FunctionRefBuilder {
 	builder := &FunctionRefBuilder{}
 	builder.model = FunctionRef{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -1337,7 +1472,6 @@ func (b *FunctionsBuilder) Build() Functions {
 func NewInjectStateBuilder() *InjectStateBuilder {
 	builder := &InjectStateBuilder{}
 	builder.model = InjectState{}
-	builder.timeouts = NewInjectStateTimeoutBuilder()
 	return builder
 }
 
@@ -1347,12 +1481,17 @@ type InjectStateBuilder struct {
 }
 
 func (b *InjectStateBuilder) Timeouts() *InjectStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewInjectStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
 func (b *InjectStateBuilder) Build() InjectState {
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1360,7 +1499,6 @@ func (b *InjectStateBuilder) Build() InjectState {
 func NewInjectStateTimeoutBuilder() *InjectStateTimeoutBuilder {
 	builder := &InjectStateTimeoutBuilder{}
 	builder.model = InjectStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1370,12 +1508,17 @@ type InjectStateTimeoutBuilder struct {
 }
 
 func (b *InjectStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
 func (b *InjectStateTimeoutBuilder) Build() InjectStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1515,8 +1658,6 @@ func (b *ObjectBuilder) Build() Object {
 func NewOnErrorBuilder() *OnErrorBuilder {
 	builder := &OnErrorBuilder{}
 	builder.model = OnError{}
-	builder.transition = NewTransitionBuilder()
-	builder.end = NewEndBuilder()
 	return builder
 }
 
@@ -1535,18 +1676,28 @@ func (b *OnErrorBuilder) ErrorRefs(input []string) {
 }
 
 func (b *OnErrorBuilder) Transition() *TransitionBuilder {
+	if b.transition == nil {
+		b.transition = NewTransitionBuilder()
+	}
 	return b.transition
 }
 
 func (b *OnErrorBuilder) End() *EndBuilder {
+	if b.end == nil {
+		b.end = NewEndBuilder()
+	}
 	return b.end
 }
 
 func (b *OnErrorBuilder) Build() OnError {
-	transition := b.transition.Build()
-	b.model.Transition = &transition
-	end := b.end.Build()
-	b.model.End = &end
+	if b.transition != nil {
+		transition := b.transition.Build()
+		b.model.Transition = &transition
+	}
+	if b.end != nil {
+		end := b.end.Build()
+		b.model.End = &end
+	}
 	return b.model
 }
 
@@ -1554,6 +1705,7 @@ func (b *OnErrorBuilder) Build() OnError {
 func NewOnEventsBuilder() *OnEventsBuilder {
 	builder := &OnEventsBuilder{}
 	builder.model = OnEvents{}
+	builder.model.ApplyDefault()
 	builder.actions = []*ActionBuilder{}
 	builder.eventdatafilter = NewEventDataFilterBuilder()
 	return builder
@@ -1596,8 +1748,8 @@ func (b *OnEventsBuilder) Build() OnEvents {
 func NewOperationStateBuilder() *OperationStateBuilder {
 	builder := &OperationStateBuilder{}
 	builder.model = OperationState{}
+	builder.model.ApplyDefault()
 	builder.actions = []*ActionBuilder{}
-	builder.timeouts = NewOperationStateTimeoutBuilder()
 	return builder
 }
 
@@ -1618,6 +1770,9 @@ func (b *OperationStateBuilder) AddAction() *ActionBuilder {
 }
 
 func (b *OperationStateBuilder) Timeouts() *OperationStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewOperationStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
@@ -1626,8 +1781,10 @@ func (b *OperationStateBuilder) Build() OperationState {
 	for _, v := range b.actions {
 		b.model.Actions = append(b.model.Actions, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1635,7 +1792,6 @@ func (b *OperationStateBuilder) Build() OperationState {
 func NewOperationStateTimeoutBuilder() *OperationStateTimeoutBuilder {
 	builder := &OperationStateTimeoutBuilder{}
 	builder.model = OperationStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1645,6 +1801,9 @@ type OperationStateTimeoutBuilder struct {
 }
 
 func (b *OperationStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -1653,8 +1812,10 @@ func (b *OperationStateTimeoutBuilder) ActionExecTimeout(input string) {
 }
 
 func (b *OperationStateTimeoutBuilder) Build() OperationStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1662,8 +1823,8 @@ func (b *OperationStateTimeoutBuilder) Build() OperationStateTimeout {
 func NewParallelStateBuilder() *ParallelStateBuilder {
 	builder := &ParallelStateBuilder{}
 	builder.model = ParallelState{}
+	builder.model.ApplyDefault()
 	builder.branches = []*BranchBuilder{}
-	builder.timeouts = NewParallelStateTimeoutBuilder()
 	return builder
 }
 
@@ -1684,6 +1845,9 @@ func (b *ParallelStateBuilder) CompletionType(input CompletionType) {
 }
 
 func (b *ParallelStateBuilder) Timeouts() *ParallelStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewParallelStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
@@ -1692,8 +1856,10 @@ func (b *ParallelStateBuilder) Build() ParallelState {
 	for _, v := range b.branches {
 		b.model.Branches = append(b.model.Branches, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1701,7 +1867,6 @@ func (b *ParallelStateBuilder) Build() ParallelState {
 func NewParallelStateTimeoutBuilder() *ParallelStateTimeoutBuilder {
 	builder := &ParallelStateTimeoutBuilder{}
 	builder.model = ParallelStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1711,6 +1876,9 @@ type ParallelStateTimeoutBuilder struct {
 }
 
 func (b *ParallelStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -1719,8 +1887,10 @@ func (b *ParallelStateTimeoutBuilder) BranchExecTimeout(input string) {
 }
 
 func (b *ParallelStateTimeoutBuilder) Build() ParallelStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1743,6 +1913,10 @@ func (b *ProduceEventBuilder) EventRef(input string) {
 
 func (b *ProduceEventBuilder) Data() *ObjectBuilder {
 	return b.data
+}
+
+func (b *ProduceEventBuilder) ContextAttributes(input map[string]string) {
+	b.model.ContextAttributes = input
 }
 
 func (b *ProduceEventBuilder) Build() ProduceEvent {
@@ -1769,6 +1943,7 @@ func (b *RetriesBuilder) Build() Retries {
 func NewRetryBuilder() *RetryBuilder {
 	builder := &RetryBuilder{}
 	builder.model = Retry{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -1800,7 +1975,6 @@ func (b *RetryBuilder) Build() Retry {
 func NewScheduleBuilder() *ScheduleBuilder {
 	builder := &ScheduleBuilder{}
 	builder.model = Schedule{}
-	builder.cron = NewCronBuilder()
 	return builder
 }
 
@@ -1814,6 +1988,9 @@ func (b *ScheduleBuilder) Interval(input string) {
 }
 
 func (b *ScheduleBuilder) Cron() *CronBuilder {
+	if b.cron == nil {
+		b.cron = NewCronBuilder()
+	}
 	return b.cron
 }
 
@@ -1822,8 +1999,10 @@ func (b *ScheduleBuilder) Timezone(input string) {
 }
 
 func (b *ScheduleBuilder) Build() Schedule {
-	cron := b.cron.Build()
-	b.model.Cron = &cron
+	if b.cron != nil {
+		cron := b.cron.Build()
+		b.model.Cron = &cron
+	}
 	return b.model
 }
 
@@ -1869,7 +2048,6 @@ func (b *SleepBuilder) Build() Sleep {
 func NewSleepStateBuilder() *SleepStateBuilder {
 	builder := &SleepStateBuilder{}
 	builder.model = SleepState{}
-	builder.timeouts = NewSleepStateTimeoutBuilder()
 	return builder
 }
 
@@ -1883,12 +2061,17 @@ func (b *SleepStateBuilder) Duration(input string) {
 }
 
 func (b *SleepStateBuilder) Timeouts() *SleepStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewSleepStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
 func (b *SleepStateBuilder) Build() SleepState {
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -1896,7 +2079,6 @@ func (b *SleepStateBuilder) Build() SleepState {
 func NewSleepStateTimeoutBuilder() *SleepStateTimeoutBuilder {
 	builder := &SleepStateTimeoutBuilder{}
 	builder.model = SleepStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -1906,12 +2088,17 @@ type SleepStateTimeoutBuilder struct {
 }
 
 func (b *SleepStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
 func (b *SleepStateTimeoutBuilder) Build() SleepStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -1919,7 +2106,6 @@ func (b *SleepStateTimeoutBuilder) Build() SleepStateTimeout {
 func NewStartBuilder() *StartBuilder {
 	builder := &StartBuilder{}
 	builder.model = Start{}
-	builder.schedule = NewScheduleBuilder()
 	return builder
 }
 
@@ -1933,12 +2119,17 @@ func (b *StartBuilder) StateName(input string) {
 }
 
 func (b *StartBuilder) Schedule() *ScheduleBuilder {
+	if b.schedule == nil {
+		b.schedule = NewScheduleBuilder()
+	}
 	return b.schedule
 }
 
 func (b *StartBuilder) Build() Start {
-	schedule := b.schedule.Build()
-	b.model.Schedule = &schedule
+	if b.schedule != nil {
+		schedule := b.schedule.Build()
+		b.model.Schedule = &schedule
+	}
 	return b.model
 }
 
@@ -1947,15 +2138,6 @@ func NewStateBuilder() *StateBuilder {
 	builder := &StateBuilder{}
 	builder.model = State{}
 	builder.basestate = NewBaseStateBuilder()
-	builder.delaystate = NewDelayStateBuilder()
-	builder.eventstate = NewEventStateBuilder()
-	builder.operationstate = NewOperationStateBuilder()
-	builder.parallelstate = NewParallelStateBuilder()
-	builder.switchstate = NewSwitchStateBuilder()
-	builder.foreachstate = NewForEachStateBuilder()
-	builder.injectstate = NewInjectStateBuilder()
-	builder.callbackstate = NewCallbackStateBuilder()
-	builder.sleepstate = NewSleepStateBuilder()
 	return builder
 }
 
@@ -1978,61 +2160,106 @@ func (b *StateBuilder) BaseState() *BaseStateBuilder {
 }
 
 func (b *StateBuilder) DelayState() *DelayStateBuilder {
+	if b.delaystate == nil {
+		b.delaystate = NewDelayStateBuilder()
+	}
 	return b.delaystate
 }
 
 func (b *StateBuilder) EventState() *EventStateBuilder {
+	if b.eventstate == nil {
+		b.eventstate = NewEventStateBuilder()
+	}
 	return b.eventstate
 }
 
 func (b *StateBuilder) OperationState() *OperationStateBuilder {
+	if b.operationstate == nil {
+		b.operationstate = NewOperationStateBuilder()
+	}
 	return b.operationstate
 }
 
 func (b *StateBuilder) ParallelState() *ParallelStateBuilder {
+	if b.parallelstate == nil {
+		b.parallelstate = NewParallelStateBuilder()
+	}
 	return b.parallelstate
 }
 
 func (b *StateBuilder) SwitchState() *SwitchStateBuilder {
+	if b.switchstate == nil {
+		b.switchstate = NewSwitchStateBuilder()
+	}
 	return b.switchstate
 }
 
 func (b *StateBuilder) ForEachState() *ForEachStateBuilder {
+	if b.foreachstate == nil {
+		b.foreachstate = NewForEachStateBuilder()
+	}
 	return b.foreachstate
 }
 
 func (b *StateBuilder) InjectState() *InjectStateBuilder {
+	if b.injectstate == nil {
+		b.injectstate = NewInjectStateBuilder()
+	}
 	return b.injectstate
 }
 
 func (b *StateBuilder) CallbackState() *CallbackStateBuilder {
+	if b.callbackstate == nil {
+		b.callbackstate = NewCallbackStateBuilder()
+	}
 	return b.callbackstate
 }
 
 func (b *StateBuilder) SleepState() *SleepStateBuilder {
+	if b.sleepstate == nil {
+		b.sleepstate = NewSleepStateBuilder()
+	}
 	return b.sleepstate
 }
 
 func (b *StateBuilder) Build() State {
 	b.model.BaseState = b.basestate.Build()
-	delaystate := b.delaystate.Build()
-	b.model.DelayState = &delaystate
-	eventstate := b.eventstate.Build()
-	b.model.EventState = &eventstate
-	operationstate := b.operationstate.Build()
-	b.model.OperationState = &operationstate
-	parallelstate := b.parallelstate.Build()
-	b.model.ParallelState = &parallelstate
-	switchstate := b.switchstate.Build()
-	b.model.SwitchState = &switchstate
-	foreachstate := b.foreachstate.Build()
-	b.model.ForEachState = &foreachstate
-	injectstate := b.injectstate.Build()
-	b.model.InjectState = &injectstate
-	callbackstate := b.callbackstate.Build()
-	b.model.CallbackState = &callbackstate
-	sleepstate := b.sleepstate.Build()
-	b.model.SleepState = &sleepstate
+	if b.delaystate != nil {
+		delaystate := b.delaystate.Build()
+		b.model.DelayState = &delaystate
+	}
+	if b.eventstate != nil {
+		eventstate := b.eventstate.Build()
+		b.model.EventState = &eventstate
+	}
+	if b.operationstate != nil {
+		operationstate := b.operationstate.Build()
+		b.model.OperationState = &operationstate
+	}
+	if b.parallelstate != nil {
+		parallelstate := b.parallelstate.Build()
+		b.model.ParallelState = &parallelstate
+	}
+	if b.switchstate != nil {
+		switchstate := b.switchstate.Build()
+		b.model.SwitchState = &switchstate
+	}
+	if b.foreachstate != nil {
+		foreachstate := b.foreachstate.Build()
+		b.model.ForEachState = &foreachstate
+	}
+	if b.injectstate != nil {
+		injectstate := b.injectstate.Build()
+		b.model.InjectState = &injectstate
+	}
+	if b.callbackstate != nil {
+		callbackstate := b.callbackstate.Build()
+		b.model.CallbackState = &callbackstate
+	}
+	if b.sleepstate != nil {
+		sleepstate := b.sleepstate.Build()
+		b.model.SleepState = &sleepstate
+	}
 	return b.model
 }
 
@@ -2104,7 +2331,6 @@ func NewSwitchStateBuilder() *SwitchStateBuilder {
 	builder.defaultcondition = NewDefaultConditionBuilder()
 	builder.eventconditions = []*EventConditionBuilder{}
 	builder.dataconditions = []*DataConditionBuilder{}
-	builder.timeouts = NewSwitchStateTimeoutBuilder()
 	return builder
 }
 
@@ -2133,6 +2359,9 @@ func (b *SwitchStateBuilder) AddDataCondition() *DataConditionBuilder {
 }
 
 func (b *SwitchStateBuilder) Timeouts() *SwitchStateTimeoutBuilder {
+	if b.timeouts == nil {
+		b.timeouts = NewSwitchStateTimeoutBuilder()
+	}
 	return b.timeouts
 }
 
@@ -2146,8 +2375,10 @@ func (b *SwitchStateBuilder) Build() SwitchState {
 	for _, v := range b.dataconditions {
 		b.model.DataConditions = append(b.model.DataConditions, v.Build())
 	}
-	timeouts := b.timeouts.Build()
-	b.model.Timeouts = &timeouts
+	if b.timeouts != nil {
+		timeouts := b.timeouts.Build()
+		b.model.Timeouts = &timeouts
+	}
 	return b.model
 }
 
@@ -2155,7 +2386,6 @@ func (b *SwitchStateBuilder) Build() SwitchState {
 func NewSwitchStateTimeoutBuilder() *SwitchStateTimeoutBuilder {
 	builder := &SwitchStateTimeoutBuilder{}
 	builder.model = SwitchStateTimeout{}
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -2165,6 +2395,9 @@ type SwitchStateTimeoutBuilder struct {
 }
 
 func (b *SwitchStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -2173,8 +2406,10 @@ func (b *SwitchStateTimeoutBuilder) EventTimeout(input string) {
 }
 
 func (b *SwitchStateTimeoutBuilder) Build() SwitchStateTimeout {
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -2182,8 +2417,6 @@ func (b *SwitchStateTimeoutBuilder) Build() SwitchStateTimeout {
 func NewTimeoutsBuilder() *TimeoutsBuilder {
 	builder := &TimeoutsBuilder{}
 	builder.model = Timeouts{}
-	builder.workflowexectimeout = NewWorkflowExecTimeoutBuilder()
-	builder.stateexectimeout = NewStateExecTimeoutBuilder()
 	return builder
 }
 
@@ -2194,10 +2427,16 @@ type TimeoutsBuilder struct {
 }
 
 func (b *TimeoutsBuilder) WorkflowExecTimeout() *WorkflowExecTimeoutBuilder {
+	if b.workflowexectimeout == nil {
+		b.workflowexectimeout = NewWorkflowExecTimeoutBuilder()
+	}
 	return b.workflowexectimeout
 }
 
 func (b *TimeoutsBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
+	if b.stateexectimeout == nil {
+		b.stateexectimeout = NewStateExecTimeoutBuilder()
+	}
 	return b.stateexectimeout
 }
 
@@ -2214,10 +2453,14 @@ func (b *TimeoutsBuilder) EventTimeout(input string) {
 }
 
 func (b *TimeoutsBuilder) Build() Timeouts {
-	workflowexectimeout := b.workflowexectimeout.Build()
-	b.model.WorkflowExecTimeout = &workflowexectimeout
-	stateexectimeout := b.stateexectimeout.Build()
-	b.model.StateExecTimeout = &stateexectimeout
+	if b.workflowexectimeout != nil {
+		workflowexectimeout := b.workflowexectimeout.Build()
+		b.model.WorkflowExecTimeout = &workflowexectimeout
+	}
+	if b.stateexectimeout != nil {
+		stateexectimeout := b.stateexectimeout.Build()
+		b.model.StateExecTimeout = &stateexectimeout
+	}
 	return b.model
 }
 
@@ -2225,7 +2468,6 @@ func (b *TimeoutsBuilder) Build() Timeouts {
 func NewTransitionBuilder() *TransitionBuilder {
 	builder := &TransitionBuilder{}
 	builder.model = Transition{}
-	builder.stateparent = NewStateBuilder()
 	builder.produceevents = []*ProduceEventBuilder{}
 	return builder
 }
@@ -2237,6 +2479,9 @@ type TransitionBuilder struct {
 }
 
 func (b *TransitionBuilder) stateParent() *StateBuilder {
+	if b.stateparent == nil {
+		b.stateparent = NewStateBuilder()
+	}
 	return b.stateparent
 }
 
@@ -2255,27 +2500,14 @@ func (b *TransitionBuilder) Compensate(input bool) {
 }
 
 func (b *TransitionBuilder) Build() Transition {
-	stateparent := b.stateparent.Build()
-	b.model.stateParent = &stateparent
+	if b.stateparent != nil {
+		stateparent := b.stateparent.Build()
+		b.model.stateParent = &stateparent
+	}
 	b.model.ProduceEvents = []ProduceEvent{}
 	for _, v := range b.produceevents {
 		b.model.ProduceEvents = append(b.model.ProduceEvents, v.Build())
 	}
-	return b.model
-}
-
-// DeepCopyInto is an autogenerated deepcopy function, copying the receiver, writing into out. in must be non-nil.
-func NewValidatorContextBuilder() *ValidatorContextBuilder {
-	builder := &ValidatorContextBuilder{}
-	builder.model = ValidatorContext{}
-	return builder
-}
-
-type ValidatorContextBuilder struct {
-	model ValidatorContext
-}
-
-func (b *ValidatorContextBuilder) Build() ValidatorContext {
 	return b.model
 }
 
@@ -2353,6 +2585,7 @@ func (b *WorkflowBuilder) Build() Workflow {
 func NewWorkflowExecTimeoutBuilder() *WorkflowExecTimeoutBuilder {
 	builder := &WorkflowExecTimeoutBuilder{}
 	builder.model = WorkflowExecTimeout{}
+	builder.model.ApplyDefault()
 	return builder
 }
 
@@ -2380,6 +2613,7 @@ func (b *WorkflowExecTimeoutBuilder) Build() WorkflowExecTimeout {
 func NewWorkflowRefBuilder() *WorkflowRefBuilder {
 	builder := &WorkflowRefBuilder{}
 	builder.model = WorkflowRef{}
+	builder.model.ApplyDefault()
 	return builder
 }
 

@@ -20,27 +20,34 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func New() *model.WorkflowBuilder {
 	return model.NewWorkflowBuilder()
 }
 
-func AsObject(builder *model.WorkflowBuilder) *model.Workflow {
+func Object(builder *model.WorkflowBuilder) (*model.Workflow, error) {
 	workflow := builder.Build()
-	return &workflow
+	ctx := model.NewValidatorContext(&workflow)
+	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
+		return nil, err
+	}
+	return &workflow, nil
 }
 
-func AsJson(builder *model.WorkflowBuilder) ([]byte, error) {
-	workflow := builder.Build()
-	return json.Marshal(workflow)
-}
-
-func AsYaml(builder *model.WorkflowBuilder) ([]byte, error) {
-	data, err := AsJson(builder)
+func Json(builder *model.WorkflowBuilder) ([]byte, error) {
+	workflow, err := Object(builder)
 	if err != nil {
 		return nil, err
 	}
+	return json.Marshal(workflow)
+}
 
+func Yaml(builder *model.WorkflowBuilder) ([]byte, error) {
+	data, err := Json(builder)
+	if err != nil {
+		return nil, err
+	}
 	return yaml.JSONToYAML(data)
 }

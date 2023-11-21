@@ -23,20 +23,26 @@ import (
 
 func prepareBuilder() *model.WorkflowBuilder {
 	builder := New()
-	builder.BaseWorkflow().Key("key test")
-	builder.BaseWorkflow().ID("id test")
+	builder.Key("key test")
+	builder.ID("id test")
 
 	function := builder.AddFunctions()
 	function.Name("function name")
 	function.Operation("http://test")
+
 	function2 := builder.AddFunctions()
 	function2.Name("function name2")
 	function2.Operation("http://test")
 
+	function3 := builder.AddFunctions()
+	function3.Name("function name2")
+	function3.Operation("http://test")
+	builder.RemoveFunctions(function3)
+
 	state1 := builder.AddStates()
-	state1.BaseState().Name("state")
-	state1.BaseState().Type(model.StateTypeInject)
-	end := state1.BaseState().End()
+	state1.Name("state")
+	state1.Type(model.StateTypeInject)
+	end := state1.End()
 	end.Terminate(true)
 
 	inject := state1.InjectState()
@@ -47,7 +53,7 @@ func prepareBuilder() *model.WorkflowBuilder {
 	return builder
 }
 
-func TestBuild(t *testing.T) {
+func TestObject(t *testing.T) {
 	workflow, err := Object(prepareBuilder())
 	if assert.NoError(t, err) {
 		assert.Equal(t, "key test", workflow.Key)
@@ -61,7 +67,7 @@ func TestBuild(t *testing.T) {
 	}
 }
 
-func TestAsJson(t *testing.T) {
+func TestJson(t *testing.T) {
 	data, err := Json(prepareBuilder())
 	if assert.NoError(t, err) {
 		d := `{"id":"id test","key":"key test","version":"","specVersion":"0.8","expressionLang":"jq","states":[{"name":"state","type":"inject","end":{"terminate":true},"data":{"test":{}}}],"functions":[{"name":"function name","operation":"http://test","type":"rest"},{"name":"function name2","operation":"http://test","type":"rest"}]}`
@@ -69,7 +75,7 @@ func TestAsJson(t *testing.T) {
 	}
 }
 
-func TestAsYaml(t *testing.T) {
+func TestYaml(t *testing.T) {
 	data, err := Yaml(prepareBuilder())
 	if assert.NoError(t, err) {
 		d := `expressionLang: jq

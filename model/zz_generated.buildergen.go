@@ -266,6 +266,14 @@ func (b *BaseStateBuilder) AddOnErrors() *OnErrorBuilder {
 	return builder
 }
 
+func (b *BaseStateBuilder) RemoveOnErrors(remove *OnErrorBuilder) {
+	for i, val := range b.onerrors {
+		if val == remove {
+			b.onerrors[i] = b.onerrors[len(b.onerrors)-1]
+			b.onerrors = b.onerrors[:len(b.onerrors)-1]
+		}
+	}
+}
 func (b *BaseStateBuilder) Transition() *TransitionBuilder {
 	if b.transition == nil {
 		b.transition = NewTransitionBuilder()
@@ -405,6 +413,14 @@ func (b *BaseWorkflowBuilder) AddErrors() *ErrorBuilder {
 	return builder
 }
 
+func (b *BaseWorkflowBuilder) RemoveErrors(remove *ErrorBuilder) {
+	for i, val := range b.errors {
+		if val == remove {
+			b.errors[i] = b.errors[len(b.errors)-1]
+			b.errors = b.errors[:len(b.errors)-1]
+		}
+	}
+}
 func (b *BaseWorkflowBuilder) KeepActive(input bool) {
 	b.model.KeepActive = input
 }
@@ -423,6 +439,14 @@ func (b *BaseWorkflowBuilder) AddAuth() *AuthBuilder {
 	return builder
 }
 
+func (b *BaseWorkflowBuilder) RemoveAuth(remove *AuthBuilder) {
+	for i, val := range b.auth {
+		if val == remove {
+			b.auth[i] = b.auth[len(b.auth)-1]
+			b.auth = b.auth[:len(b.auth)-1]
+		}
+	}
+}
 func (b *BaseWorkflowBuilder) Build() BaseWorkflow {
 	if b.start != nil {
 		start := b.start.Build()
@@ -455,17 +479,17 @@ func (b *BaseWorkflowBuilder) Build() BaseWorkflow {
 func NewBasicAuthPropertiesBuilder() *BasicAuthPropertiesBuilder {
 	builder := &BasicAuthPropertiesBuilder{}
 	builder.model = BasicAuthProperties{}
-	builder.common = NewCommonBuilder()
+	builder.CommonBuilder = *NewCommonBuilder()
 	return builder
 }
 
 type BasicAuthPropertiesBuilder struct {
-	model  BasicAuthProperties
-	common *CommonBuilder
+	model BasicAuthProperties
+	CommonBuilder
 }
 
 func (b *BasicAuthPropertiesBuilder) Common() *CommonBuilder {
-	return b.common
+	return &b.CommonBuilder
 }
 
 func (b *BasicAuthPropertiesBuilder) Secret(input string) {
@@ -481,7 +505,7 @@ func (b *BasicAuthPropertiesBuilder) Password(input string) {
 }
 
 func (b *BasicAuthPropertiesBuilder) Build() BasicAuthProperties {
-	b.model.Common = b.common.Build()
+	b.model.Common = b.CommonBuilder.Build()
 	return b.model
 }
 
@@ -489,17 +513,17 @@ func (b *BasicAuthPropertiesBuilder) Build() BasicAuthProperties {
 func NewBearerAuthPropertiesBuilder() *BearerAuthPropertiesBuilder {
 	builder := &BearerAuthPropertiesBuilder{}
 	builder.model = BearerAuthProperties{}
-	builder.common = NewCommonBuilder()
+	builder.CommonBuilder = *NewCommonBuilder()
 	return builder
 }
 
 type BearerAuthPropertiesBuilder struct {
-	model  BearerAuthProperties
-	common *CommonBuilder
+	model BearerAuthProperties
+	CommonBuilder
 }
 
 func (b *BearerAuthPropertiesBuilder) Common() *CommonBuilder {
-	return b.common
+	return &b.CommonBuilder
 }
 
 func (b *BearerAuthPropertiesBuilder) Secret(input string) {
@@ -511,7 +535,7 @@ func (b *BearerAuthPropertiesBuilder) Token(input string) {
 }
 
 func (b *BearerAuthPropertiesBuilder) Build() BearerAuthProperties {
-	b.model.Common = b.common.Build()
+	b.model.Common = b.CommonBuilder.Build()
 	return b.model
 }
 
@@ -539,6 +563,14 @@ func (b *BranchBuilder) AddActions() *ActionBuilder {
 	return builder
 }
 
+func (b *BranchBuilder) RemoveActions(remove *ActionBuilder) {
+	for i, val := range b.actions {
+		if val == remove {
+			b.actions[i] = b.actions[len(b.actions)-1]
+			b.actions = b.actions[:len(b.actions)-1]
+		}
+	}
+}
 func (b *BranchBuilder) Timeouts() *BranchTimeoutsBuilder {
 	if b.timeouts == nil {
 		b.timeouts = NewBranchTimeoutsBuilder()
@@ -959,6 +991,14 @@ func (b *EndBuilder) AddProduceEvents() *ProduceEventBuilder {
 	return builder
 }
 
+func (b *EndBuilder) RemoveProduceEvents(remove *ProduceEventBuilder) {
+	for i, val := range b.produceevents {
+		if val == remove {
+			b.produceevents[i] = b.produceevents[len(b.produceevents)-1]
+			b.produceevents = b.produceevents[:len(b.produceevents)-1]
+		}
+	}
+}
 func (b *EndBuilder) Compensate(input bool) {
 	b.model.Compensate = input
 }
@@ -1029,19 +1069,19 @@ func NewEventBuilder() *EventBuilder {
 	builder := &EventBuilder{}
 	builder.model = Event{}
 	builder.model.ApplyDefault()
-	builder.common = NewCommonBuilder()
+	builder.CommonBuilder = *NewCommonBuilder()
 	builder.correlation = []*CorrelationBuilder{}
 	return builder
 }
 
 type EventBuilder struct {
-	model       Event
-	common      *CommonBuilder
+	model Event
+	CommonBuilder
 	correlation []*CorrelationBuilder
 }
 
 func (b *EventBuilder) Common() *CommonBuilder {
-	return b.common
+	return &b.CommonBuilder
 }
 
 func (b *EventBuilder) Name(input string) {
@@ -1070,8 +1110,16 @@ func (b *EventBuilder) AddCorrelation() *CorrelationBuilder {
 	return builder
 }
 
+func (b *EventBuilder) RemoveCorrelation(remove *CorrelationBuilder) {
+	for i, val := range b.correlation {
+		if val == remove {
+			b.correlation[i] = b.correlation[len(b.correlation)-1]
+			b.correlation = b.correlation[:len(b.correlation)-1]
+		}
+	}
+}
 func (b *EventBuilder) Build() Event {
-	b.model.Common = b.common.Build()
+	b.model.Common = b.CommonBuilder.Build()
 	b.model.Correlation = []Correlation{}
 	for _, v := range b.correlation {
 		b.model.Correlation = append(b.model.Correlation, v.Build())
@@ -1258,6 +1306,14 @@ func (b *EventStateBuilder) AddOnEvents() *OnEventsBuilder {
 	return builder
 }
 
+func (b *EventStateBuilder) RemoveOnEvents(remove *OnEventsBuilder) {
+	for i, val := range b.onevents {
+		if val == remove {
+			b.onevents[i] = b.onevents[len(b.onevents)-1]
+			b.onevents = b.onevents[:len(b.onevents)-1]
+		}
+	}
+}
 func (b *EventStateBuilder) Timeouts() *EventStateTimeoutBuilder {
 	if b.timeouts == nil {
 		b.timeouts = NewEventStateTimeoutBuilder()
@@ -1364,6 +1420,14 @@ func (b *ForEachStateBuilder) AddActions() *ActionBuilder {
 	return builder
 }
 
+func (b *ForEachStateBuilder) RemoveActions(remove *ActionBuilder) {
+	for i, val := range b.actions {
+		if val == remove {
+			b.actions[i] = b.actions[len(b.actions)-1]
+			b.actions = b.actions[:len(b.actions)-1]
+		}
+	}
+}
 func (b *ForEachStateBuilder) Timeouts() *ForEachStateTimeoutBuilder {
 	if b.timeouts == nil {
 		b.timeouts = NewForEachStateTimeoutBuilder()
@@ -1423,17 +1487,17 @@ func NewFunctionBuilder() *FunctionBuilder {
 	builder := &FunctionBuilder{}
 	builder.model = Function{}
 	builder.model.ApplyDefault()
-	builder.common = NewCommonBuilder()
+	builder.CommonBuilder = *NewCommonBuilder()
 	return builder
 }
 
 type FunctionBuilder struct {
-	model  Function
-	common *CommonBuilder
+	model Function
+	CommonBuilder
 }
 
 func (b *FunctionBuilder) Common() *CommonBuilder {
-	return b.common
+	return &b.CommonBuilder
 }
 
 func (b *FunctionBuilder) Name(input string) {
@@ -1453,7 +1517,7 @@ func (b *FunctionBuilder) AuthRef(input string) {
 }
 
 func (b *FunctionBuilder) Build() Function {
-	b.model.Common = b.common.Build()
+	b.model.Common = b.CommonBuilder.Build()
 	return b.model
 }
 
@@ -1581,17 +1645,17 @@ func (b *MetadataBuilder) Build() Metadata {
 func NewOAuth2AuthPropertiesBuilder() *OAuth2AuthPropertiesBuilder {
 	builder := &OAuth2AuthPropertiesBuilder{}
 	builder.model = OAuth2AuthProperties{}
-	builder.common = NewCommonBuilder()
+	builder.CommonBuilder = *NewCommonBuilder()
 	return builder
 }
 
 type OAuth2AuthPropertiesBuilder struct {
-	model  OAuth2AuthProperties
-	common *CommonBuilder
+	model OAuth2AuthProperties
+	CommonBuilder
 }
 
 func (b *OAuth2AuthPropertiesBuilder) Common() *CommonBuilder {
-	return b.common
+	return &b.CommonBuilder
 }
 
 func (b *OAuth2AuthPropertiesBuilder) Secret(input string) {
@@ -1643,7 +1707,7 @@ func (b *OAuth2AuthPropertiesBuilder) RequestedIssuer(input string) {
 }
 
 func (b *OAuth2AuthPropertiesBuilder) Build() OAuth2AuthProperties {
-	b.model.Common = b.common.Build()
+	b.model.Common = b.CommonBuilder.Build()
 	return b.model
 }
 
@@ -1686,6 +1750,14 @@ func (b *ObjectBuilder) AddSliceValue() *ObjectBuilder {
 	return builder
 }
 
+func (b *ObjectBuilder) RemoveSliceValue(remove *ObjectBuilder) {
+	for i, val := range b.slicevalue {
+		if val == remove {
+			b.slicevalue[i] = b.slicevalue[len(b.slicevalue)-1]
+			b.slicevalue = b.slicevalue[:len(b.slicevalue)-1]
+		}
+	}
+}
 func (b *ObjectBuilder) BoolValue(input bool) {
 	b.model.BoolValue = input
 }
@@ -1775,6 +1847,14 @@ func (b *OnEventsBuilder) AddActions() *ActionBuilder {
 	return builder
 }
 
+func (b *OnEventsBuilder) RemoveActions(remove *ActionBuilder) {
+	for i, val := range b.actions {
+		if val == remove {
+			b.actions[i] = b.actions[len(b.actions)-1]
+			b.actions = b.actions[:len(b.actions)-1]
+		}
+	}
+}
 func (b *OnEventsBuilder) EventDataFilter() *EventDataFilterBuilder {
 	return b.eventdatafilter
 }
@@ -1813,6 +1893,14 @@ func (b *OperationStateBuilder) AddActions() *ActionBuilder {
 	return builder
 }
 
+func (b *OperationStateBuilder) RemoveActions(remove *ActionBuilder) {
+	for i, val := range b.actions {
+		if val == remove {
+			b.actions[i] = b.actions[len(b.actions)-1]
+			b.actions = b.actions[:len(b.actions)-1]
+		}
+	}
+}
 func (b *OperationStateBuilder) Timeouts() *OperationStateTimeoutBuilder {
 	if b.timeouts == nil {
 		b.timeouts = NewOperationStateTimeoutBuilder()
@@ -1884,6 +1972,14 @@ func (b *ParallelStateBuilder) AddBranches() *BranchBuilder {
 	return builder
 }
 
+func (b *ParallelStateBuilder) RemoveBranches(remove *BranchBuilder) {
+	for i, val := range b.branches {
+		if val == remove {
+			b.branches[i] = b.branches[len(b.branches)-1]
+			b.branches = b.branches[:len(b.branches)-1]
+		}
+	}
+}
 func (b *ParallelStateBuilder) CompletionType(input CompletionType) {
 	b.model.CompletionType = input
 }
@@ -2189,127 +2285,123 @@ func (b *StartBuilder) Build() Start {
 func NewStateBuilder() *StateBuilder {
 	builder := &StateBuilder{}
 	builder.model = State{}
-	builder.basestate = NewBaseStateBuilder()
+	builder.BaseStateBuilder = *NewBaseStateBuilder()
 	return builder
 }
 
 type StateBuilder struct {
-	model          State
-	basestate      *BaseStateBuilder
-	delaystate     *DelayStateBuilder
-	eventstate     *EventStateBuilder
-	operationstate *OperationStateBuilder
-	parallelstate  *ParallelStateBuilder
-	switchstate    *SwitchStateBuilder
-	foreachstate   *ForEachStateBuilder
-	injectstate    *InjectStateBuilder
-	callbackstate  *CallbackStateBuilder
-	sleepstate     *SleepStateBuilder
-}
-
-func (b *StateBuilder) BaseState() *BaseStateBuilder {
-	return b.basestate
+	model State
+	BaseStateBuilder
+	*DelayStateBuilder
+	*EventStateBuilder
+	*OperationStateBuilder
+	*ParallelStateBuilder
+	*SwitchStateBuilder
+	*ForEachStateBuilder
+	*InjectStateBuilder
+	*CallbackStateBuilder
+	*SleepStateBuilder
 }
 
 func (b *StateBuilder) DelayState() *DelayStateBuilder {
-	if b.delaystate == nil {
-		b.delaystate = NewDelayStateBuilder()
+	if b.DelayStateBuilder == nil {
+		b.DelayStateBuilder = NewDelayStateBuilder()
 	}
-	return b.delaystate
+	return b.DelayStateBuilder
 }
 
 func (b *StateBuilder) EventState() *EventStateBuilder {
-	if b.eventstate == nil {
-		b.eventstate = NewEventStateBuilder()
+	if b.EventStateBuilder == nil {
+		b.EventStateBuilder = NewEventStateBuilder()
 	}
-	return b.eventstate
+	return b.EventStateBuilder
 }
 
 func (b *StateBuilder) OperationState() *OperationStateBuilder {
-	if b.operationstate == nil {
-		b.operationstate = NewOperationStateBuilder()
+	if b.OperationStateBuilder == nil {
+		b.OperationStateBuilder = NewOperationStateBuilder()
 	}
-	return b.operationstate
+	return b.OperationStateBuilder
 }
 
 func (b *StateBuilder) ParallelState() *ParallelStateBuilder {
-	if b.parallelstate == nil {
-		b.parallelstate = NewParallelStateBuilder()
+	if b.ParallelStateBuilder == nil {
+		b.ParallelStateBuilder = NewParallelStateBuilder()
 	}
-	return b.parallelstate
+	return b.ParallelStateBuilder
 }
 
 func (b *StateBuilder) SwitchState() *SwitchStateBuilder {
-	if b.switchstate == nil {
-		b.switchstate = NewSwitchStateBuilder()
+	if b.SwitchStateBuilder == nil {
+		b.SwitchStateBuilder = NewSwitchStateBuilder()
 	}
-	return b.switchstate
+	return b.SwitchStateBuilder
 }
 
 func (b *StateBuilder) ForEachState() *ForEachStateBuilder {
-	if b.foreachstate == nil {
-		b.foreachstate = NewForEachStateBuilder()
+	if b.ForEachStateBuilder == nil {
+		b.ForEachStateBuilder = NewForEachStateBuilder()
 	}
-	return b.foreachstate
+	return b.ForEachStateBuilder
 }
 
 func (b *StateBuilder) InjectState() *InjectStateBuilder {
-	if b.injectstate == nil {
-		b.injectstate = NewInjectStateBuilder()
+	if b.InjectStateBuilder == nil {
+		b.InjectStateBuilder = NewInjectStateBuilder()
 	}
-	return b.injectstate
+	return b.InjectStateBuilder
 }
 
 func (b *StateBuilder) CallbackState() *CallbackStateBuilder {
-	if b.callbackstate == nil {
-		b.callbackstate = NewCallbackStateBuilder()
+	if b.CallbackStateBuilder == nil {
+		b.CallbackStateBuilder = NewCallbackStateBuilder()
 	}
-	return b.callbackstate
+	return b.CallbackStateBuilder
 }
 
 func (b *StateBuilder) SleepState() *SleepStateBuilder {
-	if b.sleepstate == nil {
-		b.sleepstate = NewSleepStateBuilder()
+	if b.SleepStateBuilder == nil {
+		b.SleepStateBuilder = NewSleepStateBuilder()
 	}
-	return b.sleepstate
+	return b.SleepStateBuilder
 }
 
 func (b *StateBuilder) Build() State {
-	b.model.BaseState = b.basestate.Build()
-	if b.delaystate != nil {
-		delaystate := b.delaystate.Build()
+	b.model.BaseState = b.BaseStateBuilder.Build()
+	if b.DelayStateBuilder != nil {
+		delaystate := b.DelayStateBuilder.Build()
 		b.model.DelayState = &delaystate
 	}
-	if b.eventstate != nil {
-		eventstate := b.eventstate.Build()
+	if b.EventStateBuilder != nil {
+		eventstate := b.EventStateBuilder.Build()
 		b.model.EventState = &eventstate
 	}
-	if b.operationstate != nil {
-		operationstate := b.operationstate.Build()
+	if b.OperationStateBuilder != nil {
+		operationstate := b.OperationStateBuilder.Build()
 		b.model.OperationState = &operationstate
 	}
-	if b.parallelstate != nil {
-		parallelstate := b.parallelstate.Build()
+	if b.ParallelStateBuilder != nil {
+		parallelstate := b.ParallelStateBuilder.Build()
 		b.model.ParallelState = &parallelstate
 	}
-	if b.switchstate != nil {
-		switchstate := b.switchstate.Build()
+	if b.SwitchStateBuilder != nil {
+		switchstate := b.SwitchStateBuilder.Build()
 		b.model.SwitchState = &switchstate
 	}
-	if b.foreachstate != nil {
-		foreachstate := b.foreachstate.Build()
+	if b.ForEachStateBuilder != nil {
+		foreachstate := b.ForEachStateBuilder.Build()
 		b.model.ForEachState = &foreachstate
 	}
-	if b.injectstate != nil {
-		injectstate := b.injectstate.Build()
+	if b.InjectStateBuilder != nil {
+		injectstate := b.InjectStateBuilder.Build()
 		b.model.InjectState = &injectstate
 	}
-	if b.callbackstate != nil {
-		callbackstate := b.callbackstate.Build()
+	if b.CallbackStateBuilder != nil {
+		callbackstate := b.CallbackStateBuilder.Build()
 		b.model.CallbackState = &callbackstate
 	}
-	if b.sleepstate != nil {
-		sleepstate := b.sleepstate.Build()
+	if b.SleepStateBuilder != nil {
+		sleepstate := b.SleepStateBuilder.Build()
 		b.model.SleepState = &sleepstate
 	}
 	return b.model
@@ -2404,12 +2496,28 @@ func (b *SwitchStateBuilder) AddEventConditions() *EventConditionBuilder {
 	return builder
 }
 
+func (b *SwitchStateBuilder) RemoveEventConditions(remove *EventConditionBuilder) {
+	for i, val := range b.eventconditions {
+		if val == remove {
+			b.eventconditions[i] = b.eventconditions[len(b.eventconditions)-1]
+			b.eventconditions = b.eventconditions[:len(b.eventconditions)-1]
+		}
+	}
+}
 func (b *SwitchStateBuilder) AddDataConditions() *DataConditionBuilder {
 	builder := NewDataConditionBuilder()
 	b.dataconditions = append(b.dataconditions, builder)
 	return builder
 }
 
+func (b *SwitchStateBuilder) RemoveDataConditions(remove *DataConditionBuilder) {
+	for i, val := range b.dataconditions {
+		if val == remove {
+			b.dataconditions[i] = b.dataconditions[len(b.dataconditions)-1]
+			b.dataconditions = b.dataconditions[:len(b.dataconditions)-1]
+		}
+	}
+}
 func (b *SwitchStateBuilder) Timeouts() *SwitchStateTimeoutBuilder {
 	if b.timeouts == nil {
 		b.timeouts = NewSwitchStateTimeoutBuilder()
@@ -2547,6 +2655,14 @@ func (b *TransitionBuilder) AddProduceEvents() *ProduceEventBuilder {
 	return builder
 }
 
+func (b *TransitionBuilder) RemoveProduceEvents(remove *ProduceEventBuilder) {
+	for i, val := range b.produceevents {
+		if val == remove {
+			b.produceevents[i] = b.produceevents[len(b.produceevents)-1]
+			b.produceevents = b.produceevents[:len(b.produceevents)-1]
+		}
+	}
+}
 func (b *TransitionBuilder) Compensate(input bool) {
 	b.model.Compensate = input
 }
@@ -2567,7 +2683,7 @@ func (b *TransitionBuilder) Build() Transition {
 func NewWorkflowBuilder() *WorkflowBuilder {
 	builder := &WorkflowBuilder{}
 	builder.model = Workflow{}
-	builder.baseworkflow = NewBaseWorkflowBuilder()
+	builder.BaseWorkflowBuilder = *NewBaseWorkflowBuilder()
 	builder.states = []*StateBuilder{}
 	builder.events = []*EventBuilder{}
 	builder.functions = []*FunctionBuilder{}
@@ -2576,16 +2692,12 @@ func NewWorkflowBuilder() *WorkflowBuilder {
 }
 
 type WorkflowBuilder struct {
-	model        Workflow
-	baseworkflow *BaseWorkflowBuilder
-	states       []*StateBuilder
-	events       []*EventBuilder
-	functions    []*FunctionBuilder
-	retries      []*RetryBuilder
-}
-
-func (b *WorkflowBuilder) BaseWorkflow() *BaseWorkflowBuilder {
-	return b.baseworkflow
+	model Workflow
+	BaseWorkflowBuilder
+	states    []*StateBuilder
+	events    []*EventBuilder
+	functions []*FunctionBuilder
+	retries   []*RetryBuilder
 }
 
 func (b *WorkflowBuilder) AddStates() *StateBuilder {
@@ -2594,26 +2706,58 @@ func (b *WorkflowBuilder) AddStates() *StateBuilder {
 	return builder
 }
 
+func (b *WorkflowBuilder) RemoveStates(remove *StateBuilder) {
+	for i, val := range b.states {
+		if val == remove {
+			b.states[i] = b.states[len(b.states)-1]
+			b.states = b.states[:len(b.states)-1]
+		}
+	}
+}
 func (b *WorkflowBuilder) AddEvents() *EventBuilder {
 	builder := NewEventBuilder()
 	b.events = append(b.events, builder)
 	return builder
 }
 
+func (b *WorkflowBuilder) RemoveEvents(remove *EventBuilder) {
+	for i, val := range b.events {
+		if val == remove {
+			b.events[i] = b.events[len(b.events)-1]
+			b.events = b.events[:len(b.events)-1]
+		}
+	}
+}
 func (b *WorkflowBuilder) AddFunctions() *FunctionBuilder {
 	builder := NewFunctionBuilder()
 	b.functions = append(b.functions, builder)
 	return builder
 }
 
+func (b *WorkflowBuilder) RemoveFunctions(remove *FunctionBuilder) {
+	for i, val := range b.functions {
+		if val == remove {
+			b.functions[i] = b.functions[len(b.functions)-1]
+			b.functions = b.functions[:len(b.functions)-1]
+		}
+	}
+}
 func (b *WorkflowBuilder) AddRetries() *RetryBuilder {
 	builder := NewRetryBuilder()
 	b.retries = append(b.retries, builder)
 	return builder
 }
 
+func (b *WorkflowBuilder) RemoveRetries(remove *RetryBuilder) {
+	for i, val := range b.retries {
+		if val == remove {
+			b.retries[i] = b.retries[len(b.retries)-1]
+			b.retries = b.retries[:len(b.retries)-1]
+		}
+	}
+}
 func (b *WorkflowBuilder) Build() Workflow {
-	b.model.BaseWorkflow = b.baseworkflow.Build()
+	b.model.BaseWorkflow = b.BaseWorkflowBuilder.Build()
 	b.model.States = []State{}
 	for _, v := range b.states {
 		b.model.States = append(b.model.States, v.Build())

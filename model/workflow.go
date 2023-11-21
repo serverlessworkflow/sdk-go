@@ -193,6 +193,7 @@ func (e *Errors) UnmarshalJSON(data []byte) error {
 }
 
 // Workflow base definition
+// +builder-gen:embedded-ignore-method=BaseWorkflow
 type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:pruning:PreserveUnknownFields

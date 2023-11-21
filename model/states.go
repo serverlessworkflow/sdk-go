@@ -116,6 +116,7 @@ func (b *BaseState) MarshalJSON() ([]byte, error) {
 	return cus, err
 }
 
+// +builder-gen:embedded-ignore-method=BaseState
 type State struct {
 	BaseState `json:",inline"`
 	// delayState Causes the workflow execution to delay for a specified duration.

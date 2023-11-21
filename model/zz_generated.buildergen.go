@@ -27,12 +27,14 @@ type ActionBuilder struct {
 	actiondatafilter *ActionDataFilterBuilder
 }
 
-func (b *ActionBuilder) ID(input string) {
+func (b *ActionBuilder) ID(input string) *ActionBuilder {
 	b.model.ID = input
+	return b
 }
 
-func (b *ActionBuilder) Name(input string) {
+func (b *ActionBuilder) Name(input string) *ActionBuilder {
 	b.model.Name = input
+	return b
 }
 
 func (b *ActionBuilder) FunctionRef() *FunctionRefBuilder {
@@ -63,24 +65,28 @@ func (b *ActionBuilder) Sleep() *SleepBuilder {
 	return b.sleep
 }
 
-func (b *ActionBuilder) RetryRef(input string) {
+func (b *ActionBuilder) RetryRef(input string) *ActionBuilder {
 	b.model.RetryRef = input
+	return b
 }
 
-func (b *ActionBuilder) NonRetryableErrors(input []string) {
+func (b *ActionBuilder) NonRetryableErrors(input []string) *ActionBuilder {
 	b.model.NonRetryableErrors = input
+	return b
 }
 
-func (b *ActionBuilder) RetryableErrors(input []string) {
+func (b *ActionBuilder) RetryableErrors(input []string) *ActionBuilder {
 	b.model.RetryableErrors = input
+	return b
 }
 
 func (b *ActionBuilder) ActionDataFilter() *ActionDataFilterBuilder {
 	return b.actiondatafilter
 }
 
-func (b *ActionBuilder) Condition(input string) {
+func (b *ActionBuilder) Condition(input string) *ActionBuilder {
 	b.model.Condition = input
+	return b
 }
 
 func (b *ActionBuilder) Build() Action {
@@ -116,20 +122,24 @@ type ActionDataFilterBuilder struct {
 	model ActionDataFilter
 }
 
-func (b *ActionDataFilterBuilder) FromStateData(input string) {
+func (b *ActionDataFilterBuilder) FromStateData(input string) *ActionDataFilterBuilder {
 	b.model.FromStateData = input
+	return b
 }
 
-func (b *ActionDataFilterBuilder) UseResults(input bool) {
+func (b *ActionDataFilterBuilder) UseResults(input bool) *ActionDataFilterBuilder {
 	b.model.UseResults = input
+	return b
 }
 
-func (b *ActionDataFilterBuilder) Results(input string) {
+func (b *ActionDataFilterBuilder) Results(input string) *ActionDataFilterBuilder {
 	b.model.Results = input
+	return b
 }
 
-func (b *ActionDataFilterBuilder) ToStateData(input string) {
+func (b *ActionDataFilterBuilder) ToStateData(input string) *ActionDataFilterBuilder {
 	b.model.ToStateData = input
+	return b
 }
 
 func (b *ActionDataFilterBuilder) Build() ActionDataFilter {
@@ -149,12 +159,14 @@ type AuthBuilder struct {
 	properties *AuthPropertiesBuilder
 }
 
-func (b *AuthBuilder) Name(input string) {
+func (b *AuthBuilder) Name(input string) *AuthBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *AuthBuilder) Scheme(input AuthType) {
+func (b *AuthBuilder) Scheme(input AuthType) *AuthBuilder {
 	b.model.Scheme = input
+	return b
 }
 
 func (b *AuthBuilder) Properties() *AuthPropertiesBuilder {
@@ -248,16 +260,19 @@ type BaseStateBuilder struct {
 	end             *EndBuilder
 }
 
-func (b *BaseStateBuilder) ID(input string) {
+func (b *BaseStateBuilder) ID(input string) *BaseStateBuilder {
 	b.model.ID = input
+	return b
 }
 
-func (b *BaseStateBuilder) Name(input string) {
+func (b *BaseStateBuilder) Name(input string) *BaseStateBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *BaseStateBuilder) Type(input StateType) {
+func (b *BaseStateBuilder) Type(input StateType) *BaseStateBuilder {
 	b.model.Type = input
+	return b
 }
 
 func (b *BaseStateBuilder) AddOnErrors() *OnErrorBuilder {
@@ -288,12 +303,14 @@ func (b *BaseStateBuilder) StateDataFilter() *StateDataFilterBuilder {
 	return b.statedatafilter
 }
 
-func (b *BaseStateBuilder) CompensatedBy(input string) {
+func (b *BaseStateBuilder) CompensatedBy(input string) *BaseStateBuilder {
 	b.model.CompensatedBy = input
+	return b
 }
 
-func (b *BaseStateBuilder) UsedForCompensation(input bool) {
+func (b *BaseStateBuilder) UsedForCompensation(input bool) *BaseStateBuilder {
 	b.model.UsedForCompensation = input
+	return b
 }
 
 func (b *BaseStateBuilder) End() *EndBuilder {
@@ -343,24 +360,29 @@ type BaseWorkflowBuilder struct {
 	auth            []*AuthBuilder
 }
 
-func (b *BaseWorkflowBuilder) ID(input string) {
+func (b *BaseWorkflowBuilder) ID(input string) *BaseWorkflowBuilder {
 	b.model.ID = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Key(input string) {
+func (b *BaseWorkflowBuilder) Key(input string) *BaseWorkflowBuilder {
 	b.model.Key = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Name(input string) {
+func (b *BaseWorkflowBuilder) Name(input string) *BaseWorkflowBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Description(input string) {
+func (b *BaseWorkflowBuilder) Description(input string) *BaseWorkflowBuilder {
 	b.model.Description = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Version(input string) {
+func (b *BaseWorkflowBuilder) Version(input string) *BaseWorkflowBuilder {
 	b.model.Version = input
+	return b
 }
 
 func (b *BaseWorkflowBuilder) Start() *StartBuilder {
@@ -370,8 +392,9 @@ func (b *BaseWorkflowBuilder) Start() *StartBuilder {
 	return b.start
 }
 
-func (b *BaseWorkflowBuilder) Annotations(input []string) {
+func (b *BaseWorkflowBuilder) Annotations(input []string) *BaseWorkflowBuilder {
 	b.model.Annotations = input
+	return b
 }
 
 func (b *BaseWorkflowBuilder) DataInputSchema() *DataInputSchemaBuilder {
@@ -381,12 +404,14 @@ func (b *BaseWorkflowBuilder) DataInputSchema() *DataInputSchemaBuilder {
 	return b.datainputschema
 }
 
-func (b *BaseWorkflowBuilder) SpecVersion(input string) {
+func (b *BaseWorkflowBuilder) SpecVersion(input string) *BaseWorkflowBuilder {
 	b.model.SpecVersion = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Secrets(input Secrets) {
+func (b *BaseWorkflowBuilder) Secrets(input Secrets) *BaseWorkflowBuilder {
 	b.model.Secrets = input
+	return b
 }
 
 func (b *BaseWorkflowBuilder) Constants() *ConstantsBuilder {
@@ -396,8 +421,9 @@ func (b *BaseWorkflowBuilder) Constants() *ConstantsBuilder {
 	return b.constants
 }
 
-func (b *BaseWorkflowBuilder) ExpressionLang(input ExpressionLangType) {
+func (b *BaseWorkflowBuilder) ExpressionLang(input ExpressionLangType) *BaseWorkflowBuilder {
 	b.model.ExpressionLang = input
+	return b
 }
 
 func (b *BaseWorkflowBuilder) Timeouts() *TimeoutsBuilder {
@@ -421,16 +447,19 @@ func (b *BaseWorkflowBuilder) RemoveErrors(remove *ErrorBuilder) {
 		}
 	}
 }
-func (b *BaseWorkflowBuilder) KeepActive(input bool) {
+func (b *BaseWorkflowBuilder) KeepActive(input bool) *BaseWorkflowBuilder {
 	b.model.KeepActive = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) Metadata(input Metadata) {
+func (b *BaseWorkflowBuilder) Metadata(input Metadata) *BaseWorkflowBuilder {
 	b.model.Metadata = input
+	return b
 }
 
-func (b *BaseWorkflowBuilder) AutoRetries(input bool) {
+func (b *BaseWorkflowBuilder) AutoRetries(input bool) *BaseWorkflowBuilder {
 	b.model.AutoRetries = input
+	return b
 }
 
 func (b *BaseWorkflowBuilder) AddAuth() *AuthBuilder {
@@ -492,16 +521,19 @@ func (b *BasicAuthPropertiesBuilder) Common() *CommonBuilder {
 	return &b.CommonBuilder
 }
 
-func (b *BasicAuthPropertiesBuilder) Secret(input string) {
+func (b *BasicAuthPropertiesBuilder) Secret(input string) *BasicAuthPropertiesBuilder {
 	b.model.Secret = input
+	return b
 }
 
-func (b *BasicAuthPropertiesBuilder) Username(input string) {
+func (b *BasicAuthPropertiesBuilder) Username(input string) *BasicAuthPropertiesBuilder {
 	b.model.Username = input
+	return b
 }
 
-func (b *BasicAuthPropertiesBuilder) Password(input string) {
+func (b *BasicAuthPropertiesBuilder) Password(input string) *BasicAuthPropertiesBuilder {
 	b.model.Password = input
+	return b
 }
 
 func (b *BasicAuthPropertiesBuilder) Build() BasicAuthProperties {
@@ -526,12 +558,14 @@ func (b *BearerAuthPropertiesBuilder) Common() *CommonBuilder {
 	return &b.CommonBuilder
 }
 
-func (b *BearerAuthPropertiesBuilder) Secret(input string) {
+func (b *BearerAuthPropertiesBuilder) Secret(input string) *BearerAuthPropertiesBuilder {
 	b.model.Secret = input
+	return b
 }
 
-func (b *BearerAuthPropertiesBuilder) Token(input string) {
+func (b *BearerAuthPropertiesBuilder) Token(input string) *BearerAuthPropertiesBuilder {
 	b.model.Token = input
+	return b
 }
 
 func (b *BearerAuthPropertiesBuilder) Build() BearerAuthProperties {
@@ -553,8 +587,9 @@ type BranchBuilder struct {
 	timeouts *BranchTimeoutsBuilder
 }
 
-func (b *BranchBuilder) Name(input string) {
+func (b *BranchBuilder) Name(input string) *BranchBuilder {
 	b.model.Name = input
+	return b
 }
 
 func (b *BranchBuilder) AddActions() *ActionBuilder {
@@ -601,12 +636,14 @@ type BranchTimeoutsBuilder struct {
 	model BranchTimeouts
 }
 
-func (b *BranchTimeoutsBuilder) ActionExecTimeout(input string) {
+func (b *BranchTimeoutsBuilder) ActionExecTimeout(input string) *BranchTimeoutsBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
-func (b *BranchTimeoutsBuilder) BranchExecTimeout(input string) {
+func (b *BranchTimeoutsBuilder) BranchExecTimeout(input string) *BranchTimeoutsBuilder {
 	b.model.BranchExecTimeout = input
+	return b
 }
 
 func (b *BranchTimeoutsBuilder) Build() BranchTimeouts {
@@ -632,8 +669,9 @@ func (b *CallbackStateBuilder) Action() *ActionBuilder {
 	return b.action
 }
 
-func (b *CallbackStateBuilder) EventRef(input string) {
+func (b *CallbackStateBuilder) EventRef(input string) *CallbackStateBuilder {
 	b.model.EventRef = input
+	return b
 }
 
 func (b *CallbackStateBuilder) Timeouts() *CallbackStateTimeoutBuilder {
@@ -682,12 +720,14 @@ func (b *CallbackStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilde
 	return b.stateexectimeout
 }
 
-func (b *CallbackStateTimeoutBuilder) ActionExecTimeout(input string) {
+func (b *CallbackStateTimeoutBuilder) ActionExecTimeout(input string) *CallbackStateTimeoutBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
-func (b *CallbackStateTimeoutBuilder) EventTimeout(input string) {
+func (b *CallbackStateTimeoutBuilder) EventTimeout(input string) *CallbackStateTimeoutBuilder {
 	b.model.EventTimeout = input
+	return b
 }
 
 func (b *CallbackStateTimeoutBuilder) Build() CallbackStateTimeout {
@@ -709,8 +749,9 @@ type CommonBuilder struct {
 	model Common
 }
 
-func (b *CommonBuilder) Metadata(input Metadata) {
+func (b *CommonBuilder) Metadata(input Metadata) *CommonBuilder {
 	b.model.Metadata = input
+	return b
 }
 
 func (b *CommonBuilder) Build() Common {
@@ -728,8 +769,9 @@ type ConstantsBuilder struct {
 	model Constants
 }
 
-func (b *ConstantsBuilder) Data(input ConstantsData) {
+func (b *ConstantsBuilder) Data(input ConstantsData) *ConstantsBuilder {
 	b.model.Data = input
+	return b
 }
 
 func (b *ConstantsBuilder) Build() Constants {
@@ -766,12 +808,14 @@ type ContinueAsBuilder struct {
 	workflowexectimeout *WorkflowExecTimeoutBuilder
 }
 
-func (b *ContinueAsBuilder) WorkflowID(input string) {
+func (b *ContinueAsBuilder) WorkflowID(input string) *ContinueAsBuilder {
 	b.model.WorkflowID = input
+	return b
 }
 
-func (b *ContinueAsBuilder) Version(input string) {
+func (b *ContinueAsBuilder) Version(input string) *ContinueAsBuilder {
 	b.model.Version = input
+	return b
 }
 
 func (b *ContinueAsBuilder) Data() *ObjectBuilder {
@@ -799,12 +843,14 @@ type CorrelationBuilder struct {
 	model Correlation
 }
 
-func (b *CorrelationBuilder) ContextAttributeName(input string) {
+func (b *CorrelationBuilder) ContextAttributeName(input string) *CorrelationBuilder {
 	b.model.ContextAttributeName = input
+	return b
 }
 
-func (b *CorrelationBuilder) ContextAttributeValue(input string) {
+func (b *CorrelationBuilder) ContextAttributeValue(input string) *CorrelationBuilder {
 	b.model.ContextAttributeValue = input
+	return b
 }
 
 func (b *CorrelationBuilder) Build() Correlation {
@@ -822,12 +868,14 @@ type CronBuilder struct {
 	model Cron
 }
 
-func (b *CronBuilder) Expression(input string) {
+func (b *CronBuilder) Expression(input string) *CronBuilder {
 	b.model.Expression = input
+	return b
 }
 
-func (b *CronBuilder) ValidUntil(input string) {
+func (b *CronBuilder) ValidUntil(input string) *CronBuilder {
 	b.model.ValidUntil = input
+	return b
 }
 
 func (b *CronBuilder) Build() Cron {
@@ -847,16 +895,19 @@ type DataConditionBuilder struct {
 	transition *TransitionBuilder
 }
 
-func (b *DataConditionBuilder) Name(input string) {
+func (b *DataConditionBuilder) Name(input string) *DataConditionBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *DataConditionBuilder) Condition(input string) {
+func (b *DataConditionBuilder) Condition(input string) *DataConditionBuilder {
 	b.model.Condition = input
+	return b
 }
 
-func (b *DataConditionBuilder) Metadata(input Metadata) {
+func (b *DataConditionBuilder) Metadata(input Metadata) *DataConditionBuilder {
 	b.model.Metadata = input
+	return b
 }
 
 func (b *DataConditionBuilder) End() *EndBuilder {
@@ -897,12 +948,14 @@ type DataInputSchemaBuilder struct {
 	model DataInputSchema
 }
 
-func (b *DataInputSchemaBuilder) Schema(input string) {
+func (b *DataInputSchemaBuilder) Schema(input string) *DataInputSchemaBuilder {
 	b.model.Schema = input
+	return b
 }
 
-func (b *DataInputSchemaBuilder) FailOnValidationErrors(input bool) {
+func (b *DataInputSchemaBuilder) FailOnValidationErrors(input bool) *DataInputSchemaBuilder {
 	b.model.FailOnValidationErrors = input
+	return b
 }
 
 func (b *DataInputSchemaBuilder) Build() DataInputSchema {
@@ -959,8 +1012,9 @@ type DelayStateBuilder struct {
 	model DelayState
 }
 
-func (b *DelayStateBuilder) TimeDelay(input string) {
+func (b *DelayStateBuilder) TimeDelay(input string) *DelayStateBuilder {
 	b.model.TimeDelay = input
+	return b
 }
 
 func (b *DelayStateBuilder) Build() DelayState {
@@ -981,8 +1035,9 @@ type EndBuilder struct {
 	continueas    *ContinueAsBuilder
 }
 
-func (b *EndBuilder) Terminate(input bool) {
+func (b *EndBuilder) Terminate(input bool) *EndBuilder {
 	b.model.Terminate = input
+	return b
 }
 
 func (b *EndBuilder) AddProduceEvents() *ProduceEventBuilder {
@@ -999,8 +1054,9 @@ func (b *EndBuilder) RemoveProduceEvents(remove *ProduceEventBuilder) {
 		}
 	}
 }
-func (b *EndBuilder) Compensate(input bool) {
+func (b *EndBuilder) Compensate(input bool) *EndBuilder {
 	b.model.Compensate = input
+	return b
 }
 
 func (b *EndBuilder) ContinueAs() *ContinueAsBuilder {
@@ -1033,16 +1089,19 @@ type ErrorBuilder struct {
 	model Error
 }
 
-func (b *ErrorBuilder) Name(input string) {
+func (b *ErrorBuilder) Name(input string) *ErrorBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *ErrorBuilder) Code(input string) {
+func (b *ErrorBuilder) Code(input string) *ErrorBuilder {
 	b.model.Code = input
+	return b
 }
 
-func (b *ErrorBuilder) Description(input string) {
+func (b *ErrorBuilder) Description(input string) *ErrorBuilder {
 	b.model.Description = input
+	return b
 }
 
 func (b *ErrorBuilder) Build() Error {
@@ -1084,24 +1143,29 @@ func (b *EventBuilder) Common() *CommonBuilder {
 	return &b.CommonBuilder
 }
 
-func (b *EventBuilder) Name(input string) {
+func (b *EventBuilder) Name(input string) *EventBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *EventBuilder) Source(input string) {
+func (b *EventBuilder) Source(input string) *EventBuilder {
 	b.model.Source = input
+	return b
 }
 
-func (b *EventBuilder) Type(input string) {
+func (b *EventBuilder) Type(input string) *EventBuilder {
 	b.model.Type = input
+	return b
 }
 
-func (b *EventBuilder) Kind(input EventKind) {
+func (b *EventBuilder) Kind(input EventKind) *EventBuilder {
 	b.model.Kind = input
+	return b
 }
 
-func (b *EventBuilder) DataOnly(input bool) {
+func (b *EventBuilder) DataOnly(input bool) *EventBuilder {
 	b.model.DataOnly = input
+	return b
 }
 
 func (b *EventBuilder) AddCorrelation() *CorrelationBuilder {
@@ -1141,12 +1205,14 @@ type EventConditionBuilder struct {
 	transition      *TransitionBuilder
 }
 
-func (b *EventConditionBuilder) Name(input string) {
+func (b *EventConditionBuilder) Name(input string) *EventConditionBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *EventConditionBuilder) EventRef(input string) {
+func (b *EventConditionBuilder) EventRef(input string) *EventConditionBuilder {
 	b.model.EventRef = input
+	return b
 }
 
 func (b *EventConditionBuilder) EventDataFilter() *EventDataFilterBuilder {
@@ -1156,8 +1222,9 @@ func (b *EventConditionBuilder) EventDataFilter() *EventDataFilterBuilder {
 	return b.eventdatafilter
 }
 
-func (b *EventConditionBuilder) Metadata(input Metadata) {
+func (b *EventConditionBuilder) Metadata(input Metadata) *EventConditionBuilder {
 	b.model.Metadata = input
+	return b
 }
 
 func (b *EventConditionBuilder) End() *EndBuilder {
@@ -1217,16 +1284,19 @@ type EventDataFilterBuilder struct {
 	model EventDataFilter
 }
 
-func (b *EventDataFilterBuilder) UseData(input bool) {
+func (b *EventDataFilterBuilder) UseData(input bool) *EventDataFilterBuilder {
 	b.model.UseData = input
+	return b
 }
 
-func (b *EventDataFilterBuilder) Data(input string) {
+func (b *EventDataFilterBuilder) Data(input string) *EventDataFilterBuilder {
 	b.model.Data = input
+	return b
 }
 
-func (b *EventDataFilterBuilder) ToStateData(input string) {
+func (b *EventDataFilterBuilder) ToStateData(input string) *EventDataFilterBuilder {
 	b.model.ToStateData = input
+	return b
 }
 
 func (b *EventDataFilterBuilder) Build() EventDataFilter {
@@ -1246,16 +1316,19 @@ type EventRefBuilder struct {
 	data  *ObjectBuilder
 }
 
-func (b *EventRefBuilder) TriggerEventRef(input string) {
+func (b *EventRefBuilder) TriggerEventRef(input string) *EventRefBuilder {
 	b.model.TriggerEventRef = input
+	return b
 }
 
-func (b *EventRefBuilder) ResultEventRef(input string) {
+func (b *EventRefBuilder) ResultEventRef(input string) *EventRefBuilder {
 	b.model.ResultEventRef = input
+	return b
 }
 
-func (b *EventRefBuilder) ResultEventTimeout(input string) {
+func (b *EventRefBuilder) ResultEventTimeout(input string) *EventRefBuilder {
 	b.model.ResultEventTimeout = input
+	return b
 }
 
 func (b *EventRefBuilder) Data() *ObjectBuilder {
@@ -1265,12 +1338,14 @@ func (b *EventRefBuilder) Data() *ObjectBuilder {
 	return b.data
 }
 
-func (b *EventRefBuilder) ContextAttributes(input map[string]Object) {
+func (b *EventRefBuilder) ContextAttributes(input map[string]Object) *EventRefBuilder {
 	b.model.ContextAttributes = input
+	return b
 }
 
-func (b *EventRefBuilder) Invoke(input InvokeKind) {
+func (b *EventRefBuilder) Invoke(input InvokeKind) *EventRefBuilder {
 	b.model.Invoke = input
+	return b
 }
 
 func (b *EventRefBuilder) Build() EventRef {
@@ -1296,8 +1371,9 @@ type EventStateBuilder struct {
 	timeouts *EventStateTimeoutBuilder
 }
 
-func (b *EventStateBuilder) Exclusive(input bool) {
+func (b *EventStateBuilder) Exclusive(input bool) *EventStateBuilder {
 	b.model.Exclusive = input
+	return b
 }
 
 func (b *EventStateBuilder) AddOnEvents() *OnEventsBuilder {
@@ -1352,12 +1428,14 @@ func (b *EventStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
 	return b.stateexectimeout
 }
 
-func (b *EventStateTimeoutBuilder) ActionExecTimeout(input string) {
+func (b *EventStateTimeoutBuilder) ActionExecTimeout(input string) *EventStateTimeoutBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
-func (b *EventStateTimeoutBuilder) EventTimeout(input string) {
+func (b *EventStateTimeoutBuilder) EventTimeout(input string) *EventStateTimeoutBuilder {
 	b.model.EventTimeout = input
+	return b
 }
 
 func (b *EventStateTimeoutBuilder) Build() EventStateTimeout {
@@ -1398,20 +1476,24 @@ type ForEachStateBuilder struct {
 	timeouts *ForEachStateTimeoutBuilder
 }
 
-func (b *ForEachStateBuilder) InputCollection(input string) {
+func (b *ForEachStateBuilder) InputCollection(input string) *ForEachStateBuilder {
 	b.model.InputCollection = input
+	return b
 }
 
-func (b *ForEachStateBuilder) OutputCollection(input string) {
+func (b *ForEachStateBuilder) OutputCollection(input string) *ForEachStateBuilder {
 	b.model.OutputCollection = input
+	return b
 }
 
-func (b *ForEachStateBuilder) IterationParam(input string) {
+func (b *ForEachStateBuilder) IterationParam(input string) *ForEachStateBuilder {
 	b.model.IterationParam = input
+	return b
 }
 
-func (b *ForEachStateBuilder) BatchSize(input *intstr.IntOrString) {
+func (b *ForEachStateBuilder) BatchSize(input *intstr.IntOrString) *ForEachStateBuilder {
 	b.model.BatchSize = input
+	return b
 }
 
 func (b *ForEachStateBuilder) AddActions() *ActionBuilder {
@@ -1435,8 +1517,9 @@ func (b *ForEachStateBuilder) Timeouts() *ForEachStateTimeoutBuilder {
 	return b.timeouts
 }
 
-func (b *ForEachStateBuilder) Mode(input ForEachModeType) {
+func (b *ForEachStateBuilder) Mode(input ForEachModeType) *ForEachStateBuilder {
 	b.model.Mode = input
+	return b
 }
 
 func (b *ForEachStateBuilder) Build() ForEachState {
@@ -1470,8 +1553,9 @@ func (b *ForEachStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder
 	return b.stateexectimeout
 }
 
-func (b *ForEachStateTimeoutBuilder) ActionExecTimeout(input string) {
+func (b *ForEachStateTimeoutBuilder) ActionExecTimeout(input string) *ForEachStateTimeoutBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
 func (b *ForEachStateTimeoutBuilder) Build() ForEachStateTimeout {
@@ -1500,20 +1584,24 @@ func (b *FunctionBuilder) Common() *CommonBuilder {
 	return &b.CommonBuilder
 }
 
-func (b *FunctionBuilder) Name(input string) {
+func (b *FunctionBuilder) Name(input string) *FunctionBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *FunctionBuilder) Operation(input string) {
+func (b *FunctionBuilder) Operation(input string) *FunctionBuilder {
 	b.model.Operation = input
+	return b
 }
 
-func (b *FunctionBuilder) Type(input FunctionType) {
+func (b *FunctionBuilder) Type(input FunctionType) *FunctionBuilder {
 	b.model.Type = input
+	return b
 }
 
-func (b *FunctionBuilder) AuthRef(input string) {
+func (b *FunctionBuilder) AuthRef(input string) *FunctionBuilder {
 	b.model.AuthRef = input
+	return b
 }
 
 func (b *FunctionBuilder) Build() Function {
@@ -1533,20 +1621,24 @@ type FunctionRefBuilder struct {
 	model FunctionRef
 }
 
-func (b *FunctionRefBuilder) RefName(input string) {
+func (b *FunctionRefBuilder) RefName(input string) *FunctionRefBuilder {
 	b.model.RefName = input
+	return b
 }
 
-func (b *FunctionRefBuilder) Arguments(input map[string]Object) {
+func (b *FunctionRefBuilder) Arguments(input map[string]Object) *FunctionRefBuilder {
 	b.model.Arguments = input
+	return b
 }
 
-func (b *FunctionRefBuilder) SelectionSet(input string) {
+func (b *FunctionRefBuilder) SelectionSet(input string) *FunctionRefBuilder {
 	b.model.SelectionSet = input
+	return b
 }
 
-func (b *FunctionRefBuilder) Invoke(input InvokeKind) {
+func (b *FunctionRefBuilder) Invoke(input InvokeKind) *FunctionRefBuilder {
 	b.model.Invoke = input
+	return b
 }
 
 func (b *FunctionRefBuilder) Build() FunctionRef {
@@ -1580,8 +1672,9 @@ type InjectStateBuilder struct {
 	timeouts *InjectStateTimeoutBuilder
 }
 
-func (b *InjectStateBuilder) Data(input map[string]Object) {
+func (b *InjectStateBuilder) Data(input map[string]Object) *InjectStateBuilder {
 	b.model.Data = input
+	return b
 }
 
 func (b *InjectStateBuilder) Timeouts() *InjectStateTimeoutBuilder {
@@ -1658,52 +1751,64 @@ func (b *OAuth2AuthPropertiesBuilder) Common() *CommonBuilder {
 	return &b.CommonBuilder
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Secret(input string) {
+func (b *OAuth2AuthPropertiesBuilder) Secret(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.Secret = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Authority(input string) {
+func (b *OAuth2AuthPropertiesBuilder) Authority(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.Authority = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) GrantType(input GrantType) {
+func (b *OAuth2AuthPropertiesBuilder) GrantType(input GrantType) *OAuth2AuthPropertiesBuilder {
 	b.model.GrantType = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) ClientID(input string) {
+func (b *OAuth2AuthPropertiesBuilder) ClientID(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.ClientID = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) ClientSecret(input string) {
+func (b *OAuth2AuthPropertiesBuilder) ClientSecret(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.ClientSecret = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Scopes(input []string) {
+func (b *OAuth2AuthPropertiesBuilder) Scopes(input []string) *OAuth2AuthPropertiesBuilder {
 	b.model.Scopes = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Username(input string) {
+func (b *OAuth2AuthPropertiesBuilder) Username(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.Username = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Password(input string) {
+func (b *OAuth2AuthPropertiesBuilder) Password(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.Password = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) Audiences(input []string) {
+func (b *OAuth2AuthPropertiesBuilder) Audiences(input []string) *OAuth2AuthPropertiesBuilder {
 	b.model.Audiences = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) SubjectToken(input string) {
+func (b *OAuth2AuthPropertiesBuilder) SubjectToken(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.SubjectToken = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) RequestedSubject(input string) {
+func (b *OAuth2AuthPropertiesBuilder) RequestedSubject(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.RequestedSubject = input
+	return b
 }
 
-func (b *OAuth2AuthPropertiesBuilder) RequestedIssuer(input string) {
+func (b *OAuth2AuthPropertiesBuilder) RequestedIssuer(input string) *OAuth2AuthPropertiesBuilder {
 	b.model.RequestedIssuer = input
+	return b
 }
 
 func (b *OAuth2AuthPropertiesBuilder) Build() OAuth2AuthProperties {
@@ -1724,24 +1829,29 @@ type ObjectBuilder struct {
 	slicevalue []*ObjectBuilder
 }
 
-func (b *ObjectBuilder) Type(input Type) {
+func (b *ObjectBuilder) Type(input Type) *ObjectBuilder {
 	b.model.Type = input
+	return b
 }
 
-func (b *ObjectBuilder) StringValue(input string) {
+func (b *ObjectBuilder) StringValue(input string) *ObjectBuilder {
 	b.model.StringValue = input
+	return b
 }
 
-func (b *ObjectBuilder) IntValue(input int32) {
+func (b *ObjectBuilder) IntValue(input int32) *ObjectBuilder {
 	b.model.IntValue = input
+	return b
 }
 
-func (b *ObjectBuilder) FloatValue(input float64) {
+func (b *ObjectBuilder) FloatValue(input float64) *ObjectBuilder {
 	b.model.FloatValue = input
+	return b
 }
 
-func (b *ObjectBuilder) MapValue(input map[string]Object) {
+func (b *ObjectBuilder) MapValue(input map[string]Object) *ObjectBuilder {
 	b.model.MapValue = input
+	return b
 }
 
 func (b *ObjectBuilder) AddSliceValue() *ObjectBuilder {
@@ -1758,8 +1868,9 @@ func (b *ObjectBuilder) RemoveSliceValue(remove *ObjectBuilder) {
 		}
 	}
 }
-func (b *ObjectBuilder) BoolValue(input bool) {
+func (b *ObjectBuilder) BoolValue(input bool) *ObjectBuilder {
 	b.model.BoolValue = input
+	return b
 }
 
 func (b *ObjectBuilder) Build() Object {
@@ -1783,12 +1894,14 @@ type OnErrorBuilder struct {
 	end        *EndBuilder
 }
 
-func (b *OnErrorBuilder) ErrorRef(input string) {
+func (b *OnErrorBuilder) ErrorRef(input string) *OnErrorBuilder {
 	b.model.ErrorRef = input
+	return b
 }
 
-func (b *OnErrorBuilder) ErrorRefs(input []string) {
+func (b *OnErrorBuilder) ErrorRefs(input []string) *OnErrorBuilder {
 	b.model.ErrorRefs = input
+	return b
 }
 
 func (b *OnErrorBuilder) Transition() *TransitionBuilder {
@@ -1833,12 +1946,14 @@ type OnEventsBuilder struct {
 	eventdatafilter *EventDataFilterBuilder
 }
 
-func (b *OnEventsBuilder) EventRefs(input []string) {
+func (b *OnEventsBuilder) EventRefs(input []string) *OnEventsBuilder {
 	b.model.EventRefs = input
+	return b
 }
 
-func (b *OnEventsBuilder) ActionMode(input ActionMode) {
+func (b *OnEventsBuilder) ActionMode(input ActionMode) *OnEventsBuilder {
 	b.model.ActionMode = input
+	return b
 }
 
 func (b *OnEventsBuilder) AddActions() *ActionBuilder {
@@ -1883,8 +1998,9 @@ type OperationStateBuilder struct {
 	timeouts *OperationStateTimeoutBuilder
 }
 
-func (b *OperationStateBuilder) ActionMode(input ActionMode) {
+func (b *OperationStateBuilder) ActionMode(input ActionMode) *OperationStateBuilder {
 	b.model.ActionMode = input
+	return b
 }
 
 func (b *OperationStateBuilder) AddActions() *ActionBuilder {
@@ -1939,8 +2055,9 @@ func (b *OperationStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuild
 	return b.stateexectimeout
 }
 
-func (b *OperationStateTimeoutBuilder) ActionExecTimeout(input string) {
+func (b *OperationStateTimeoutBuilder) ActionExecTimeout(input string) *OperationStateTimeoutBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
 func (b *OperationStateTimeoutBuilder) Build() OperationStateTimeout {
@@ -1980,12 +2097,14 @@ func (b *ParallelStateBuilder) RemoveBranches(remove *BranchBuilder) {
 		}
 	}
 }
-func (b *ParallelStateBuilder) CompletionType(input CompletionType) {
+func (b *ParallelStateBuilder) CompletionType(input CompletionType) *ParallelStateBuilder {
 	b.model.CompletionType = input
+	return b
 }
 
-func (b *ParallelStateBuilder) NumCompleted(input intstr.IntOrString) {
+func (b *ParallelStateBuilder) NumCompleted(input intstr.IntOrString) *ParallelStateBuilder {
 	b.model.NumCompleted = input
+	return b
 }
 
 func (b *ParallelStateBuilder) Timeouts() *ParallelStateTimeoutBuilder {
@@ -2026,8 +2145,9 @@ func (b *ParallelStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilde
 	return b.stateexectimeout
 }
 
-func (b *ParallelStateTimeoutBuilder) BranchExecTimeout(input string) {
+func (b *ParallelStateTimeoutBuilder) BranchExecTimeout(input string) *ParallelStateTimeoutBuilder {
 	b.model.BranchExecTimeout = input
+	return b
 }
 
 func (b *ParallelStateTimeoutBuilder) Build() ParallelStateTimeout {
@@ -2051,16 +2171,18 @@ type ProduceEventBuilder struct {
 	data  *ObjectBuilder
 }
 
-func (b *ProduceEventBuilder) EventRef(input string) {
+func (b *ProduceEventBuilder) EventRef(input string) *ProduceEventBuilder {
 	b.model.EventRef = input
+	return b
 }
 
 func (b *ProduceEventBuilder) Data() *ObjectBuilder {
 	return b.data
 }
 
-func (b *ProduceEventBuilder) ContextAttributes(input map[string]string) {
+func (b *ProduceEventBuilder) ContextAttributes(input map[string]string) *ProduceEventBuilder {
 	b.model.ContextAttributes = input
+	return b
 }
 
 func (b *ProduceEventBuilder) Build() ProduceEvent {
@@ -2095,24 +2217,29 @@ type RetryBuilder struct {
 	model Retry
 }
 
-func (b *RetryBuilder) Name(input string) {
+func (b *RetryBuilder) Name(input string) *RetryBuilder {
 	b.model.Name = input
+	return b
 }
 
-func (b *RetryBuilder) Delay(input string) {
+func (b *RetryBuilder) Delay(input string) *RetryBuilder {
 	b.model.Delay = input
+	return b
 }
 
-func (b *RetryBuilder) MaxDelay(input string) {
+func (b *RetryBuilder) MaxDelay(input string) *RetryBuilder {
 	b.model.MaxDelay = input
+	return b
 }
 
-func (b *RetryBuilder) Increment(input string) {
+func (b *RetryBuilder) Increment(input string) *RetryBuilder {
 	b.model.Increment = input
+	return b
 }
 
-func (b *RetryBuilder) MaxAttempts(input intstr.IntOrString) {
+func (b *RetryBuilder) MaxAttempts(input intstr.IntOrString) *RetryBuilder {
 	b.model.MaxAttempts = input
+	return b
 }
 
 func (b *RetryBuilder) Build() Retry {
@@ -2131,8 +2258,9 @@ type ScheduleBuilder struct {
 	cron  *CronBuilder
 }
 
-func (b *ScheduleBuilder) Interval(input string) {
+func (b *ScheduleBuilder) Interval(input string) *ScheduleBuilder {
 	b.model.Interval = input
+	return b
 }
 
 func (b *ScheduleBuilder) Cron() *CronBuilder {
@@ -2142,8 +2270,9 @@ func (b *ScheduleBuilder) Cron() *CronBuilder {
 	return b.cron
 }
 
-func (b *ScheduleBuilder) Timezone(input string) {
+func (b *ScheduleBuilder) Timezone(input string) *ScheduleBuilder {
 	b.model.Timezone = input
+	return b
 }
 
 func (b *ScheduleBuilder) Build() Schedule {
@@ -2180,12 +2309,14 @@ type SleepBuilder struct {
 	model Sleep
 }
 
-func (b *SleepBuilder) Before(input string) {
+func (b *SleepBuilder) Before(input string) *SleepBuilder {
 	b.model.Before = input
+	return b
 }
 
-func (b *SleepBuilder) After(input string) {
+func (b *SleepBuilder) After(input string) *SleepBuilder {
 	b.model.After = input
+	return b
 }
 
 func (b *SleepBuilder) Build() Sleep {
@@ -2204,8 +2335,9 @@ type SleepStateBuilder struct {
 	timeouts *SleepStateTimeoutBuilder
 }
 
-func (b *SleepStateBuilder) Duration(input string) {
+func (b *SleepStateBuilder) Duration(input string) *SleepStateBuilder {
 	b.model.Duration = input
+	return b
 }
 
 func (b *SleepStateBuilder) Timeouts() *SleepStateTimeoutBuilder {
@@ -2262,8 +2394,9 @@ type StartBuilder struct {
 	schedule *ScheduleBuilder
 }
 
-func (b *StartBuilder) StateName(input string) {
+func (b *StartBuilder) StateName(input string) *StartBuilder {
 	b.model.StateName = input
+	return b
 }
 
 func (b *StartBuilder) Schedule() *ScheduleBuilder {
@@ -2303,11 +2436,41 @@ type StateBuilder struct {
 	*SleepStateBuilder
 }
 
+func (b *StateBuilder) ID(input string) *StateBuilder {
+	b.BaseStateBuilder.ID(input)
+	return b
+}
+
+func (b *StateBuilder) Name(input string) *StateBuilder {
+	b.BaseStateBuilder.Name(input)
+	return b
+}
+
+func (b *StateBuilder) Type(input StateType) *StateBuilder {
+	b.BaseStateBuilder.Type(input)
+	return b
+}
+
+func (b *StateBuilder) CompensatedBy(input string) *StateBuilder {
+	b.BaseStateBuilder.CompensatedBy(input)
+	return b
+}
+
+func (b *StateBuilder) UsedForCompensation(input bool) *StateBuilder {
+	b.BaseStateBuilder.UsedForCompensation(input)
+	return b
+}
+
 func (b *StateBuilder) DelayState() *DelayStateBuilder {
 	if b.DelayStateBuilder == nil {
 		b.DelayStateBuilder = NewDelayStateBuilder()
 	}
 	return b.DelayStateBuilder
+}
+
+func (b *StateBuilder) TimeDelay(input string) *StateBuilder {
+	b.DelayStateBuilder.TimeDelay(input)
+	return b
 }
 
 func (b *StateBuilder) EventState() *EventStateBuilder {
@@ -2317,6 +2480,11 @@ func (b *StateBuilder) EventState() *EventStateBuilder {
 	return b.EventStateBuilder
 }
 
+func (b *StateBuilder) Exclusive(input bool) *StateBuilder {
+	b.EventStateBuilder.Exclusive(input)
+	return b
+}
+
 func (b *StateBuilder) OperationState() *OperationStateBuilder {
 	if b.OperationStateBuilder == nil {
 		b.OperationStateBuilder = NewOperationStateBuilder()
@@ -2324,11 +2492,21 @@ func (b *StateBuilder) OperationState() *OperationStateBuilder {
 	return b.OperationStateBuilder
 }
 
+func (b *StateBuilder) ActionMode(input ActionMode) *StateBuilder {
+	b.OperationStateBuilder.ActionMode(input)
+	return b
+}
+
 func (b *StateBuilder) ParallelState() *ParallelStateBuilder {
 	if b.ParallelStateBuilder == nil {
 		b.ParallelStateBuilder = NewParallelStateBuilder()
 	}
 	return b.ParallelStateBuilder
+}
+
+func (b *StateBuilder) CompletionType(input CompletionType) *StateBuilder {
+	b.ParallelStateBuilder.CompletionType(input)
+	return b
 }
 
 func (b *StateBuilder) SwitchState() *SwitchStateBuilder {
@@ -2345,6 +2523,26 @@ func (b *StateBuilder) ForEachState() *ForEachStateBuilder {
 	return b.ForEachStateBuilder
 }
 
+func (b *StateBuilder) InputCollection(input string) *StateBuilder {
+	b.ForEachStateBuilder.InputCollection(input)
+	return b
+}
+
+func (b *StateBuilder) OutputCollection(input string) *StateBuilder {
+	b.ForEachStateBuilder.OutputCollection(input)
+	return b
+}
+
+func (b *StateBuilder) IterationParam(input string) *StateBuilder {
+	b.ForEachStateBuilder.IterationParam(input)
+	return b
+}
+
+func (b *StateBuilder) Mode(input ForEachModeType) *StateBuilder {
+	b.ForEachStateBuilder.Mode(input)
+	return b
+}
+
 func (b *StateBuilder) InjectState() *InjectStateBuilder {
 	if b.InjectStateBuilder == nil {
 		b.InjectStateBuilder = NewInjectStateBuilder()
@@ -2359,11 +2557,21 @@ func (b *StateBuilder) CallbackState() *CallbackStateBuilder {
 	return b.CallbackStateBuilder
 }
 
+func (b *StateBuilder) EventRef(input string) *StateBuilder {
+	b.CallbackStateBuilder.EventRef(input)
+	return b
+}
+
 func (b *StateBuilder) SleepState() *SleepStateBuilder {
 	if b.SleepStateBuilder == nil {
 		b.SleepStateBuilder = NewSleepStateBuilder()
 	}
 	return b.SleepStateBuilder
+}
+
+func (b *StateBuilder) Duration(input string) *StateBuilder {
+	b.SleepStateBuilder.Duration(input)
+	return b
 }
 
 func (b *StateBuilder) Build() State {
@@ -2418,12 +2626,14 @@ type StateDataFilterBuilder struct {
 	model StateDataFilter
 }
 
-func (b *StateDataFilterBuilder) Input(input string) {
+func (b *StateDataFilterBuilder) Input(input string) *StateDataFilterBuilder {
 	b.model.Input = input
+	return b
 }
 
-func (b *StateDataFilterBuilder) Output(input string) {
+func (b *StateDataFilterBuilder) Output(input string) *StateDataFilterBuilder {
 	b.model.Output = input
+	return b
 }
 
 func (b *StateDataFilterBuilder) Build() StateDataFilter {
@@ -2441,12 +2651,14 @@ type StateExecTimeoutBuilder struct {
 	model StateExecTimeout
 }
 
-func (b *StateExecTimeoutBuilder) Single(input string) {
+func (b *StateExecTimeoutBuilder) Single(input string) *StateExecTimeoutBuilder {
 	b.model.Single = input
+	return b
 }
 
-func (b *StateExecTimeoutBuilder) Total(input string) {
+func (b *StateExecTimeoutBuilder) Total(input string) *StateExecTimeoutBuilder {
 	b.model.Total = input
+	return b
 }
 
 func (b *StateExecTimeoutBuilder) Build() StateExecTimeout {
@@ -2561,8 +2773,9 @@ func (b *SwitchStateTimeoutBuilder) StateExecTimeout() *StateExecTimeoutBuilder 
 	return b.stateexectimeout
 }
 
-func (b *SwitchStateTimeoutBuilder) EventTimeout(input string) {
+func (b *SwitchStateTimeoutBuilder) EventTimeout(input string) *SwitchStateTimeoutBuilder {
 	b.model.EventTimeout = input
+	return b
 }
 
 func (b *SwitchStateTimeoutBuilder) Build() SwitchStateTimeout {
@@ -2600,16 +2813,19 @@ func (b *TimeoutsBuilder) StateExecTimeout() *StateExecTimeoutBuilder {
 	return b.stateexectimeout
 }
 
-func (b *TimeoutsBuilder) ActionExecTimeout(input string) {
+func (b *TimeoutsBuilder) ActionExecTimeout(input string) *TimeoutsBuilder {
 	b.model.ActionExecTimeout = input
+	return b
 }
 
-func (b *TimeoutsBuilder) BranchExecTimeout(input string) {
+func (b *TimeoutsBuilder) BranchExecTimeout(input string) *TimeoutsBuilder {
 	b.model.BranchExecTimeout = input
+	return b
 }
 
-func (b *TimeoutsBuilder) EventTimeout(input string) {
+func (b *TimeoutsBuilder) EventTimeout(input string) *TimeoutsBuilder {
 	b.model.EventTimeout = input
+	return b
 }
 
 func (b *TimeoutsBuilder) Build() Timeouts {
@@ -2645,8 +2861,9 @@ func (b *TransitionBuilder) stateParent() *StateBuilder {
 	return b.stateparent
 }
 
-func (b *TransitionBuilder) NextState(input string) {
+func (b *TransitionBuilder) NextState(input string) *TransitionBuilder {
 	b.model.NextState = input
+	return b
 }
 
 func (b *TransitionBuilder) AddProduceEvents() *ProduceEventBuilder {
@@ -2663,8 +2880,9 @@ func (b *TransitionBuilder) RemoveProduceEvents(remove *ProduceEventBuilder) {
 		}
 	}
 }
-func (b *TransitionBuilder) Compensate(input bool) {
+func (b *TransitionBuilder) Compensate(input bool) *TransitionBuilder {
 	b.model.Compensate = input
+	return b
 }
 
 func (b *TransitionBuilder) Build() Transition {
@@ -2698,6 +2916,51 @@ type WorkflowBuilder struct {
 	events    []*EventBuilder
 	functions []*FunctionBuilder
 	retries   []*RetryBuilder
+}
+
+func (b *WorkflowBuilder) ID(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.ID(input)
+	return b
+}
+
+func (b *WorkflowBuilder) Key(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.Key(input)
+	return b
+}
+
+func (b *WorkflowBuilder) Name(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.Name(input)
+	return b
+}
+
+func (b *WorkflowBuilder) Description(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.Description(input)
+	return b
+}
+
+func (b *WorkflowBuilder) Version(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.Version(input)
+	return b
+}
+
+func (b *WorkflowBuilder) SpecVersion(input string) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.SpecVersion(input)
+	return b
+}
+
+func (b *WorkflowBuilder) ExpressionLang(input ExpressionLangType) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.ExpressionLang(input)
+	return b
+}
+
+func (b *WorkflowBuilder) KeepActive(input bool) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.KeepActive(input)
+	return b
+}
+
+func (b *WorkflowBuilder) AutoRetries(input bool) *WorkflowBuilder {
+	b.BaseWorkflowBuilder.AutoRetries(input)
+	return b
 }
 
 func (b *WorkflowBuilder) AddStates() *StateBuilder {
@@ -2789,16 +3052,19 @@ type WorkflowExecTimeoutBuilder struct {
 	model WorkflowExecTimeout
 }
 
-func (b *WorkflowExecTimeoutBuilder) Duration(input string) {
+func (b *WorkflowExecTimeoutBuilder) Duration(input string) *WorkflowExecTimeoutBuilder {
 	b.model.Duration = input
+	return b
 }
 
-func (b *WorkflowExecTimeoutBuilder) Interrupt(input bool) {
+func (b *WorkflowExecTimeoutBuilder) Interrupt(input bool) *WorkflowExecTimeoutBuilder {
 	b.model.Interrupt = input
+	return b
 }
 
-func (b *WorkflowExecTimeoutBuilder) RunBefore(input string) {
+func (b *WorkflowExecTimeoutBuilder) RunBefore(input string) *WorkflowExecTimeoutBuilder {
 	b.model.RunBefore = input
+	return b
 }
 
 func (b *WorkflowExecTimeoutBuilder) Build() WorkflowExecTimeout {
@@ -2817,20 +3083,24 @@ type WorkflowRefBuilder struct {
 	model WorkflowRef
 }
 
-func (b *WorkflowRefBuilder) WorkflowID(input string) {
+func (b *WorkflowRefBuilder) WorkflowID(input string) *WorkflowRefBuilder {
 	b.model.WorkflowID = input
+	return b
 }
 
-func (b *WorkflowRefBuilder) Version(input string) {
+func (b *WorkflowRefBuilder) Version(input string) *WorkflowRefBuilder {
 	b.model.Version = input
+	return b
 }
 
-func (b *WorkflowRefBuilder) Invoke(input InvokeKind) {
+func (b *WorkflowRefBuilder) Invoke(input InvokeKind) *WorkflowRefBuilder {
 	b.model.Invoke = input
+	return b
 }
 
-func (b *WorkflowRefBuilder) OnParentComplete(input OnParentCompleteType) {
+func (b *WorkflowRefBuilder) OnParentComplete(input OnParentCompleteType) *WorkflowRefBuilder {
 	b.model.OnParentComplete = input
+	return b
 }
 
 func (b *WorkflowRefBuilder) Build() WorkflowRef {

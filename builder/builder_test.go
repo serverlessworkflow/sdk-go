@@ -22,28 +22,18 @@ import (
 )
 
 func prepareBuilder() *model.WorkflowBuilder {
-	builder := New()
-	builder.Key("key test")
-	builder.ID("id test")
+	builder := New().Key("key test").ID("id test")
 
-	function := builder.AddFunctions()
-	function.Name("function name")
-	function.Operation("http://test")
+	builder.AddFunctions().Name("function name").Operation("http://test")
+	builder.AddFunctions().Name("function name2").Operation("http://test")
 
-	function2 := builder.AddFunctions()
-	function2.Name("function name2")
-	function2.Operation("http://test")
-
-	function3 := builder.AddFunctions()
-	function3.Name("function name2")
-	function3.Operation("http://test")
+	function3 := builder.AddFunctions().Name("function name2").Operation("http://test")
 	builder.RemoveFunctions(function3)
 
-	state1 := builder.AddStates()
-	state1.Name("state")
-	state1.Type(model.StateTypeInject)
-	end := state1.End()
-	end.Terminate(true)
+	state1 := builder.AddStates().
+		Name("state").
+		Type(model.StateTypeInject)
+	state1.End().Terminate(true)
 
 	inject := state1.InjectState()
 	inject.Data(map[string]model.Object{

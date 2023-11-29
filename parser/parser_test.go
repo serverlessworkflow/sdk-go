@@ -16,6 +16,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -583,7 +584,20 @@ func TestFromFile(t *testing.T) {
 			"./testdata/workflows/dataInputSchemaValidation.yaml", func(t *testing.T, w *model.Workflow) {
 				assert.NotNil(t, w.DataInputSchema)
 
-				assert.Equal(t, "sample schema", w.DataInputSchema.Schema)
+				assert.Equal(t, model.FromString("sample schema"), w.DataInputSchema.Schema)
+				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
+			},
+		}, {
+			"./testdata/workflows/dataInputSchemaObject.json", func(t *testing.T, w *model.Workflow) {
+				assert.NotNil(t, w.DataInputSchema)
+				expected := model.Object{}
+				err := json.Unmarshal([]byte("{\"title\": \"Hello World Schema\", \"properties\": {\"person\": "+
+					"{\"type\": \"object\",\"properties\": {\"name\": {\"type\": \"string\"}},\"required\": "+
+					"[\"name\"]}}, \"required\": [\"person\"]}"),
+					&expected)
+				fmt.Printf("err: %s\n", err)
+				fmt.Printf("schema: %+v\n", expected)
+				assert.Equal(t, expected, w.DataInputSchema.Schema)
 				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
 			},
 		},

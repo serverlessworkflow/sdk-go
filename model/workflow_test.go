@@ -508,7 +508,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: "string success",
 			data: `"schema name"`,
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 FromString("schema name"),
 				FailOnValidationErrors: true,
 			},
 			err: ``,
@@ -517,7 +517,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: `object success`,
 			data: `{"schema": "schema name"}`,
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 FromString("schema name"),
 				FailOnValidationErrors: true,
 			},
 			err: ``,
@@ -526,7 +526,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: `object fail`,
 			data: `{"schema": "schema name}`,
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 FromString("schema name"),
 				FailOnValidationErrors: true,
 			},
 			err: `unexpected end of JSON input`,

@@ -496,6 +496,9 @@ func TestTransitionUnmarshalJSON(t *testing.T) {
 }
 
 func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
+
+	schemaName := FromString("schema name")
+
 	type testCase struct {
 		desp   string
 		data   string
@@ -508,7 +511,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: "string success",
 			data: `"schema name"`,
 			expect: DataInputSchema{
-				Schema:                 FromString("schema name"),
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: ``,
@@ -517,7 +520,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: `object success`,
 			data: `{"schema": "schema name"}`,
 			expect: DataInputSchema{
-				Schema:                 FromString("schema name"),
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: ``,
@@ -526,7 +529,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			desp: `object fail`,
 			data: `{"schema": "schema name}`,
 			expect: DataInputSchema{
-				Schema:                 FromString("schema name"),
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: `unexpected end of JSON input`,

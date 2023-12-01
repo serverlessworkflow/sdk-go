@@ -425,26 +425,28 @@ func TestDataInputSchemaStructLevelValidation(t *testing.T) {
 	action1 := buildActionByOperationState(operationState, "action 1")
 	buildFunctionRef(baseWorkflow, action1, "function 1")
 
+	sampleSchema := FromString("sample schema")
+
 	testCases := []ValidationCase{
 		// TODO Empty DataInoputSchema will have this instead nil:
 		// 	&{Schema:{Type:0 StringValue: IntValue:0 FloatValue:0 MapValue:map[] SliceValue:[] BoolValue:false}
 		// We can, make Schema pointer, or, find a way to make all fields from Object as pointer.
 		// Using Schema: FromNull does have the same effect than just not set it.
-		//{
-		//	Desp: "empty DataInputSchema",
-		//	Model: func() Workflow {
-		//		model := baseWorkflow.DeepCopy()
-		//		model.DataInputSchema = &DataInputSchema{}
-		//		return *model
-		//	},
-		//	Err: `workflow.dataInputSchema.schema is required`,
-		//},
+		{
+			Desp: "empty DataInputSchema",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.DataInputSchema = &DataInputSchema{}
+				return *model
+			},
+			Err: `workflow.dataInputSchema.schema is required`,
+		},
 		{
 			Desp: "filled Schema, default failOnValidationErrors",
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.DataInputSchema = &DataInputSchema{
-					Schema: FromString("sample schema"),
+					Schema: &sampleSchema,
 				}
 				return *model
 			},

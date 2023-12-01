@@ -507,7 +507,7 @@ type StateDataFilter struct {
 // DataInputSchema Used to validate the workflow data input against a defined JSON Schema
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
-	Schema Object `json:"schema" validate:"required"`
+	Schema *Object `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
 	FailOnValidationErrors bool `json:"failOnValidationErrors"`
 }
@@ -519,7 +519,8 @@ func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
 	if data[0] == '"' && len(data) > 0 {
 		replaced := bytes.Replace(data, []byte(`"`), []byte(``), -1)
-		d.Schema = FromString(string(replaced))
+		repp := FromString(string(replaced))
+		d.Schema = &repp
 	} else {
 		return util.UnmarshalObject("dataInputSchema", data, (*dataInputSchemaUnmarshal)(d))
 	}

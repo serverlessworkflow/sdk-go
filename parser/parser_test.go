@@ -583,8 +583,8 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/dataInputSchemaValidation.yaml", func(t *testing.T, w *model.Workflow) {
 				assert.NotNil(t, w.DataInputSchema)
-
-				assert.Equal(t, model.FromString("sample schema"), w.DataInputSchema.Schema)
+				expected := model.FromString("sample schema")
+				assert.Equal(t, &expected, w.DataInputSchema.Schema)
 				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
 			},
 		}, {
@@ -597,7 +597,7 @@ func TestFromFile(t *testing.T) {
 					&expected)
 				fmt.Printf("err: %s\n", err)
 				fmt.Printf("schema: %+v\n", expected)
-				assert.Equal(t, expected, w.DataInputSchema.Schema)
+				assert.Equal(t, &expected, w.DataInputSchema.Schema)
 				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
 			},
 		},

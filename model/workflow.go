@@ -15,6 +15,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util"
@@ -222,6 +223,7 @@ func (w *Workflow) ApplyDefault() {
 	w.ExpressionLang = JqExpressionLang
 }
 
+// States ...
 // +kubebuilder:validation:MinItems=1
 type States []State
 
@@ -505,7 +507,7 @@ type StateDataFilter struct {
 // DataInputSchema Used to validate the workflow data input against a defined JSON Schema
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
-	Schema string `json:"schema" validate:"required"`
+	Schema *Object `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
 	FailOnValidationErrors bool `json:"failOnValidationErrors"`
 }
@@ -515,7 +517,14 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	return util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
+	if data[0] == '"' && len(data) > 0 {
+		replaced := bytes.Replace(data, []byte(`"`), []byte(``), -1)
+		repp := FromString(string(replaced))
+		d.Schema = &repp
+	} else {
+		return util.UnmarshalObject("dataInputSchema", data, (*dataInputSchemaUnmarshal)(d))
+	}
+	return nil
 }
 
 // ApplyDefault set the default values for Data Input Schema

@@ -428,10 +428,6 @@ func TestDataInputSchemaStructLevelValidation(t *testing.T) {
 	sampleSchema := FromString("sample schema")
 
 	testCases := []ValidationCase{
-		// TODO Empty DataInoputSchema will have this instead nil:
-		// 	&{Schema:{Type:0 StringValue: IntValue:0 FloatValue:0 MapValue:map[] SliceValue:[] BoolValue:false}
-		// We can, make Schema pointer, or, find a way to make all fields from Object as pointer.
-		// Using Schema: FromNull does have the same effect than just not set it.
 		{
 			Desp: "empty DataInputSchema",
 			Model: func() Workflow {

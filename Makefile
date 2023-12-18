@@ -14,13 +14,16 @@ lint:
 
 .PHONY: test
 coverage="false"
-test: deepcopy
+test: deepcopy buildergen
 	make lint
 	@go test ./...
 
-.PHONY: deepcopy
+.PHONY: deepcopy buildergen
 deepcopy: $(DEEPCOPY_GEN) ## Download deepcopy-gen locally if necessary.
 	./hack/deepcopy-gen.sh deepcopy
+
+buildergen: $(BUILDER_GEN) ## Download builder-gen locally if necessary.
+	./hack/builder-gen.sh buildergen
 
 .PHONY: kube-integration
 kube-integration: controller-gen

@@ -44,6 +44,7 @@ const (
 )
 
 // ForEachState used to execute actions for each element of a data set.
+// +builder-gen:new-call=ApplyDefault
 type ForEachState struct {
 	// Workflow expression selecting an array element of the states' data.
 	// +kubebuilder:validation:Required

@@ -59,6 +59,7 @@ func (i FunctionType) String() string {
 }
 
 // Function ...
+// +builder-gen:new-call=ApplyDefault
 type Function struct {
 	Common `json:",inline"`
 	// Unique function name

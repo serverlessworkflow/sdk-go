@@ -38,6 +38,7 @@ func ValidationWrap(fnCtx WorkflowValidator) validator.StructLevelFuncCtx {
 	}
 }
 
+// +builder-gen:ignore=true
 type ValidatorContext struct {
 	States    map[string]State
 	Functions map[string]Function

@@ -52,6 +52,7 @@ func TestWorkflowStartUnmarshalJSON(t *testing.T) {
 			data: `{"states": [{"name": "start state name", "type": "operation"}]}`,
 			expect: Workflow{
 				BaseWorkflow: BaseWorkflow{
+					SpecVersion:    "0.8",
 					ExpressionLang: "jq",
 					Start: &Start{
 						StateName: "start state name",
@@ -72,10 +73,11 @@ func TestWorkflowStartUnmarshalJSON(t *testing.T) {
 			err: ``,
 		},
 		{
-			desp: "start empty, and states empty",
+			desp: "start empty and states empty",
 			data: `{"states": []}`,
 			expect: Workflow{
 				BaseWorkflow: BaseWorkflow{
+					SpecVersion:    "0.8",
 					ExpressionLang: "jq",
 				},
 				States: []State{},

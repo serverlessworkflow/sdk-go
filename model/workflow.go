@@ -96,6 +96,7 @@ const (
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
+// +builder-gen:new-call=ApplyDefault
 type BaseWorkflow struct {
 	// Workflow unique identifier
 	// +optional
@@ -167,6 +168,12 @@ type BaseWorkflow struct {
 	Auth Auths `json:"auth,omitempty" validate:"unique=Name,dive"`
 }
 
+// ApplyDefault set the default values for Workflow
+func (w *BaseWorkflow) ApplyDefault() {
+	w.SpecVersion = "0.8"
+	w.ExpressionLang = JqExpressionLang
+}
+
 type Auths []Auth
 
 type authsUnmarshal Auths
@@ -186,6 +193,7 @@ func (e *Errors) UnmarshalJSON(data []byte) error {
 }
 
 // Workflow base definition
+// +builder-gen:embedded-ignore-method=BaseWorkflow
 type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:pruning:PreserveUnknownFields
@@ -215,11 +223,6 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-// ApplyDefault set the default values for Workflow
-func (w *Workflow) ApplyDefault() {
-	w.ExpressionLang = JqExpressionLang
 }
 
 // +kubebuilder:validation:MinItems=1
@@ -288,6 +291,7 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 
 // WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
 // format. If not defined, the workflow execution should be given "unlimited" amount of time to complete.
+// +builder-gen:new-call=ApplyDefault
 type WorkflowExecTimeout struct {
 	// Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'.
 	// +kubebuilder:default=unlimited
@@ -503,6 +507,7 @@ type StateDataFilter struct {
 }
 
 // DataInputSchema Used to validate the workflow data input against a defined JSON Schema
+// +builder-gen:new-call=ApplyDefault
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
 	Schema string `json:"schema" validate:"required"`

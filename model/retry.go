@@ -22,6 +22,7 @@ import (
 )
 
 // Retry ...
+// +builder-gen:new-call=ApplyDefault
 type Retry struct {
 	// Unique retry strategy name
 	// +kubebuilder:validation:Required

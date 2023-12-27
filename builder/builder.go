@@ -27,13 +27,12 @@ func New() *model.WorkflowBuilder {
 	return model.NewWorkflowBuilder()
 }
 
-func Object(builder *model.WorkflowBuilder) (*model.Workflow, error) {
-	workflow := builder.Build()
-	ctx := model.NewValidatorContext(&workflow)
-	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
+func Yaml(builder *model.WorkflowBuilder) ([]byte, error) {
+	data, err := Json(builder)
+	if err != nil {
 		return nil, err
 	}
-	return &workflow, nil
+	return yaml.JSONToYAML(data)
 }
 
 func Json(builder *model.WorkflowBuilder) ([]byte, error) {
@@ -44,10 +43,19 @@ func Json(builder *model.WorkflowBuilder) ([]byte, error) {
 	return json.Marshal(workflow)
 }
 
-func Yaml(builder *model.WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
+func Object(builder *model.WorkflowBuilder) (*model.Workflow, error) {
+	workflow := builder.Build()
+	ctx := model.NewValidatorContext(&workflow)
+	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
 		return nil, err
 	}
-	return yaml.JSONToYAML(data)
+	return &workflow, nil
+}
+
+func Validate(object interface{}) error {
+	ctx := model.NewValidatorContext(object)
+	if err := val.GetValidator().StructCtx(ctx, object); err != nil {
+		return val.WorkflowError(err)
+	}
+	return nil
 }

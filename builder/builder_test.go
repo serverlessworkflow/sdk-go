@@ -17,8 +17,10 @@ package builder
 import (
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/serverlessworkflow/sdk-go/v2/model"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 func prepareBuilder() *model.WorkflowBuilder {
@@ -41,6 +43,23 @@ func prepareBuilder() *model.WorkflowBuilder {
 	})
 
 	return builder
+}
+
+func TestValidate(t *testing.T) {
+	state1 := model.NewStateBuilder().
+		Name("state").
+		Type(model.StateTypeInject)
+	state1.End().Terminate(true)
+	err := Validate(state1)
+	assert.NoError(t, err)
+
+	state2 := model.NewStateBuilder().
+		Type(model.StateTypeInject)
+	state2.End().Terminate(true)
+	err = Validate(state2.Build())
+	if assert.Error(t, err) {
+		assert.Equal(t, "state.name is required", err.(val.WorkflowErrors)[0].Error())
+	}
 }
 
 func TestObject(t *testing.T) {

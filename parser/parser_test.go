@@ -1016,7 +1016,7 @@ states:
 		// Make sure that the Action FunctionRef is unmarshalled correctly
 		assert.Equal(t, model.FromString("${ .singlemessage }"), workflow.States[5].ForEachState.Actions[0].FunctionRef.Arguments["message"])
 		assert.Equal(t, "sendTextFunction", workflow.States[5].ForEachState.Actions[0].FunctionRef.RefName)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 	})
 
@@ -1063,8 +1063,9 @@ states:
   end:
     terminate: true
 `))
-		assert.Error(t, err)
-		assert.Regexp(t, `validation for \'DataConditions\' failed on the \'required\' tag`, err)
+		if assert.Error(t, err) {
+			assert.Equal(t, `workflow.states[0].switchState.dataConditions is required`, err.Error())
+		}
 		assert.Nil(t, workflow)
 	})
 

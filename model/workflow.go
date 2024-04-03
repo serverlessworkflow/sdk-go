@@ -15,8 +15,8 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
+	"regexp"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
@@ -122,7 +122,7 @@ type BaseWorkflow struct {
 	// qualities.
 	// +optional
 	Annotations []string `json:"annotations,omitempty"`
-	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
+	// DataInputSchema URI or Object of the JSON Schema used to validate the workflow data input
 	// +optional
 	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
@@ -522,12 +522,31 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	if data[0] == '"' && len(data) > 0 {
-		replaced := bytes.Replace(data, []byte(`"`), []byte(``), -1)
-		repp := FromString(string(replaced))
-		d.Schema = &repp
-	} else {
-		return util.UnmarshalObject("dataInputSchema", data, (*dataInputSchemaUnmarshal)(d))
+	err := util.UnmarshalObject("dataInputSchema", data, (*dataInputSchemaUnmarshal)(d))
+	if err != nil {
+		return err
+	}
+
+	if d.Schema != nil && d.Schema.Type == String {
+		// Define the regex pattern to match the prefixes
+		pattern := `^(http|https|file)`
+		regex := regexp.MustCompile(pattern)
+		// if it is not external, treat as JSON object
+		if !regex.MatchString(d.Schema.StringValue) {
+			point := FromString(d.Schema.StringValue)
+			d.Schema = &point
+			return nil
+		}
+
+		data, err := util.LoadExternalResource(d.Schema.StringValue)
+		if err != nil {
+			return err
+		}
+
+		er := util.UnmarshalObject("schema", data, &d.Schema)
+		// clean the string value to avoid the json URI being appended
+		d.Schema.StringValue = ""
+		return er
 	}
 	return nil
 }

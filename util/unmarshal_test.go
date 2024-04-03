@@ -58,23 +58,23 @@ func Test_loadExternalResource(t *testing.T) {
 	defer server.Close()
 	HttpClient = *server.Client()
 
-	data, err := loadExternalResource(server.URL + "/test.json")
+	data, err := LoadExternalResource(server.URL + "/test.json")
 	assert.NoError(t, err)
 	assert.Equal(t, "{}", string(data))
 
-	data, err = loadExternalResource("parser/testdata/eventdefs.yml")
+	data, err = LoadExternalResource("parser/testdata/eventdefs.yml")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
 
-	data, err = loadExternalResource("file://../parser/testdata/eventdefs.yml")
+	data, err = LoadExternalResource("file://../parser/testdata/eventdefs.yml")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
 
-	data, err = loadExternalResource("./parser/testdata/eventdefs.yml")
+	data, err = LoadExternalResource("./parser/testdata/eventdefs.yml")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"events\":[{\"correlation\":[{\"contextAttributeName\":\"accountId\"}],\"name\":\"PaymentReceivedEvent\",\"source\":\"paymentEventSource\",\"type\":\"payment.receive\"},{\"kind\":\"produced\",\"name\":\"ConfirmationCompletedEvent\",\"type\":\"payment.confirmation\"}]}", string(data))
 
-	_, err = loadExternalResource("ftp://test.yml")
+	_, err = LoadExternalResource("ftp://test.yml")
 	assert.ErrorContains(t, err, "unsupported scheme: \"ftp\"")
 }
 

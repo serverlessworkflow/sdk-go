@@ -17,6 +17,7 @@ package builder
 import (
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/serverlessworkflow/sdk-go/v2/model"
@@ -58,7 +59,13 @@ func TestValidate(t *testing.T) {
 	state2.End().Terminate(true)
 	err = Validate(state2.Build())
 	if assert.Error(t, err) {
-		assert.Equal(t, "state.name is required", err.(val.WorkflowErrors)[0].Error())
+		var workflowErrors val.WorkflowErrors
+		if errors.As(err, &workflowErrors) {
+			assert.Equal(t, "state.name is required", workflowErrors[0].Error())
+		} else {
+			// Handle other error types if necessary
+			t.Errorf("Unexpected error: %v", err)
+		}
 	}
 }
 

@@ -583,8 +583,12 @@ func TestFromFile(t *testing.T) {
 		}, {
 			"./testdata/workflows/dataInputSchemaValidation.yaml", func(t *testing.T, w *model.Workflow) {
 				assert.NotNil(t, w.DataInputSchema)
-				expected := model.FromString("sample schema")
-				assert.Equal(t, &expected, w.DataInputSchema.Schema)
+				expected := model.DataInputSchema{}
+				data, err := util.LoadExternalResource("file://testdata/datainputschema.json")
+				err1 := util.UnmarshalObject("schema", data, &expected.Schema)
+				assert.Nil(t, err)
+				assert.Nil(t, err1)
+				assert.Equal(t, expected.Schema, w.DataInputSchema.Schema)
 				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
 			},
 		}, {

@@ -72,6 +72,13 @@ func (e *UnmarshalError) Error() string {
 func (e *UnmarshalError) unmarshalMessageError(err *json.UnmarshalTypeError) string {
 	if err.Struct == "" && err.Field == "" {
 		primitiveTypeName := e.primitiveType.String()
+
+		// in some cases the e.primitiveType might be invalid, one of the reasons is because it is nil
+		// default to string in that case
+		if e.primitiveType == reflect.Invalid {
+			primitiveTypeName = "string"
+		}
+
 		var objectTypeName string
 		if e.objectType != reflect.Invalid {
 			switch e.objectType {
@@ -107,7 +114,7 @@ func (e *UnmarshalError) unmarshalMessageError(err *json.UnmarshalTypeError) str
 	return err.Error()
 }
 
-func loadExternalResource(url string) (b []byte, err error) {
+func LoadExternalResource(url string) (b []byte, err error) {
 	index := strings.Index(url, "://")
 	if index == -1 {
 		b, err = getBytesFromFile(url)
@@ -199,7 +206,7 @@ func UnmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 
 	// Assumes that the value inside `data` is a path to a known location.
 	// Returns the content of the file or a not nil error reference.
-	data, err = loadExternalResource(valString)
+	data, err = LoadExternalResource(valString)
 	if err != nil {
 		return err
 	}

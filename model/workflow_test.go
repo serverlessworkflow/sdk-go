@@ -516,7 +516,7 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
-			err: ``,
+			err: `dataInputSchema must be string or object`,
 		},
 		{
 			desp: `object success`,

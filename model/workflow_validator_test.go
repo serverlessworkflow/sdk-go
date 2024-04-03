@@ -449,6 +449,7 @@ func TestDataInputSchemaStructLevelValidation(t *testing.T) {
 		},
 	}
 
+	//fmt.Printf("%+v", testCases[0].Model)
 	StructLevelValidationCtx(t, testCases)
 }
 

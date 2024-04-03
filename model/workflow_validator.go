@@ -75,60 +75,77 @@ func (c *ValidatorContext) init(workflow *Workflow) {
 }
 
 func (c *ValidatorContext) ExistState(name string) bool {
+	if c.States == nil {
+		return true
+	}
 	_, ok := c.States[name]
 	return ok
 }
 
 func (c *ValidatorContext) ExistFunction(name string) bool {
+	if c.Functions == nil {
+		return true
+	}
 	_, ok := c.Functions[name]
 	return ok
 }
 
 func (c *ValidatorContext) ExistEvent(name string) bool {
+	if c.Events == nil {
+		return true
+	}
 	_, ok := c.Events[name]
 	return ok
 }
 
 func (c *ValidatorContext) ExistRetry(name string) bool {
+	if c.Retries == nil {
+		return true
+	}
 	_, ok := c.Retries[name]
 	return ok
 }
 
 func (c *ValidatorContext) ExistError(name string) bool {
+	if c.Errors == nil {
+		return true
+	}
 	_, ok := c.Errors[name]
 	return ok
 }
 
-func NewValidatorContext(workflow *Workflow) context.Context {
-	for i := range workflow.States {
-		s := &workflow.States[i]
-		if s.BaseState.Transition != nil {
-			s.BaseState.Transition.stateParent = s
-		}
-		for _, onError := range s.BaseState.OnErrors {
-			if onError.Transition != nil {
-				onError.Transition.stateParent = s
-			}
-		}
-		if s.Type == StateTypeSwitch {
-			if s.SwitchState.DefaultCondition.Transition != nil {
-				s.SwitchState.DefaultCondition.Transition.stateParent = s
-			}
-			for _, e := range s.SwitchState.EventConditions {
-				if e.Transition != nil {
-					e.Transition.stateParent = s
-				}
-			}
-			for _, d := range s.SwitchState.DataConditions {
-				if d.Transition != nil {
-					d.Transition.stateParent = s
-				}
-			}
-		}
-	}
-
+func NewValidatorContext(object any) context.Context {
 	contextValue := ValidatorContext{}
-	contextValue.init(workflow)
+
+	if workflow, ok := object.(*Workflow); ok {
+		for i := range workflow.States {
+			s := &workflow.States[i]
+			if s.BaseState.Transition != nil {
+				s.BaseState.Transition.stateParent = s
+			}
+			for _, onError := range s.BaseState.OnErrors {
+				if onError.Transition != nil {
+					onError.Transition.stateParent = s
+				}
+			}
+			if s.Type == StateTypeSwitch {
+				if s.SwitchState.DefaultCondition.Transition != nil {
+					s.SwitchState.DefaultCondition.Transition.stateParent = s
+				}
+				for _, e := range s.SwitchState.EventConditions {
+					if e.Transition != nil {
+						e.Transition.stateParent = s
+					}
+				}
+				for _, d := range s.SwitchState.DataConditions {
+					if d.Transition != nil {
+						d.Transition.stateParent = s
+					}
+				}
+			}
+		}
+		contextValue.init(workflow)
+	}
 
 	return context.WithValue(context.Background(), ValidatorContextValue, contextValue)
 }
@@ -136,7 +153,6 @@ func NewValidatorContext(workflow *Workflow) context.Context {
 func init() {
 	// TODO: create states graph to complex check
 
-	// val.GetValidator().RegisterStructValidationCtx(val.ValidationWrap(nil, workflowStructLevelValidation), Workflow{})
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(onErrorStructLevelValidationCtx), OnError{})
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(transitionStructLevelValidationCtx), Transition{})
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(startStructLevelValidationCtx), Start{})

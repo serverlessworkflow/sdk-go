@@ -19,7 +19,7 @@ import (
 	"strconv"
 
 	"github.com/relvacode/iso8601"
-	"github.com/senseyeio/duration"
+	"github.com/sosodev/duration"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	validator "github.com/go-playground/validator/v10"
@@ -60,7 +60,7 @@ func GetValidator() *validator.Validate {
 
 // ValidateISO8601TimeDuration validate the string is iso8601 duration format
 func ValidateISO8601TimeDuration(s string) error {
-	_, err := duration.ParseISO8601(s)
+	_, err := duration.Parse(s)
 	return err
 }
 

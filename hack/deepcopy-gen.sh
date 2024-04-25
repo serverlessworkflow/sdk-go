@@ -32,7 +32,8 @@ shift 1
   # make sure your GOPATH env is properly set.
   # it will go under $GOPATH/bin
   cd "$(dirname "${0}")"
-  GO111MODULE=on go install k8s.io/code-generator/cmd/deepcopy-gen@latest
+  DEEPCOPY_VERSION="v0.29.4"
+  GO111MODULE=on go install k8s.io/code-generator/cmd/deepcopy-gen@${DEEPCOPY_VERSION}
 )
 
 function codegen::join() { local IFS="$1"; shift; echo "$*"; }

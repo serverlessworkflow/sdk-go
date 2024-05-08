@@ -221,7 +221,7 @@ func UnmarshalObjectOrFile[U any](parameterName string, data []byte, valObject *
 	}
 
 	data = bytes.TrimSpace(data)
-	if data[0] == '{' && parameterName != "constants" && parameterName != "timeouts" {
+	if data[0] == '{' && parameterName != "constants" && parameterName != "timeouts" && parameterName != "schema" {
 		extractData := map[string]json.RawMessage{}
 		err = json.Unmarshal(data, &extractData)
 		if err != nil {

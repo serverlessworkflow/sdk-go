@@ -15,8 +15,9 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
-	"regexp"
+	"errors"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
@@ -522,33 +523,41 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	err := util.UnmarshalObject("dataInputSchema", data, (*dataInputSchemaUnmarshal)(d))
+
+	// expected: data = "{\"key\": \"value\"}"
+	//           data = {"key": "value"}
+	//	         data = "file://..."
+	//           data = { "schema": "{\"key\": \"value\"}", "failOnValidationErrors": true }
+	//           data = { "schema": {"key": "value"}, "failOnValidationErrors": true }
+	//           data = { "schema": "file://...", "failOnValidationErrors": true }
+
+	schemaString := ""
+	err := util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &schemaString, (*dataInputSchemaUnmarshal)(d))
 	if err != nil {
 		return err
 	}
 
-	if d.Schema != nil && d.Schema.Type == String {
-		// Define the regex pattern to match the prefixes
-		pattern := `^(http|https|file)`
-		regex := regexp.MustCompile(pattern)
-		// if it is not external, treat as JSON object
-		if !regex.MatchString(d.Schema.StringValue) {
-			point := FromString(d.Schema.StringValue)
-			d.Schema = &point
+	if d.Schema != nil {
+		if d.Schema.Type == Map {
 			return nil
-		}
 
-		data, err := util.LoadExternalResource(d.Schema.StringValue)
-		if err != nil {
-			return err
-		}
+		} else if d.Schema.Type == String {
+			schemaString = d.Schema.StringValue
 
-		er := util.UnmarshalObject("schema", data, &d.Schema)
-		// clean the string value to avoid the json URI being appended
-		d.Schema.StringValue = ""
-		return er
+		} else {
+			return errors.New("invalid dataInputSchema must be a string or object")
+		}
 	}
-	return nil
+
+	if schemaString != "" {
+		data = []byte(schemaString)
+		if bytes.TrimSpace(data)[0] != '{' {
+			data = []byte("\"" + schemaString + "\"")
+		}
+	}
+
+	d.Schema = new(Object)
+	return util.UnmarshalObjectOrFile("schema", data, &d.Schema)
 }
 
 // ApplyDefault set the default values for Data Input Schema

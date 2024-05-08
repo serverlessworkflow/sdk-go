@@ -15,7 +15,9 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
@@ -121,7 +123,7 @@ type BaseWorkflow struct {
 	// qualities.
 	// +optional
 	Annotations []string `json:"annotations,omitempty"`
-	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
+	// DataInputSchema URI or Object of the JSON Schema used to validate the workflow data input
 	// +optional
 	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
@@ -225,6 +227,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// States ...
 // +kubebuilder:validation:MinItems=1
 type States []State
 
@@ -510,7 +513,7 @@ type StateDataFilter struct {
 // +builder-gen:new-call=ApplyDefault
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
-	Schema string `json:"schema" validate:"required"`
+	Schema *Object `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
 	FailOnValidationErrors bool `json:"failOnValidationErrors"`
 }
@@ -520,7 +523,41 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	return util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
+
+	// expected: data = "{\"key\": \"value\"}"
+	//           data = {"key": "value"}
+	//	         data = "file://..."
+	//           data = { "schema": "{\"key\": \"value\"}", "failOnValidationErrors": true }
+	//           data = { "schema": {"key": "value"}, "failOnValidationErrors": true }
+	//           data = { "schema": "file://...", "failOnValidationErrors": true }
+
+	schemaString := ""
+	err := util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &schemaString, (*dataInputSchemaUnmarshal)(d))
+	if err != nil {
+		return err
+	}
+
+	if d.Schema != nil {
+		if d.Schema.Type == Map {
+			return nil
+
+		} else if d.Schema.Type == String {
+			schemaString = d.Schema.StringValue
+
+		} else {
+			return errors.New("invalid dataInputSchema must be a string or object")
+		}
+	}
+
+	if schemaString != "" {
+		data = []byte(schemaString)
+		if bytes.TrimSpace(data)[0] != '{' {
+			data = []byte("\"" + schemaString + "\"")
+		}
+	}
+
+	d.Schema = new(Object)
+	return util.UnmarshalObjectOrFile("schema", data, &d.Schema)
 }
 
 // ApplyDefault set the default values for Data Input Schema

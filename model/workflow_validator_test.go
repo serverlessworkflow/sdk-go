@@ -425,6 +425,8 @@ func TestDataInputSchemaStructLevelValidation(t *testing.T) {
 	action1 := buildActionByOperationState(operationState, "action 1")
 	buildFunctionRef(baseWorkflow, action1, "function 1")
 
+	sampleSchema := FromString("sample schema")
+
 	testCases := []ValidationCase{
 		{
 			Desp: "empty DataInputSchema",
@@ -440,13 +442,14 @@ func TestDataInputSchemaStructLevelValidation(t *testing.T) {
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.DataInputSchema = &DataInputSchema{
-					Schema: "sample schema",
+					Schema: &sampleSchema,
 				}
 				return *model
 			},
 		},
 	}
 
+	//fmt.Printf("%+v", testCases[0].Model)
 	StructLevelValidationCtx(t, testCases)
 }
 

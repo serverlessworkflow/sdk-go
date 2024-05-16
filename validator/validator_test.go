@@ -39,6 +39,11 @@ func TestValidateISO8601TimeDuration(t *testing.T) {
 			err:  ``,
 		},
 		{
+			desp: "fractional_second_designator",
+			s:    "PT0.5S",
+			err:  ``,
+		},
+		{
 			desp: "empty value",
 			s:    "",
 			err:  `could not parse duration string`,

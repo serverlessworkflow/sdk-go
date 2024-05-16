@@ -16,6 +16,7 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/relvacode/iso8601"
@@ -60,7 +61,13 @@ func GetValidator() *validator.Validate {
 
 // ValidateISO8601TimeDuration validate the string is iso8601 duration format
 func ValidateISO8601TimeDuration(s string) error {
+	if s == "" {
+		return errors.New("could not parse duration string")
+	}
 	_, err := duration.Parse(s)
+	if err != nil {
+		return errors.New("could not parse duration string")
+	}
 	return err
 }
 

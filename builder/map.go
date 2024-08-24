@@ -14,40 +14,22 @@
 
 package builder
 
-import (
-	"encoding/json"
+import "github.com/serverlessworkflow/sdk-go/v4/graph"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
-)
-
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type MapBuilder struct {
+	root *graph.Node
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+func (b *MapBuilder) Set(name string, value string) {
+	b.root.Edge(name).SetString(value)
 }
 
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
+func (b *MapBuilder) Get(name string) string {
+	return b.root.Edge(name).GetString()
+}
+
+func NewMapBuilder(root *graph.Node) *MapBuilder {
+	return &MapBuilder{
+		root: root,
 	}
-	return yaml.JSONToYAML(data)
 }

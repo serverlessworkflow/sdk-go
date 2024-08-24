@@ -14,40 +14,23 @@
 
 package builder
 
-import (
-	"encoding/json"
+import "github.com/serverlessworkflow/sdk-go/v4/graph"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
-)
-
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type DurationBuilder struct {
+	root *graph.Node
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+func (b *DurationBuilder) SetSeconds(seconds int) *DurationBuilder {
+	b.root.Edge("seconds").SetInt(seconds)
+	return b
 }
 
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
+func (b *DurationBuilder) GetSeconds() int {
+	return b.root.Edge("seconds").GetInt()
+}
+
+func NewDurationBuilder(root *graph.Node) *DurationBuilder {
+	return &DurationBuilder{
+		root: root,
 	}
-	return yaml.JSONToYAML(data)
 }

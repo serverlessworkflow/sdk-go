@@ -14,40 +14,14 @@
 
 package builder
 
-import (
-	"encoding/json"
+import "github.com/serverlessworkflow/sdk-go/v4/graph"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
-)
-
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type UseBuilder struct {
+	root *graph.Node
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
+func NewUseBuilder(root *graph.Node) *UseBuilder {
+	return &UseBuilder{
+		root: root,
 	}
-
-	return data, nil
-}
-
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
-	}
-	return yaml.JSONToYAML(data)
 }

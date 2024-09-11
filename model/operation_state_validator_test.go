@@ -63,7 +63,7 @@ func TestOperationStateStructLevelValidation(t *testing.T) {
 				model.States[0].OperationState.Actions = []Action{}
 				return *model
 			},
-			Err: `workflow.states[0].actions must have the minimum 1`,
+			Err: ``,
 		},
 		{
 			Desp: "oneofkind",

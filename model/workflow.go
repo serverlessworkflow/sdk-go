@@ -15,7 +15,9 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 
 	"github.com/serverlessworkflow/sdk-go/v2/util"
 )
@@ -75,6 +77,7 @@ func (i ExpressionLangType) KindValues() []string {
 	return []string{
 		string(JqExpressionLang),
 		string(JsonPathExpressionLang),
+		string(CELExpressionLang),
 	}
 }
 
@@ -88,10 +91,14 @@ const (
 
 	// JsonPathExpressionLang ...
 	JsonPathExpressionLang ExpressionLangType = "jsonpath"
+
+	// CELExpressionLang
+	CELExpressionLang ExpressionLangType = "cel"
 )
 
 // BaseWorkflow describes the partial Workflow definition that does not rely on generic interfaces
 // to make it easy for custom unmarshalers implementations to unmarshal the common data structure.
+// +builder-gen:new-call=ApplyDefault
 type BaseWorkflow struct {
 	// Workflow unique identifier
 	// +optional
@@ -116,7 +123,7 @@ type BaseWorkflow struct {
 	// qualities.
 	// +optional
 	Annotations []string `json:"annotations,omitempty"`
-	// DataInputSchema URI of the JSON Schema used to validate the workflow data input
+	// DataInputSchema URI or Object of the JSON Schema used to validate the workflow data input
 	// +optional
 	DataInputSchema *DataInputSchema `json:"dataInputSchema,omitempty"`
 	// Serverless Workflow schema version
@@ -132,7 +139,7 @@ type BaseWorkflow struct {
 	// +optional
 	Constants *Constants `json:"constants,omitempty"`
 	// Identifies the expression language used for workflow expressions. Default is 'jq'.
-	// +kubebuilder:validation:Enum=jq;jsonpath
+	// +kubebuilder:validation:Enum=jq;jsonpath;cel
 	// +kubebuilder:default=jq
 	// +optional
 	ExpressionLang ExpressionLangType `json:"expressionLang,omitempty" validate:"required,oneofkind"`
@@ -163,6 +170,12 @@ type BaseWorkflow struct {
 	Auth Auths `json:"auth,omitempty" validate:"unique=Name,dive"`
 }
 
+// ApplyDefault set the default values for Workflow
+func (w *BaseWorkflow) ApplyDefault() {
+	w.SpecVersion = "0.8"
+	w.ExpressionLang = JqExpressionLang
+}
+
 type Auths []Auth
 
 type authsUnmarshal Auths
@@ -182,6 +195,7 @@ func (e *Errors) UnmarshalJSON(data []byte) error {
 }
 
 // Workflow base definition
+// +builder-gen:embedded-ignore-method=BaseWorkflow
 type Workflow struct {
 	BaseWorkflow `json:",inline"`
 	// +kubebuilder:pruning:PreserveUnknownFields
@@ -213,11 +227,7 @@ func (w *Workflow) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ApplyDefault set the default values for Workflow
-func (w *Workflow) ApplyDefault() {
-	w.ExpressionLang = JqExpressionLang
-}
-
+// States ...
 // +kubebuilder:validation:MinItems=1
 type States []State
 
@@ -284,6 +294,7 @@ func (t *Timeouts) UnmarshalJSON(data []byte) error {
 
 // WorkflowExecTimeout  property defines the workflow execution timeout. It is defined using the ISO 8601 duration
 // format. If not defined, the workflow execution should be given "unlimited" amount of time to complete.
+// +builder-gen:new-call=ApplyDefault
 type WorkflowExecTimeout struct {
 	// Workflow execution timeout duration (ISO 8601 duration format). If not specified should be 'unlimited'.
 	// +kubebuilder:default=unlimited
@@ -372,7 +383,7 @@ type Cron struct {
 	Expression string `json:"expression" validate:"required"`
 	// Specific date and time (ISO 8601 format) when the cron expression is no longer valid.
 	// +optional
-	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601duration"`
+	ValidUntil string `json:"validUntil,omitempty" validate:"omitempty,iso8601datetime"`
 }
 
 type cronUnmarshal Cron
@@ -499,11 +510,12 @@ type StateDataFilter struct {
 }
 
 // DataInputSchema Used to validate the workflow data input against a defined JSON Schema
+// +builder-gen:new-call=ApplyDefault
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
-	Schema string `json:"schema" validate:"required"`
+	Schema *Object `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
-	FailOnValidationErrors bool `json:"failOnValidationErrors" validate:"required"`
+	FailOnValidationErrors bool `json:"failOnValidationErrors"`
 }
 
 type dataInputSchemaUnmarshal DataInputSchema
@@ -511,7 +523,41 @@ type dataInputSchemaUnmarshal DataInputSchema
 // UnmarshalJSON implements json.Unmarshaler
 func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	d.ApplyDefault()
-	return util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &d.Schema, (*dataInputSchemaUnmarshal)(d))
+
+	// expected: data = "{\"key\": \"value\"}"
+	//           data = {"key": "value"}
+	//	         data = "file://..."
+	//           data = { "schema": "{\"key\": \"value\"}", "failOnValidationErrors": true }
+	//           data = { "schema": {"key": "value"}, "failOnValidationErrors": true }
+	//           data = { "schema": "file://...", "failOnValidationErrors": true }
+
+	schemaString := ""
+	err := util.UnmarshalPrimitiveOrObject("dataInputSchema", data, &schemaString, (*dataInputSchemaUnmarshal)(d))
+	if err != nil {
+		return err
+	}
+
+	if d.Schema != nil {
+		if d.Schema.Type == Map {
+			return nil
+
+		} else if d.Schema.Type == String {
+			schemaString = d.Schema.StringValue
+
+		} else {
+			return errors.New("invalid dataInputSchema must be a string or object")
+		}
+	}
+
+	if schemaString != "" {
+		data = []byte(schemaString)
+		if bytes.TrimSpace(data)[0] != '{' {
+			data = []byte("\"" + schemaString + "\"")
+		}
+	}
+
+	d.Schema = new(Object)
+	return util.UnmarshalObjectOrFile("schema", data, &d.Schema)
 }
 
 // ApplyDefault set the default values for Data Input Schema

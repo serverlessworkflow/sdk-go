@@ -26,7 +26,7 @@ func init() {
 
 func baseStateStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {
 	baseState := structLevel.Current().Interface().(BaseState)
-	if baseState.Type != StateTypeSwitch {
+	if baseState.Type != StateTypeSwitch && !baseState.UsedForCompensation {
 		validTransitionAndEnd(structLevel, baseState, baseState.Transition, baseState.End)
 	}
 

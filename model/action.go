@@ -17,6 +17,7 @@ package model
 import "github.com/serverlessworkflow/sdk-go/v2/util"
 
 // Action specify invocations of services or other workflows during workflow execution.
+// +builder-gen:new-call=ApplyDefault
 type Action struct {
 	// Defines Unique action identifier.
 	// +optional
@@ -72,6 +73,7 @@ func (a *Action) ApplyDefault() {
 }
 
 // FunctionRef defines the reference to a reusable function definition
+// +builder-gen:new-call=ApplyDefault
 type FunctionRef struct {
 	// Name of the referenced function.
 	// +kubebuilder:validation:Required

@@ -21,14 +21,15 @@ import (
 )
 
 // OperationState defines a set of actions to be performed in sequence or in parallel.
+// +builder-gen:new-call=ApplyDefault
 type OperationState struct {
 	// Specifies whether actions are performed in sequence or in parallel, defaults to sequential.
 	// +kubebuilder:validation:Enum=sequential;parallel
 	// +kubebuilder:default=sequential
 	ActionMode ActionMode `json:"actionMode,omitempty" validate:"required,oneofkind"`
 	// Actions to be performed
-	// +kubebuilder:validation:MinItems=1
-	Actions []Action `json:"actions" validate:"min=1,dive"`
+	// +kubebuilder:validation:MinItems=0
+	Actions []Action `json:"actions" validate:"min=0,dive"`
 	// State specific timeouts
 	// +optional
 	Timeouts *OperationStateTimeout `json:"timeouts,omitempty"`

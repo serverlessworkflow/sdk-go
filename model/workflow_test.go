@@ -52,6 +52,7 @@ func TestWorkflowStartUnmarshalJSON(t *testing.T) {
 			data: `{"states": [{"name": "start state name", "type": "operation"}]}`,
 			expect: Workflow{
 				BaseWorkflow: BaseWorkflow{
+					SpecVersion:    "0.8",
 					ExpressionLang: "jq",
 					Start: &Start{
 						StateName: "start state name",
@@ -72,10 +73,11 @@ func TestWorkflowStartUnmarshalJSON(t *testing.T) {
 			err: ``,
 		},
 		{
-			desp: "start empty, and states empty",
+			desp: "start empty and states empty",
 			data: `{"states": []}`,
 			expect: Workflow{
 				BaseWorkflow: BaseWorkflow{
+					SpecVersion:    "0.8",
 					ExpressionLang: "jq",
 				},
 				States: []State{},
@@ -496,6 +498,13 @@ func TestTransitionUnmarshalJSON(t *testing.T) {
 }
 
 func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
+
+	var schemaName Object
+	err := json.Unmarshal([]byte("{\"key\": \"value\"}"), &schemaName)
+	if !assert.NoError(t, err) {
+		return
+	}
+
 	type testCase struct {
 		desp   string
 		data   string
@@ -506,38 +515,57 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 	testCases := []testCase{
 		{
 			desp: "string success",
-			data: `"schema name"`,
+			data: "{\"key\": \"value\"}",
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: ``,
 		},
 		{
-			desp: `object success`,
-			data: `{"schema": "schema name"}`,
+			desp: "string fail",
+			data: "{\"key\": }",
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 &schemaName,
+				FailOnValidationErrors: true,
+			},
+			err: `invalid character '}' looking for beginning of value`,
+		},
+		{
+			desp: `object success (without quotes)`,
+			data: `{"key": "value"}`,
+			expect: DataInputSchema{
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: ``,
 		},
 		{
-			desp: `object fail`,
+			desp: `schema object success`,
+			data: `{"schema": "{\"key\": \"value\"}"}`,
+			expect: DataInputSchema{
+				Schema:                 &schemaName,
+				FailOnValidationErrors: true,
+			},
+			err: ``,
+		},
+		{
+			desp: `schema object success (without quotes)`,
+			data: `{"schema": {"key": "value"}}`,
+			expect: DataInputSchema{
+				Schema:                 &schemaName,
+				FailOnValidationErrors: true,
+			},
+			err: ``,
+		},
+		{
+			desp: `schema object fail`,
 			data: `{"schema": "schema name}`,
 			expect: DataInputSchema{
-				Schema:                 "schema name",
+				Schema:                 &schemaName,
 				FailOnValidationErrors: true,
 			},
 			err: `unexpected end of JSON input`,
-		},
-		{
-			desp: `object key invalid`,
-			data: `{"schema_invalid": "schema name"}`,
-			expect: DataInputSchema{
-				FailOnValidationErrors: true,
-			},
-			err: ``,
 		},
 	}
 	for _, tc := range testCases {
@@ -546,13 +574,14 @@ func TestDataInputSchemaUnmarshalJSON(t *testing.T) {
 			err := json.Unmarshal([]byte(tc.data), &v)
 
 			if tc.err != "" {
-				assert.Error(t, err)
-				assert.Regexp(t, tc.err, err)
+				assert.Error(t, err, tc.desp)
+				assert.Regexp(t, tc.err, err, tc.desp)
 				return
 			}
 
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expect, v)
+			assert.NoError(t, err, tc.desp)
+			assert.Equal(t, tc.expect.Schema, v.Schema, tc.desp)
+			assert.Equal(t, tc.expect.FailOnValidationErrors, v.FailOnValidationErrors, tc.desp)
 		})
 	}
 }

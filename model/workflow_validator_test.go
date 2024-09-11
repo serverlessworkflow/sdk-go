@@ -162,7 +162,7 @@ workflow.key required when "workflow.id" is not defined`,
 				model.BaseWorkflow.ExpressionLang = JqExpressionLang + "invalid"
 				return *model
 			},
-			Err: `workflow.expressionLang need by one of [jq jsonpath]`,
+			Err: `workflow.expressionLang need by one of [jq jsonpath cel]`,
 		},
 	}
 
@@ -414,6 +414,42 @@ Key: 'Workflow.States[3].BaseState.Transition.NextState' Error:Field validation 
 		},
 	}
 
+	StructLevelValidationCtx(t, testCases)
+}
+
+func TestDataInputSchemaStructLevelValidation(t *testing.T) {
+	baseWorkflow := buildWorkflow()
+
+	operationState := buildOperationState(baseWorkflow, "start state")
+	buildEndByState(operationState, true, false)
+	action1 := buildActionByOperationState(operationState, "action 1")
+	buildFunctionRef(baseWorkflow, action1, "function 1")
+
+	sampleSchema := FromString("sample schema")
+
+	testCases := []ValidationCase{
+		{
+			Desp: "empty DataInputSchema",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.DataInputSchema = &DataInputSchema{}
+				return *model
+			},
+			Err: `workflow.dataInputSchema.schema is required`,
+		},
+		{
+			Desp: "filled Schema, default failOnValidationErrors",
+			Model: func() Workflow {
+				model := baseWorkflow.DeepCopy()
+				model.DataInputSchema = &DataInputSchema{
+					Schema: &sampleSchema,
+				}
+				return *model
+			},
+		},
+	}
+
+	//fmt.Printf("%+v", testCases[0].Model)
 	StructLevelValidationCtx(t, testCases)
 }
 

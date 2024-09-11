@@ -22,6 +22,7 @@ import (
 
 // EventState await one or more events and perform actions when they are received. If defined as the
 // workflow starting state, the event state definition controls when the workflow instances should be created.
+// +builder-gen:new-call=ApplyDefault
 type EventState struct {
 	// TODO: EventState doesn't have usedForCompensation field.
 
@@ -64,6 +65,7 @@ func (e *EventState) ApplyDefault() {
 }
 
 // OnEvents define which actions are be performed for the one or more events.
+// +builder-gen:new-call=ApplyDefault
 type OnEvents struct {
 	// References one or more unique event names in the defined workflow events.
 	// +kubebuilder:validation:MinItems=1

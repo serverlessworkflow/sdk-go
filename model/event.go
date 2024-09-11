@@ -39,6 +39,7 @@ const (
 )
 
 // Event used to define events and their correlations
+// +builder-gen:new-call=ApplyDefault
 type Event struct {
 	Common `json:",inline"`
 	// Unique event name.
@@ -56,6 +57,7 @@ type Event struct {
 	Kind EventKind `json:"kind,omitempty" validate:"required,oneofkind"`
 	// If `true`, only the Event payload is accessible to consuming Workflow states. If `false`, both event payload
 	// and context attributes should be accessible. Defaults to true.
+	// +kubebuilder:default=true
 	// +optional
 	DataOnly bool `json:"dataOnly,omitempty"`
 	// Define event correlation rules for this event. Only used for consumed events.
@@ -88,6 +90,7 @@ type Correlation struct {
 }
 
 // EventRef defining invocation of a function via event
+// +builder-gen:new-call=ApplyDefault
 type EventRef struct {
 	// Reference to the unique name of a 'produced' event definition,
 	// +kubebuilder:validation:Required

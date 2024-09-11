@@ -18,10 +18,9 @@ import "github.com/serverlessworkflow/sdk-go/v2/util"
 
 // ActionDataFilter used to filter action data results.
 // +optional
-// +optional
+// +builder-gen:new-call=ApplyDefault
 type ActionDataFilter struct {
 	// Workflow expression that filters state data that can be used by the action.
-	// +optional
 	// +optional
 	FromStateData string `json:"fromStateData,omitempty"`
 	// If set to false, action data results are not added/merged to state data. In this case 'results'

@@ -16,6 +16,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -455,13 +456,21 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "visaApprovedEvent", w.States[3].EventConditions[0].Name)
 				assert.Equal(t, "visaApprovedEventRef", w.States[3].EventConditions[0].EventRef)
 				assert.Equal(t, "HandleApprovedVisa", w.States[3].EventConditions[0].Transition.NextState)
-				assert.Equal(t, model.Metadata{"mastercard": model.Object{Type: 1, IntVal: 0, StrVal: "disallowed", RawValue: json.RawMessage(nil)},
-					"visa": model.Object{Type: 1, IntVal: 0, StrVal: "allowed", RawValue: json.RawMessage(nil)}},
-					w.States[3].EventConditions[0].Metadata)
+				assert.Equal(t,
+					model.Metadata{
+						"mastercard": model.FromString("disallowed"),
+						"visa":       model.FromString("allowed"),
+					},
+					w.States[3].EventConditions[0].Metadata,
+				)
 				assert.Equal(t, "visaRejectedEvent", w.States[3].EventConditions[1].EventRef)
 				assert.Equal(t, "HandleRejectedVisa", w.States[3].EventConditions[1].Transition.NextState)
-				assert.Equal(t, model.Metadata{"test": model.Object{Type: 1, IntVal: 0, StrVal: "tested", RawValue: json.RawMessage(nil)}},
-					w.States[3].EventConditions[1].Metadata)
+				assert.Equal(t,
+					model.Metadata{
+						"test": model.FromString("tested"),
+					},
+					w.States[3].EventConditions[1].Metadata,
+				)
 				assert.Equal(t, "PT1H", w.States[3].SwitchState.Timeouts.EventTimeout)
 				assert.Equal(t, "PT1S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Total)
 				assert.Equal(t, "PT2S", w.States[3].SwitchState.Timeouts.StateExecTimeout.Single)
@@ -534,8 +543,14 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "CheckCreditCallback", w.States[8].Name)
 				assert.Equal(t, model.StateTypeCallback, w.States[8].Type)
 				assert.Equal(t, "callCreditCheckMicroservice", w.States[8].CallbackState.Action.FunctionRef.RefName)
-				assert.Equal(t, map[string]model.Object{"argsObj": model.FromRaw(map[string]interface{}{"age": 10, "name": "hi"}), "customer": model.FromString("${ .customer }"), "time": model.FromInt(48)},
-					w.States[8].CallbackState.Action.FunctionRef.Arguments)
+				assert.Equal(t,
+					map[string]model.Object{
+						"argsObj":  model.FromMap(map[string]interface{}{"age": 10, "name": "hi"}),
+						"customer": model.FromString("${ .customer }"),
+						"time":     model.FromInt(48),
+					},
+					w.States[8].CallbackState.Action.FunctionRef.Arguments,
+				)
 				assert.Equal(t, "PT10S", w.States[8].CallbackState.Action.Sleep.Before)
 				assert.Equal(t, "PT20S", w.States[8].CallbackState.Action.Sleep.After)
 				assert.Equal(t, "PT150M", w.States[8].CallbackState.Timeouts.ActionExecTimeout)
@@ -564,6 +579,30 @@ func TestFromFile(t *testing.T) {
 				assert.Equal(t, "HandleApprovedVisa", w.States[10].SwitchState.DataConditions[0].Transition.NextState)
 				assert.Equal(t, "SendTextForHighPriority", w.States[10].SwitchState.DefaultCondition.Transition.NextState)
 				assert.Equal(t, true, w.States[10].End.Terminate)
+			},
+		}, {
+			"./testdata/workflows/dataInputSchemaValidation.yaml", func(t *testing.T, w *model.Workflow) {
+				assert.NotNil(t, w.DataInputSchema)
+				expected := model.DataInputSchema{}
+				data, err := util.LoadExternalResource("file://testdata/datainputschema.json")
+				err1 := util.UnmarshalObject("schema", data, &expected.Schema)
+				assert.Nil(t, err)
+				assert.Nil(t, err1)
+				assert.Equal(t, expected.Schema, w.DataInputSchema.Schema)
+				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
+			},
+		}, {
+			"./testdata/workflows/dataInputSchemaObject.json", func(t *testing.T, w *model.Workflow) {
+				assert.NotNil(t, w.DataInputSchema)
+				expected := model.Object{}
+				err := json.Unmarshal([]byte("{\"title\": \"Hello World Schema\", \"properties\": {\"person\": "+
+					"{\"type\": \"object\",\"properties\": {\"name\": {\"type\": \"string\"}},\"required\": "+
+					"[\"name\"]}}, \"required\": [\"person\"]}"),
+					&expected)
+				fmt.Printf("err: %s\n", err)
+				fmt.Printf("schema: %+v\n", expected)
+				assert.Equal(t, &expected, w.DataInputSchema.Schema)
+				assert.Equal(t, false, w.DataInputSchema.FailOnValidationErrors)
 			},
 		},
 	}
@@ -992,7 +1031,10 @@ states:
 
 		workflow = nil
 		err = json.Unmarshal(b, &workflow)
-		assert.Nil(t, err)
+		// Make sure that the Action FunctionRef is unmarshalled correctly
+		assert.Equal(t, model.FromString("${ .singlemessage }"), workflow.States[5].ForEachState.Actions[0].FunctionRef.Arguments["message"])
+		assert.Equal(t, "sendTextFunction", workflow.States[5].ForEachState.Actions[0].FunctionRef.RefName)
+		assert.NoError(t, err)
 
 	})
 
@@ -1039,8 +1081,9 @@ states:
   end:
     terminate: true
 `))
-		assert.Error(t, err)
-		assert.Regexp(t, `validation for \'DataConditions\' failed on the \'required\' tag`, err)
+		if assert.Error(t, err) {
+			assert.Equal(t, `workflow.states[0].switchState.dataConditions is required`, err.Error())
+		}
 		assert.Nil(t, workflow)
 	})
 

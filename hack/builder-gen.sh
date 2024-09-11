@@ -32,18 +32,17 @@ shift 1
   # make sure your GOPATH env is properly set.
   # it will go under $GOPATH/bin
   cd "$(dirname "${0}")"
-  DEEPCOPY_VERSION="v0.29.4"
-  GO111MODULE=on go install k8s.io/code-generator/cmd/deepcopy-gen@${DEEPCOPY_VERSION}
+  GO111MODULE=on go install github.com/galgotech/builder-gen@latest
 )
 
 function codegen::join() { local IFS="$1"; shift; echo "$*"; }
 
-if [ "${GENS}" = "all" ] || grep -qw "deepcopy" <<<"${GENS}"; then
-  echo "Generating deepcopy funcs"
+if [ "${GENS}" = "all" ] || grep -qw "buildergen" <<<"${GENS}"; then
+  echo "Generating buildergen funcs"
   export GO111MODULE=on
   # for debug purposes, increase the log level by updating the -v flag to higher numbers, e.g. -v 4
-  "${GOPATH}/bin/deepcopy-gen" -v 1 \
-      --input-dirs ./model -O zz_generated.deepcopy \
+  "${GOPATH}/bin/builder-gen" -v 1 \
+      --input-dirs ./model -O zz_generated.buildergen \
       --go-header-file "${SCRIPT_ROOT}/hack/boilerplate.txt"
       "$@"
 fi

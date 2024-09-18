@@ -103,7 +103,6 @@ func loadExternalResource(url string) (b []byte, err error) {
 		return
 	}
 
-	// TODO: optimize this
 	// NOTE: In specification, we can declare independent definitions with another file format, so
 	// we must convert independently yaml source to json format data before unmarshal.
 	if !json.Valid(b) {

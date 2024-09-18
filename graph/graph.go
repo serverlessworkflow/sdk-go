@@ -67,7 +67,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 
 func (n *Node) Edge(name string) *Node {
 	if n.HasValue() {
-		log.Fatal("value alredy defined, execute clear first")
+		log.Panic("value already defined, execute clear first")
 	}
 	if _, ok := n.edges[name]; !ok {
 		newNode := NewNode()
@@ -100,7 +100,7 @@ func (n *Node) SetBool(value bool) *Node {
 
 func (n *Node) setValue(value any) {
 	if len(n.edges) > 0 {
-		log.Fatal("alredy defined edges, execute clear fist")
+		log.Panic("already defined edges, execute clear fist")
 	}
 	n.value = value
 }

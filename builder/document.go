@@ -14,7 +14,10 @@
 
 package builder
 
-import "github.com/serverlessworkflow/sdk-go/v4/graph"
+import (
+	"github.com/serverlessworkflow/sdk-go/v4/graph"
+	"github.com/serverlessworkflow/sdk-go/v4/internal/dsl"
+)
 
 type DocumentBuilder struct {
 	root *graph.Node
@@ -68,6 +71,6 @@ func NewDocumentBuilder(root *graph.Node) *DocumentBuilder {
 	documentBuilder := &DocumentBuilder{
 		root: root,
 	}
-	documentBuilder.SetDSL("1.0.0-alpha1")
+	documentBuilder.SetDSL(dsl.DSLVersion)
 	return documentBuilder
 }

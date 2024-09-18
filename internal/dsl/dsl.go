@@ -14,6 +14,7 @@
 
 package dsl
 
+const DSLVersion = "1.0.0-alpha1"
 const DSLSpec = `
 $id: https://serverlessworkflow.io/schemas/1.0.0-alpha1/workflow.yaml
 $schema: https://json-schema.org/draft/2020-12/schema

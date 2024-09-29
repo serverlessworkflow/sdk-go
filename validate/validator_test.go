@@ -12,42 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package validate
 
 import (
-	"encoding/json"
+	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
+	"github.com/stretchr/testify/assert"
 )
 
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
+func TestValidate(t *testing.T) {
+	source := []byte(`
+document:
+  dsl: 1.0.0-alpha1
+  namespace: examples
+  name: call-http-shorthand-endpoint
+  version: 1.0.0-alpha1
+do:
+  - test:
+      call: http
+      with:
+        method: get
+        endpoint: https://petstore.swagger.io/v2/pet/{petId}
+`)
+	err := FromYAMLSource(source)
+	assert.NoError(t, err)
 
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
-	}
-	return yaml.JSONToYAML(data)
 }

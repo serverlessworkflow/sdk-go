@@ -14,40 +14,31 @@
 
 package builder
 
-import (
-	"encoding/json"
+import "github.com/serverlessworkflow/sdk-go/v4/graph"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
-)
-
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type WaitBuilder struct {
+	root     *graph.Node
+	duration *DurationBuilder
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+func (b *WaitBuilder) SetWait(wait string) {
+	b.root.Edge("wait").Clear().SetString(string(wait))
 }
 
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
+func (b *WaitBuilder) GetWait() string {
+	return b.root.Edge("wait").GetString()
+}
+
+func (b *WaitBuilder) Duration() *DurationBuilder {
+	if b.duration == nil {
+		node := b.root.Edge("wait").Clear()
+		b.duration = NewDurationBuilder(node)
 	}
-	return yaml.JSONToYAML(data)
+	return b.duration
+}
+
+func NewWaitBuilder(root *graph.Node) *WaitBuilder {
+	return &WaitBuilder{
+		root: root,
+	}
 }

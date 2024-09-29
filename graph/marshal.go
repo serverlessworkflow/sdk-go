@@ -12,42 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package graph
 
 import (
 	"encoding/json"
-
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
 )
 
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
+func marshalNode(n *Node) ([]byte, error) {
+	if n.value != nil {
+		return json.Marshal(n.value)
 	}
 
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
+	var out []byte
+	if n.list {
+		out = append(out, '[')
+	} else {
+		out = append(out, '{')
 	}
 
-	return nil
-}
+	nEdge := len(n.order) - 1
+	for i, edge := range n.order {
+		node := n.edges[edge]
+		val, err := json.Marshal(node)
+		if err != nil {
+			return nil, err
+		}
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
+		if n.list {
+			out = append(out, val...)
+		} else {
+			out = append(out, []byte("\""+edge+"\":")...)
+			out = append(out, val...)
+		}
+
+		if nEdge != i {
+			out = append(out, byte(','))
+		}
 	}
 
-	return data, nil
-}
-
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
+	if n.list {
+		out = append(out, ']')
+	} else {
+		out = append(out, '}')
 	}
-	return yaml.JSONToYAML(data)
+
+	return out, nil
 }

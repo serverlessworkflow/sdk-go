@@ -14,40 +14,38 @@
 
 package builder
 
-import (
-	"encoding/json"
+import "github.com/serverlessworkflow/sdk-go/v4/graph"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
+type CallKind string
+
+const (
+	CallKindHttp CallKind = "http"
+	CallKindGrpc CallKind = "grpc"
 )
 
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type CallBuilder struct {
+	root *graph.Node
+	with *MapBuilder
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+func (b *CallBuilder) SetCall(call CallKind) *CallBuilder {
+	b.root.Edge("call").SetString(string(call))
+	return b
 }
 
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
+func (b *CallBuilder) GetCall() string {
+	return b.root.Edge("call").GetString()
+}
+
+func (b *CallBuilder) With() *MapBuilder {
+	if b.with == nil {
+		b.with = NewMapBuilder(b.root.Edge("with"))
 	}
-	return yaml.JSONToYAML(data)
+	return b.with
+}
+
+func NewCallBuilder(root *graph.Node) *CallBuilder {
+	return &CallBuilder{
+		root: root,
+	}
 }

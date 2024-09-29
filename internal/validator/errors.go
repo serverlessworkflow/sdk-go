@@ -12,42 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package validator
 
 import (
-	"encoding/json"
+	"fmt"
 
-	"github.com/serverlessworkflow/sdk-go/v4/validate"
-	"sigs.k8s.io/yaml"
+	"github.com/xeipuuv/gojsonschema"
 )
 
-func Validate(builder *WorkflowBuilder) error {
-	data, err := Json(builder)
-	if err != nil {
-		return err
-	}
-
-	err = validate.FromJSONSource(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type Errors struct {
+	errors []gojsonschema.ResultError
 }
 
-func Json(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := json.MarshalIndent(builder.Node(), "", "  ")
-	if err != nil {
-		return nil, err
+func (err *Errors) Error() string {
+	errors := ""
+	for _, desc := range err.errors {
+		errors = fmt.Sprintf("%s\n%s", errors, desc)
 	}
-
-	return data, nil
-}
-
-func Yaml(builder *WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
-	if err != nil {
-		return nil, err
-	}
-	return yaml.JSONToYAML(data)
+	return errors
 }

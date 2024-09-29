@@ -1,9 +1,0 @@
-{
-  "retries": [
-    {
-      "name": "TimeoutRetryStrategy",
-      "delay": "PT1M",
-      "maxAttempts": "5"
-    }
-  ]
-}

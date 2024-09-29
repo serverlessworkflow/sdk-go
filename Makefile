@@ -15,7 +15,8 @@ lint:
 .PHONY: test
 coverage="false"
 
-test: deepcopy buildergen
+#test: deepcopy buildergen
+test:
 	make lint
 	@go test ./...
 

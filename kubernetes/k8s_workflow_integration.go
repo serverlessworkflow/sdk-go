@@ -17,6 +17,8 @@ package kubernetes
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/serverlessworkflow/sdk-go/v4/kubernetes/spec"
 )
 
 // This package provides a very simple api for kubernetes operator to test the integration
@@ -36,7 +38,7 @@ import (
 
 // ServerlessWorkflowSpec defines a base API for integration test with operator-sdk
 type ServerlessWorkflowSpec struct {
-	// model.Workflow `json:",inline"`
+	spec.SchemaJson `json:",inline"`
 }
 
 // ServerlessWorkflow ...

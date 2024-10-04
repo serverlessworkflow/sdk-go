@@ -53,5 +53,5 @@ func (r *Retry) UnmarshalJSON(data []byte) error {
 }
 
 func (r *Retry) ApplyDefault() {
-	r.MaxAttempts = intstr.FromInt(1)
+	r.MaxAttempts = intstr.FromInt32(1)
 }

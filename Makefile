@@ -6,9 +6,15 @@ fmt:
 	@go vet ./...
 	@go fmt ./...
 
+goimports:
+	@command -v goimports > /dev/null || go install golang.org/x/tools/cmd/goimports@latest
+	@goimports -w .
+
+
 lint:
 	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin"
 	make addheaders
+	make goimports
 	make fmt
 	./hack/go-lint.sh ${params}
 

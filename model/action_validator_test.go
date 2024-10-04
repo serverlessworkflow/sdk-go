@@ -16,6 +16,8 @@ package model
 
 import (
 	"testing"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func buildActionByOperationState(state *State, name string) *Action {
@@ -64,7 +66,8 @@ func buildFunctionRef(workflow *Workflow, action *Action, name string) (*Functio
 
 func buildRetryRef(workflow *Workflow, action *Action, name string) {
 	retry := Retry{
-		Name: name,
+		Name:        name,
+		MaxAttempts: intstr.FromInt32(1),
 	}
 
 	workflow.Retries = append(workflow.Retries, retry)

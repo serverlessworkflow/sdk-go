@@ -17,6 +17,8 @@ package model
 import (
 	"context"
 
+	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+
 	validator "github.com/go-playground/validator/v10"
 
 	val "github.com/serverlessworkflow/sdk-go/v2/validator"
@@ -156,6 +158,8 @@ func init() {
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(onErrorStructLevelValidationCtx), OnError{})
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(transitionStructLevelValidationCtx), Transition{})
 	val.GetValidator().RegisterStructValidationCtx(ValidationWrap(startStructLevelValidationCtx), Start{})
+
+	val.GetValidator().RegisterStructValidation(floatstr.ValidateFloat32OrString, Retry{})
 }
 
 func startStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.StructLevel) {

@@ -37,7 +37,7 @@ func TestRetryStructLevelValidation(t *testing.T) {
 				model.Retries[0].Delay = "PT5S"
 				model.Retries[0].MaxDelay = "PT5S"
 				model.Retries[0].Increment = "PT5S"
-				model.Retries[0].Jitter = floatstr.FromString("PT5S")
+				model.Retries[0].Jitter = floatstr.FromString("0.5")
 				return *model
 			},
 		},
@@ -82,8 +82,18 @@ func TestRetryStructLevelValidation(t *testing.T) {
 			},
 			Err: `workflow.retries[0].delay invalid iso8601 duration "P5S"
 workflow.retries[0].maxDelay invalid iso8601 duration "P5S"
-workflow.retries[0].increment invalid iso8601 duration "P5S"
-workflow.retries[0].jitter invalid iso8601 duration "P5S"`,
+workflow.retries[0].increment invalid iso8601 duration "P5S"`,
+		},
+		{
+			Desp: "multiplier less than zero",
+			Model: func() Workflow {
+				multiplierZero := floatstr.FromString("0")
+				model := baseWorkflow.DeepCopy()
+				model.Retries[0].Multiplier = &multiplierZero
+
+				return *model
+			},
+			Err: `workflow.retries[0].multiplier must have the minimum `,
 		},
 	}
 

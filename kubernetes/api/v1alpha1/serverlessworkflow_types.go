@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubernetes
+package v1alpha1
 
 import (
 	"github.com/serverlessworkflow/sdk-go/v2/model"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // This package provides a very simple api for kubernetes operator to test the integration
@@ -36,6 +35,7 @@ import (
 // TODO add a webhook example
 
 // ServerlessWorkflowSpec defines a base API for integration test with operator-sdk
+// +k8s:openapi-gen=true
 type ServerlessWorkflowSpec struct {
 	model.Workflow `json:",inline"`
 }
@@ -49,8 +49,17 @@ type ServerlessWorkflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ServerlessWorkflowSpec `json:"spec,omitempty"`
-	Status string                 `json:"status,omitempty"`
+	Spec   ServerlessWorkflowSpec   `json:"spec,omitempty"`
+	Status ServerlessWorkflowStatus `json:"status,omitempty"`
+}
+
+// ServerlessWorkflowStatus ...
+// +k8s:openapi-gen=true
+type ServerlessWorkflowStatus struct {
+	// add your conditions struct here ...
+
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
 // ServerlessWorkflowList contains a list of SDKServerlessWorkflow
@@ -60,16 +69,6 @@ type ServerlessWorkflowList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ServerlessWorkflow `json:"items"`
-}
-
-func (S ServerlessWorkflowList) DeepCopyObject() runtime.Object {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (S ServerlessWorkflow) DeepCopyObject() runtime.Object {
-	//TODO implement me
-	panic("implement me")
 }
 
 func init() {

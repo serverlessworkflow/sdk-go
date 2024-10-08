@@ -15,7 +15,7 @@
 # This is an example on how the CR would look like when importing the sdk go types into your operator's spec
 # the cr instantiation would be validated by this issue: https://github.com/serverlessworkflow/sdk-go/issues/152
 
-apiVersion: io.serverlessworkflow/v08
+apiVersion: io.serverlessworkflow/v1alpha1
 kind: ServerlessWorkflow
 metadata:
   name: custom.greeting

@@ -48,6 +48,9 @@
     {
       "name": "CheckApplication",
       "type": "switch",
+      "metadata": {
+        "metadataState": "state info"
+      },
       "dataConditions": [
         {
           "condition": "${ .applicants | .age >= 18 }",

@@ -6,9 +6,15 @@ fmt:
 	@go vet ./...
 	@go fmt ./...
 
+goimports:
+	@command -v goimports > /dev/null || go install golang.org/x/tools/cmd/goimports@latest
+	@goimports -w .
+
+
 lint:
 	@command -v golangci-lint > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin"
 	make addheaders
+	make goimports
 	make fmt
 	./hack/go-lint.sh ${params}
 
@@ -38,7 +44,7 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
+CONTROLLER_TOOLS_VERSION ?= v0.16.3
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.

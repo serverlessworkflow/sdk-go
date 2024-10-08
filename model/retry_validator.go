@@ -25,6 +25,7 @@ import (
 
 func init() {
 	val.GetValidator().RegisterStructValidation(retryStructLevelValidation, Retry{})
+	val.GetValidator().RegisterStructValidation(floatstr.ValidateFloat32OrString, Retry{})
 }
 
 // RetryStructLevelValidation custom validator for Retry Struct

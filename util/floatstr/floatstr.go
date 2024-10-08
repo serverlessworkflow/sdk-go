@@ -16,8 +16,14 @@ package floatstr
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
+
+	"github.com/go-playground/validator/v10"
+	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
 // Float32OrString is a type that can hold a float32 or a string.
@@ -71,7 +77,7 @@ func (floatstr *Float32OrString) UnmarshalJSON(value []byte) error {
 }
 
 // MarshalJSON implements the json.Marshaller interface.
-func (floatstr Float32OrString) MarshalJSON() ([]byte, error) {
+func (floatstr *Float32OrString) MarshalJSON() ([]byte, error) {
 	switch floatstr.Type {
 	case Float:
 		return json.Marshal(floatstr.FloatVal)
@@ -102,4 +108,72 @@ func (floatstr *Float32OrString) FloatValue() float32 {
 		return float32(f)
 	}
 	return floatstr.FloatVal
+}
+
+func init() {
+	val.GetValidator().RegisterCustomTypeFunc(func(fl reflect.Value) interface{} {
+		if fl.Kind() != reflect.Struct {
+			return errors.New("invalid type: expected Float32OrString")
+		}
+
+		// Get the Float32OrString value
+		_, ok := fl.Interface().(Float32OrString)
+		if !ok {
+			return fmt.Errorf("invalid type: expected Float32OrString")
+		}
+
+		return nil
+	}, Float32OrString{})
+}
+
+func ValidateFloat32OrString(sl validator.StructLevel) {
+	// Get the current struct being validated.
+	current := sl.Current()
+
+	for i := 0; i < current.NumField(); i++ {
+		field := current.Type().Field(i)
+		value := current.Field(i)
+
+		// Check if the field is a pointer and handle nil pointers.
+		if value.Kind() == reflect.Ptr {
+			if value.IsNil() {
+				continue // Skip nil pointers.
+			}
+			value = value.Elem() // Dereference the pointer.
+		}
+
+		// Check if the field is of type Float32OrString.
+		if value.Type() == reflect.TypeOf(Float32OrString{}) {
+			// Extract validation tags from the field.
+			tags := field.Tag.Get("validate")
+
+			// Split tags and look for min/max.
+			tagList := strings.Split(tags, ",")
+			for _, tag := range tagList {
+				if strings.HasPrefix(tag, "min=") {
+					minVal, err := strconv.ParseFloat(strings.TrimPrefix(tag, "min="), 32)
+					if err != nil {
+						sl.ReportError(value.Interface(), field.Name, field.Name, "min", "")
+						continue
+					}
+
+					if value.FieldByName("FloatVal").Float() < minVal {
+						sl.ReportError(value.Interface(), field.Name, field.Name, "min", "")
+					}
+				}
+
+				if strings.HasPrefix(tag, "max=") {
+					maxVal, err := strconv.ParseFloat(strings.TrimPrefix(tag, "max="), 32)
+					if err != nil {
+						sl.ReportError(value.Interface(), field.Name, field.Name, "max", "")
+						continue
+					}
+
+					if value.FieldByName("FloatVal").Float() > maxVal {
+						sl.ReportError(value.Interface(), field.Name, field.Name, "max", "")
+					}
+				}
+			}
+		}
+	}
 }

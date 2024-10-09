@@ -39,7 +39,7 @@ func actionStructLevelValidationCtx(ctx ValidatorContext, structLevel validator.
 		action.SubFlowRef != nil,
 	}
 
-	if validationNotExclusiveParamters(values) {
+	if validationNotExclusiveParameters(values) {
 		structLevel.ReportError(action.FunctionRef, "FunctionRef", "FunctionRef", val.TagExclusive, "")
 		structLevel.ReportError(action.EventRef, "EventRef", "EventRef", val.TagExclusive, "")
 		structLevel.ReportError(action.SubFlowRef, "SubFlowRef", "SubFlowRef", val.TagExclusive, "")

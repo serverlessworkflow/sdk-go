@@ -237,6 +237,7 @@ func TestFromFile(t *testing.T) {
 				// metadata
 				assert.Equal(t, model.Metadata{"metadata1": model.FromString("metadata1"), "metadata2": model.FromString("metadata2")}, w.Metadata)
 				assert.Equal(t, model.Metadata{"auth1": model.FromString("auth1"), "auth2": model.FromString("auth2")}, auth[0].Properties.Bearer.Metadata)
+				assert.Equal(t, &model.Metadata{"metadataState": model.FromString("state info")}, w.States[0].Metadata)
 			},
 		}, {
 			"./testdata/workflows/applicationrequest.rp.json", func(t *testing.T, w *model.Workflow) {

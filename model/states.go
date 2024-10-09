@@ -100,6 +100,8 @@ type BaseState struct {
 	End *End `json:"end,omitempty"`
 	// Metadata information.
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Metadata *Metadata `json:"metadata,omitempty"`
 }
 

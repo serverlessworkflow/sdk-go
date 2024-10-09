@@ -141,6 +141,8 @@ type DataCondition struct {
 	Condition string `json:"condition" validate:"required"`
 	// Metadata information.
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Metadata Metadata `json:"metadata,omitempty"`
 	// TODO End or Transition needs to be exclusive tag, one or another should be set.
 	// Explicit transition to end

@@ -18,6 +18,8 @@ package model
 type Common struct {
 	// Metadata information
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Metadata Metadata `json:"metadata,omitempty"`
 }
 

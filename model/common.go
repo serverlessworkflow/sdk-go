@@ -24,4 +24,6 @@ type Common struct {
 }
 
 // Metadata information
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:validation:Schemaless
 type Metadata map[string]Object

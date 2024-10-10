@@ -106,9 +106,13 @@ type EventRef struct {
 	// of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
 	// of the event referenced by triggerEventRef.
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Data *Object `json:"data,omitempty"`
 	// Add additional extension context attributes to the produced event.
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ContextAttributes map[string]Object `json:"contextAttributes,omitempty"`
 	// Specifies if the function should be invoked sync or async. Default is sync.
 	// +kubebuilder:validation:Enum=async;sync

@@ -90,7 +90,7 @@ spec:
                   failOnValidationErrors:
                     type: boolean
                   schema:
-                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
                 required:
                 - failOnValidationErrors
                 - schema
@@ -357,17 +357,15 @@ spec:
                                 event definitions.
                               properties:
                                 contextAttributes:
-                                  additionalProperties:
-                                    type: object
                                   description: Add additional extension context attributes
                                     to the produced event.
-                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
                                 data:
                                   description: |-
                                     If string type, an expression which selects parts of the states data output to become the data (payload)
                                     of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
                                     of the event referenced by triggerEventRef.
-                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
                                 invoke:
                                   default: sync
                                   description: Specifies if the function should be
@@ -397,11 +395,9 @@ spec:
                               description: References a reusable function definition.
                               properties:
                                 arguments:
-                                  additionalProperties:
-                                    type: object
                                   description: Arguments (inputs) to be passed to
                                     the referenced function
-                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
                                 invoke:
                                   default: sync
                                   description: Specifies if the function should be
@@ -630,17 +626,15 @@ spec:
                                         reusable event definitions.
                                       properties:
                                         contextAttributes:
-                                          additionalProperties:
-                                            type: object
                                           description: Add additional extension context
                                             attributes to the produced event.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         data:
                                           description: |-
                                             If string type, an expression which selects parts of the states data output to become the data (payload)
                                             of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
                                             of the event referenced by triggerEventRef.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         invoke:
                                           default: sync
                                           description: Specifies if the function should
@@ -671,11 +665,9 @@ spec:
                                         definition.
                                       properties:
                                         arguments:
-                                          additionalProperties:
-                                            type: object
                                           description: Arguments (inputs) to be passed
                                             to the referenced function
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         invoke:
                                           default: sync
                                           description: Specifies if the function should
@@ -875,17 +867,15 @@ spec:
                                   event definitions.
                                 properties:
                                   contextAttributes:
-                                    additionalProperties:
-                                      type: object
                                     description: Add additional extension context
                                       attributes to the produced event.
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   data:
                                     description: |-
                                       If string type, an expression which selects parts of the states data output to become the data (payload)
                                       of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
                                       of the event referenced by triggerEventRef.
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   invoke:
                                     default: sync
                                     description: Specifies if the function should
@@ -915,11 +905,9 @@ spec:
                                 description: References a reusable function definition.
                                 properties:
                                   arguments:
-                                    additionalProperties:
-                                      type: object
                                     description: Arguments (inputs) to be passed to
                                       the referenced function
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   invoke:
                                     default: sync
                                     description: Specifies if the function should
@@ -1074,12 +1062,9 @@ spec:
                         data input.
                       properties:
                         data:
-                          additionalProperties:
-                            type: object
                           description: JSON object which can be set as state's data
                             input and can be manipulated via filter
-                          minProperties: 1
-                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
                         timeouts:
                           description: State specific timeouts
                           properties:
@@ -1189,17 +1174,15 @@ spec:
                                   event definitions.
                                 properties:
                                   contextAttributes:
-                                    additionalProperties:
-                                      type: object
                                     description: Add additional extension context
                                       attributes to the produced event.
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   data:
                                     description: |-
                                       If string type, an expression which selects parts of the states data output to become the data (payload)
                                       of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
                                       of the event referenced by triggerEventRef.
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   invoke:
                                     default: sync
                                     description: Specifies if the function should
@@ -1229,11 +1212,9 @@ spec:
                                 description: References a reusable function definition.
                                 properties:
                                   arguments:
-                                    additionalProperties:
-                                      type: object
                                     description: Arguments (inputs) to be passed to
                                       the referenced function
-                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
                                   invoke:
                                     default: sync
                                     description: Specifies if the function should
@@ -1401,17 +1382,15 @@ spec:
                                         reusable event definitions.
                                       properties:
                                         contextAttributes:
-                                          additionalProperties:
-                                            type: object
                                           description: Add additional extension context
                                             attributes to the produced event.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         data:
                                           description: |-
                                             If string type, an expression which selects parts of the states data output to become the data (payload)
                                             of the event referenced by triggerEventRef. If object type, a custom object to become the data (payload)
                                             of the event referenced by triggerEventRef.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         invoke:
                                           default: sync
                                           description: Specifies if the function should
@@ -1442,11 +1421,9 @@ spec:
                                         definition.
                                       properties:
                                         arguments:
-                                          additionalProperties:
-                                            type: object
                                           description: Arguments (inputs) to be passed
                                             to the referenced function
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         invoke:
                                           default: sync
                                           description: Specifies if the function should
@@ -1675,7 +1652,7 @@ spec:
                                         description: |-
                                           If string type, an expression which selects parts of the states data output to become the workflow data input of
                                           continued execution. If object type, a custom object to become the workflow data input of the continued execution
-                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       version:
                                         description: Version of the workflow to continue
                                           execution as.
@@ -1730,7 +1707,7 @@ spec:
                                           description: |-
                                             If String, expression which selects parts of the states data output to become the data of the produced event.
                                             If object a custom object to become the data of produced event.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         eventRef:
                                           description: Reference to a defined unique
                                             event name in the events definition
@@ -1784,7 +1761,7 @@ spec:
                                           description: |-
                                             If String, expression which selects parts of the states data output to become the data of the produced event.
                                             If object a custom object to become the data of produced event.
-                                          type: object
+                                          x-kubernetes-preserve-unknown-fields: true
                                         eventRef:
                                           description: Reference to a defined unique
                                             event name in the events definition

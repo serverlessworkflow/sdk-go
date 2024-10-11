@@ -44,15 +44,16 @@ const (
 //   - Integer	- holds int32 values, JSON marshal any number to float64 by default, during the marshaling process it is
 //     parsed to int32
 //
-// +kubebuilder:validation:Type=object
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:validation:Schemaless
 type Object struct {
-	Type        Type   `json:"type,inline"`
-	StringValue string `json:"strVal,inline"`
-	IntValue    int32  `json:"intVal,inline"`
-	FloatValue  float64
-	MapValue    map[string]Object
-	SliceValue  []Object
-	BoolValue   bool `json:"boolValue,inline"`
+	Type        Type              `json:"type,inline"`
+	StringValue string            `json:"strVal,inline"`
+	IntValue    int32             `json:"intVal,inline"`
+	FloatValue  float64           `json:"floatVal,inline"`
+	MapValue    map[string]Object `json:"mapVal,inline"`
+	SliceValue  []Object          `json:"sliceVal,inline"`
+	BoolValue   bool              `json:"boolValue,inline"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler

@@ -21,7 +21,8 @@ import (
 // InjectState used to inject static data into state data input.
 type InjectState struct {
 	// JSON object which can be set as state's data input and can be manipulated via filter
-	// +kubebuilder:validation:MinProperties=1
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Data map[string]Object `json:"data" validate:"required,min=1"`
 	// State specific timeouts
 	// +optional

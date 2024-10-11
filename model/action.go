@@ -80,6 +80,8 @@ type FunctionRef struct {
 	RefName string `json:"refName" validate:"required"`
 	// Arguments (inputs) to be passed to the referenced function
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// TODO: validate it as required if function type is graphql
 	Arguments map[string]Object `json:"arguments,omitempty"`
 	// Used if function type is graphql. String containing a valid GraphQL selection set.

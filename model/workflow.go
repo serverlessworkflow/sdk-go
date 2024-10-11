@@ -154,9 +154,9 @@ type BaseWorkflow struct {
 	// +optional
 	KeepActive bool `json:"keepActive,omitempty"`
 	// Metadata custom information shared with the runtime.
+	// +optional
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
-	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
 	// AutoRetries If set to true, actions should automatically be retried on unchecked errors. Default is false
 	// +optional
@@ -471,6 +471,8 @@ type ContinueAs struct {
 	// If string type, an expression which selects parts of the states data output to become the workflow data input of
 	// continued execution. If object type, a custom object to become the workflow data input of the continued execution
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Data Object `json:"data,omitempty"`
 	// WorkflowExecTimeout Workflow execution timeout to be used by the workflow continuing execution.
 	// Overwrites any specific settings set by that workflow
@@ -495,6 +497,8 @@ type ProduceEvent struct {
 	// If String, expression which selects parts of the states data output to become the data of the produced event.
 	// If object a custom object to become the data of produced event.
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Data Object `json:"data,omitempty"`
 	// Add additional event extension context attributes.
 	// +optional
@@ -513,6 +517,8 @@ type StateDataFilter struct {
 // +builder-gen:new-call=ApplyDefault
 type DataInputSchema struct {
 	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Schema *Object `json:"schema" validate:"required"`
 	// +kubebuilder:validation:Required
 	FailOnValidationErrors bool `json:"failOnValidationErrors"`
@@ -557,7 +563,7 @@ func (d *DataInputSchema) UnmarshalJSON(data []byte) error {
 	}
 
 	d.Schema = new(Object)
-	return util.UnmarshalObjectOrFile("schema", data, &d.Schema)
+	return util.UnmarshalObject("schema", data, &d.Schema)
 }
 
 // ApplyDefault set the default values for Data Input Schema

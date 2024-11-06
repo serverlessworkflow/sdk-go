@@ -1,6 +1,6 @@
 module github.com/serverlessworkflow/sdk-go/v2
 
-go 1.22.8
+go 1.22.0
 
 toolchain go1.23.1
 

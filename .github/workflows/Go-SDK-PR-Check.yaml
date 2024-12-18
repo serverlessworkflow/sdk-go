@@ -72,16 +72,6 @@ jobs:
           version: latest
       - name: Install cover
         run: go get -modfile=tools.mod golang.org/x/tools/cmd/cover
-      - name: Validate codcov yaml file
-        run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
       - name: Run Unit Tests
         run: |
           go test ./... -coverprofile test_coverage.out -covermode=atomic
-      - name: Upload results to codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./test_coverage.out
-          flags: sdk-go
-          name: sdk-go
-          fail_ci_if_error: true
-          verbose: true

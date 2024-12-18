@@ -22,6 +22,10 @@ on:
       - "Makefile"
     branches:
       - main
+
+permissions:
+  contents: read
+
 env:
   GO_VERSION: 1.22
 jobs:
@@ -67,7 +71,7 @@ jobs:
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
       - name: Check lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1 - Please ALWAYS use SHA to avoid GH sec issues
         with:
           version: latest
       - name: Install cover

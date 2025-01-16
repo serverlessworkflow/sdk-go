@@ -3,3 +3,4 @@ bin
 *.out
 .vscode
 
+integration-test-junit.xml

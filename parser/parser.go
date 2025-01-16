@@ -21,10 +21,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"sigs.k8s.io/yaml"
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -51,9 +50,9 @@ func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
 		return nil, err
 	}
 
-	ctx := model.NewValidatorContext(workflow)
-	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
-		return nil, val.WorkflowError(err)
+	err = model.GetValidator().Struct(workflow)
+	if err != nil {
+		return nil, err
 	}
 	return workflow, nil
 }

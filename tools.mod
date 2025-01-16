@@ -1,4 +1,4 @@
-module github.com/serverlessworkflow/sdk-go/v2
+module github.com/serverlessworkflow/sdk-go/v3
 
 go 1.19
 

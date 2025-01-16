@@ -16,46 +16,52 @@ package builder
 
 import (
 	"encoding/json"
+	"fmt"
+
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 
 	"sigs.k8s.io/yaml"
-
-	"github.com/serverlessworkflow/sdk-go/v2/model"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
 )
 
+// New initializes a new WorkflowBuilder instance.
 func New() *model.WorkflowBuilder {
 	return model.NewWorkflowBuilder()
 }
 
+// Yaml generates YAML output from the WorkflowBuilder using custom MarshalYAML implementations.
 func Yaml(builder *model.WorkflowBuilder) ([]byte, error) {
-	data, err := Json(builder)
+	workflow, err := Object(builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to build workflow object: %w", err)
 	}
-	return yaml.JSONToYAML(data)
+	return yaml.Marshal(workflow)
 }
 
+// Json generates JSON output from the WorkflowBuilder.
 func Json(builder *model.WorkflowBuilder) ([]byte, error) {
 	workflow, err := Object(builder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to build workflow object: %w", err)
 	}
-	return json.Marshal(workflow)
+	return json.MarshalIndent(workflow, "", "  ")
 }
 
+// Object builds and validates the Workflow object from the builder.
 func Object(builder *model.WorkflowBuilder) (*model.Workflow, error) {
 	workflow := builder.Build()
-	ctx := model.NewValidatorContext(&workflow)
-	if err := val.GetValidator().StructCtx(ctx, workflow); err != nil {
-		return nil, err
+
+	// Validate the workflow object
+	if err := model.GetValidator().Struct(workflow); err != nil {
+		return nil, fmt.Errorf("workflow validation failed: %w", err)
 	}
-	return &workflow, nil
+
+	return workflow, nil
 }
 
+// Validate validates any given object using the Workflow model validator.
 func Validate(object interface{}) error {
-	ctx := model.NewValidatorContext(object)
-	if err := val.GetValidator().StructCtx(ctx, object); err != nil {
-		return val.WorkflowError(err)
+	if err := model.GetValidator().Struct(object); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
 	}
 	return nil
 }

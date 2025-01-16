@@ -15,106 +15,163 @@
 package builder
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-playground/validator/v10"
+	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/serverlessworkflow/sdk-go/v3/test"
 
-	"github.com/serverlessworkflow/sdk-go/v2/model"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"github.com/stretchr/testify/assert"
 )
 
-func prepareBuilder() *model.WorkflowBuilder {
-	builder := New().Key("key test").ID("id test")
+func TestBuilder_Yaml(t *testing.T) {
+	builder := New().
+		SetDocument("1.0.0", "examples", "example-workflow", "1.0.0").
+		AddTask("task1", &model.CallHTTP{
+			TaskBase: model.TaskBase{
+				If: &model.RuntimeExpression{Value: "${condition}"},
+			},
+			Call: "http",
+			With: model.HTTPArguments{
+				Method:   "GET",
+				Endpoint: model.NewEndpoint("http://example.com"),
+			},
+		})
 
-	builder.AddFunctions().Name("function name").Operation("http://test")
-	builder.AddFunctions().Name("function name2").Operation("http://test")
-
-	function3 := builder.AddFunctions().Name("function name2").Operation("http://test")
-	builder.RemoveFunctions(function3)
-
-	state1 := builder.AddStates().
-		Name("state").
-		Type(model.StateTypeInject)
-	state1.End().Terminate(true)
-
-	inject := state1.InjectState()
-	inject.Data(map[string]model.Object{
-		"test": model.FromMap(map[string]any{}),
-	})
-
-	return builder
-}
-
-func TestValidate(t *testing.T) {
-	state1 := model.NewStateBuilder().
-		Name("state").
-		Type(model.StateTypeInject)
-	state1.End().Terminate(true)
-	err := Validate(state1)
+	// Generate YAML from the builder
+	yamlData, err := Yaml(builder)
 	assert.NoError(t, err)
 
-	state2 := model.NewStateBuilder().
-		Type(model.StateTypeInject)
-	state2.End().Terminate(true)
-	err = Validate(state2.Build())
-	if assert.Error(t, err) {
-		var workflowErrors val.WorkflowErrors
-		if errors.As(err, &workflowErrors) {
-			assert.Equal(t, "state.name is required", workflowErrors[0].Error())
-		} else {
-			// Handle other error types if necessary
-			t.Errorf("Unexpected error: %v", err)
-		}
-	}
-}
-
-func TestObject(t *testing.T) {
-	workflow, err := Object(prepareBuilder())
-	if assert.NoError(t, err) {
-		assert.Equal(t, "key test", workflow.Key)
-		assert.Equal(t, "id test", workflow.ID)
-		assert.Equal(t, "0.8", workflow.SpecVersion)
-		assert.Equal(t, "jq", workflow.ExpressionLang.String())
-		assert.Equal(t, 2, len(workflow.Functions))
-
-		assert.Equal(t, "function name", workflow.Functions[0].Name)
-		assert.Equal(t, "function name2", workflow.Functions[1].Name)
-	}
-}
-
-func TestJson(t *testing.T) {
-	data, err := Json(prepareBuilder())
-	if assert.NoError(t, err) {
-		d := `{"id":"id test","key":"key test","version":"","specVersion":"0.8","expressionLang":"jq","states":[{"name":"state","type":"inject","end":{"terminate":true},"data":{"test":{}}}],"functions":[{"name":"function name","operation":"http://test","type":"rest"},{"name":"function name2","operation":"http://test","type":"rest"}]}`
-		assert.Equal(t, d, string(data))
-	}
-}
-
-func TestYaml(t *testing.T) {
-	data, err := Yaml(prepareBuilder())
-	if assert.NoError(t, err) {
-		d := `expressionLang: jq
-functions:
-- name: function name
-  operation: http://test
-  type: rest
-- name: function name2
-  operation: http://test
-  type: rest
-id: id test
-key: key test
-specVersion: "0.8"
-states:
-- data:
-    test: {}
-  end:
-    terminate: true
-  name: state
-  type: inject
-version: ""
+	// Define the expected YAML structure
+	expectedYAML := `document:
+  dsl: 1.0.0
+  namespace: examples
+  name: example-workflow
+  version: 1.0.0
+do:
+- task1:
+    call: http
+    if: ${condition}
+    with:
+      method: GET
+      endpoint: http://example.com
 `
 
-		assert.Equal(t, d, string(data))
+	// Use assertYAMLEq to compare YAML structures
+	test.AssertYAMLEq(t, expectedYAML, string(yamlData))
+}
+
+func TestBuilder_Json(t *testing.T) {
+	builder := New().
+		SetDocument("1.0.0", "examples", "example-workflow", "1.0.0").
+		AddTask("task1", &model.CallHTTP{
+			TaskBase: model.TaskBase{
+				If: &model.RuntimeExpression{Value: "${condition}"},
+			},
+			Call: "http",
+			With: model.HTTPArguments{
+				Method:   "GET",
+				Endpoint: model.NewEndpoint("http://example.com"),
+			},
+		})
+
+	jsonData, err := Json(builder)
+	assert.NoError(t, err)
+
+	expectedJSON := `{
+  "document": {
+    "dsl": "1.0.0",
+    "namespace": "examples",
+    "name": "example-workflow",
+    "version": "1.0.0"
+  },
+  "do": [
+    {
+      "task1": {
+        "call": "http",
+        "if": "${condition}",
+        "with": {
+          "method": "GET",
+          "endpoint": "http://example.com"
+        }
+      }
+    }
+  ]
+}`
+	assert.JSONEq(t, expectedJSON, string(jsonData))
+}
+
+func TestBuilder_Object(t *testing.T) {
+	builder := New().
+		SetDocument("1.0.0", "examples", "example-workflow", "1.0.0").
+		AddTask("task1", &model.CallHTTP{
+			TaskBase: model.TaskBase{
+				If: &model.RuntimeExpression{Value: "${condition}"},
+			},
+			Call: "http",
+			With: model.HTTPArguments{
+				Method:   "GET",
+				Endpoint: model.NewEndpoint("http://example.com"),
+			},
+		})
+
+	workflow, err := Object(builder)
+	assert.NoError(t, err)
+	assert.NotNil(t, workflow)
+
+	assert.Equal(t, "1.0.0", workflow.Document.DSL)
+	assert.Equal(t, "examples", workflow.Document.Namespace)
+	assert.Equal(t, "example-workflow", workflow.Document.Name)
+	assert.Equal(t, "1.0.0", workflow.Document.Version)
+	assert.Len(t, *workflow.Do, 1)
+	assert.Equal(t, "http", (*workflow.Do)[0].Task.(*model.CallHTTP).Call)
+}
+
+func TestBuilder_Validate(t *testing.T) {
+	workflow := &model.Workflow{
+		Document: model.Document{
+			DSL:       "1.0.0",
+			Namespace: "examples",
+			Name:      "example-workflow",
+			Version:   "1.0.0",
+		},
+		Do: &model.TaskList{
+			{
+				Key: "task1",
+				Task: &model.CallHTTP{
+					Call: "http",
+					With: model.HTTPArguments{
+						Method:   "GET",
+						Endpoint: model.NewEndpoint("http://example.com"),
+					},
+				},
+			},
+		},
+	}
+
+	err := Validate(workflow)
+	assert.NoError(t, err)
+
+	// Test validation failure
+	workflow.Do = &model.TaskList{
+		{
+			Key: "task2",
+			Task: &model.CallHTTP{
+				Call: "http",
+				With: model.HTTPArguments{
+					Method: "GET", // Missing Endpoint
+				},
+			},
+		},
+	}
+	err = Validate(workflow)
+	assert.Error(t, err)
+
+	var validationErrors validator.ValidationErrors
+	if errors.As(err, &validationErrors) {
+		t.Logf("Validation errors: %v", validationErrors)
+		assert.Contains(t, validationErrors.Error(), "Do[0].Task.With.Endpoint")
+		assert.Contains(t, validationErrors.Error(), "required")
 	}
 }

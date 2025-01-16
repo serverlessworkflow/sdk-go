@@ -1,10 +1,10 @@
-# Copyright 2020 The Serverless Workflow Specification Authors
+# Copyright 2025 The Serverless Workflow Specification Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,6 +13,7 @@
 # limitations under the License.
 
 name: Go SDK PR Checks
+
 on:
   pull_request:
     paths-ignore:
@@ -23,11 +24,13 @@ on:
     branches:
       - main
 
+
 permissions:
   contents: read
 
 env:
   GO_VERSION: 1.22
+
 jobs:
   basic_checks:
     name: Basic Checks
@@ -35,12 +38,14 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Setup Go ${{ env.GO_VERSION }}
+
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
         id: go
-      - name: Cache dependencies
+
+      - name: Cache Go Modules
         uses: actions/cache@v4
         with:
           path: |
@@ -49,33 +54,73 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Cache tools
+
+      - name: Cache Tools
         uses: actions/cache@v4
         with:
           path: ~/go/bin
           key: ${{ runner.os }}-go-tools-${{ hashFiles('**/tools.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-tools-
+
       - name: Check Headers
         run: |
           make addheaders
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
-          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make lint' before sending the PR" && exit 1)
-      - name: Check DeepCopy Generation
-        run: |
-          export GOPATH=$(go env GOPATH)
-          make deepcopy
+          if [[ -n "$changed_files" ]]; then
+            echo "❌ Some files are missing headers:\n$changed_files"
+            exit 1
+          fi
+
       - name: Check Formatting
         run: |
           make fmt
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|tools.mod\|tools.sum' || :)
-          [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
-      - name: Check lint
-        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1 - Please ALWAYS use SHA to avoid GH sec issues
+          if [[ -n "$changed_files" ]]; then
+            echo "❌ Some files are not formatted correctly:\n$changed_files"
+            exit 1
+          fi
+
+      - name: Run Linter
+        uses: golangci/golangci-lint-action@71e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1 - Please ALWAYS use SHA to avoid GH sec issues
         with:
           version: latest
-      - name: Install cover
-        run: go get -modfile=tools.mod golang.org/x/tools/cmd/cover
+
+      - name: Install Cover Tool
+        run: go install golang.org/x/tools/cmd/cover@latest
+
       - name: Run Unit Tests
+        run: go test ./... -coverprofile=test_coverage.out -covermode=atomic
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Coverage Report
+          path: test_coverage.out
+
+  integration_tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: basic_checks
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+
+      - name: Run Integration Tests
         run: |
-          go test ./... -coverprofile test_coverage.out -covermode=atomic
+          chmod +x ./hack/integration-test.sh
+          ./hack/integration-test.sh
+        continue-on-error: true
+
+      - name: Upload JUnit Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Integration Test JUnit Report
+          path: ./integration-test-junit.xml

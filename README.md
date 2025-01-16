@@ -1,107 +1,131 @@
 # Go SDK for Serverless Workflow
-Here you will find all the [specification types](https://github.com/serverlessworkflow/specification/blob/main/schema/workflow.json) defined by our Json Schemas, in Go.
 
-Table of Contents
-=================
+The Go SDK for Serverless Workflow provides the [specification types](https://github.com/serverlessworkflow/specification/blob/v1.0.0-alpha5/schema/workflow.yaml) defined by the Serverless Workflow DSL in Go, making it easy to parse, validate, and interact with workflows.
+
+---
+
+## Table of Contents
 
 - [Status](#status)
 - [Releases](#releases)
-- [How to Use](#how-to-use)
-  - [Parsing Serverless Workflow files](#parsing-serverless-workflow-files)
-- [Slack Channel](#slack-channel)
-- [Contributors Guide](#contributors-guide)
+- [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Parsing Workflow Files](#parsing-workflow-files)
+  - [Programmatic Workflow Creation](#programmatic-workflow-creation)
+- [Slack Community](#slack-community)
+- [Contributing](#contributing)
   - [Code Style](#code-style)
   - [EditorConfig](#editorconfig)
   - [Known Issues](#known-issues)
 
+---
 
 ## Status
-Current status of features implemented in the SDK is listed in the table below:
+
+The current status of features implemented in the SDK is listed below:
 
 | Feature                                     | Status             |
 |-------------------------------------------- | ------------------ |
-| Parse workflow JSON and YAML definitions    | :heavy_check_mark: | 
-| Programmatically build workflow definitions | :no_entry_sign:    |
+| Parse workflow JSON and YAML definitions    | :heavy_check_mark: |
+| Programmatically build workflow definitions | :heavy_check_mark:    |
 | Validate workflow definitions (Schema)      | :heavy_check_mark: |
-| Validate workflow definitions (Integrity)   | :heavy_check_mark: |
+| Validate workflow definitions (Integrity)   | :no_entry_sign: |
 | Generate workflow diagram (SVG)             | :no_entry_sign:    |
 
+---
 
 ## Releases
-|                              Latest Releases                               | Conformance to spec version |
-|:--------------------------------------------------------------------------:| :---: |
-| [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v1.0.0) | [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x) |
-| [v2.0.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.0.1) | [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x) |
-| [v2.1.2](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.1.2) | [v0.7](https://github.com/serverlessworkflow/specification/tree/0.7.x) |
-| [v2.4.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.4.1) | [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x) |
 
-## How to use
+|                              Latest Releases                               |                       Conformance to Spec Version                        |
+|:--------------------------------------------------------------------------:|:------------------------------------------------------------------------:|
+| [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v1.0.0) |  [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x)  |
+| [v2.0.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.0.1) |  [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x)  |
+| [v2.1.2](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.1.2) |  [v0.7](https://github.com/serverlessworkflow/specification/tree/0.7.x)  |
+| [v2.4.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.4.1) |  [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x)  |
+| [v3.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v3.0.0) | [v1.0.0](https://github.com/serverlessworkflow/specification/releases/tag/v1.0.0-alpha5) |
 
-Run the following command in the root of your Go's project:
+---
 
-```shell script
-$ go get github.com/serverlessworkflow/sdk-go/v2
+## Getting Started
+
+### Installation
+
+To use the SDK in your Go project, run the following command:
+
+```shell
+$ go get github.com/serverlessworkflow/sdk-go/v3
 ```
 
-Your `go.mod` file should be updated to add a dependency from the Serverless Workflow specification.
+This will update your `go.mod` file to include the Serverless Workflow SDK as a dependency.
 
-To use the generated types, import the package in your go file like this:
+Import the SDK in your Go file:
 
 ```go
-import "github.com/serverlessworkflow/sdk-go/v2/model"
+import "github.com/serverlessworkflow/sdk-go/v3/model"
 ```
 
-Then just reference the package in your Go file like `myfunction := model.Function{}`.
-
-### Parsing Serverless Workflow files
-
-Serverless Workflow Specification supports YAML and JSON files for Workflow definitions.
-To transform such files into a Go data structure, use:
+You can now use the SDK types and functions, for example:
 
 ```go
-package sw
+myHttpTask := model.CallHTTP{}
+```
+
+### Parsing Workflow Files
+
+The Serverless Workflow Specification supports YAML and JSON files. Use the following example to parse a workflow file into a Go data structure:
+
+```go
+package main
 
 import (
-    "github.com/serverlessworkflow/sdk-go/v2/model"
-    "github.com/serverlessworkflow/sdk-go/v2/parser"
+    "github.com/serverlessworkflow/sdk-go/v3/model"
+    "github.com/serverlessworkflow/sdk-go/v3/parser"
 )
 
 func ParseWorkflow(filePath string) (*model.Workflow, error) {
     workflow, err := parser.FromFile(filePath)
     if err != nil {
         return nil, err
-    } 
+    }
     return workflow, nil
-} 
+}
 ```
 
-The `Workflow` structure then can be used in your application. 
+This `Workflow` structure can then be used programmatically in your application.
 
-## Slack Channel
+### Programmatic Workflow Creation
 
-Join us at [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf), channel `#serverless-workflow-sdk` and say hello 🙋.
+Support for building workflows programmatically is planned for future releases. Stay tuned for updates in upcoming versions.
 
-## Contributors Guide
+---
 
-This guide aims to guide newcomers to getting started with the project standards.
+## Slack Community
 
+Join the conversation and connect with other contributors on the [CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf). Find us in the `#serverless-workflow-sdk` channel and say hello! 🙋
+
+---
+
+## Contributing
+
+We welcome contributions to improve this SDK. Please refer to the sections below for guidance on maintaining project standards.
 
 ### Code Style
 
-For this project we use basically the default configuration for most used IDEs.
-For the configurations below, make sure to properly configure your IDE:
-
-- **imports**: goimports
-
-This should be enough to get you started.
-
-If you are unsure that your IDE is not correctly configured, you can run the lint checks:
+- Use `goimports` for import organization.
+- Lint your code with:
 
 ```bash
 make lint
 ```
 
-If something goes wrong, the error will be printed, e.g.:
+To automatically fix lint issues, use:
+
+```bash
+make lint params=--fix
+```
+
+Example lint error:
+
 ```bash
 $ make lint
 make addheaders
@@ -112,26 +136,23 @@ util/floatstr/floatstr_test.go:19: File is not `goimports`-ed (goimports)
 make: *** [lint] Error 1
 ```
 
-Lint issues can be fixed with the `--fix` flag, this command can be used:
-```bash
-make lint params=--fix
-```
-
-
 ### EditorConfig
-For IntelliJ you can find an example `editorconfig` file [here](contrib/intellij.editorconfig). To use it please visit
-the Jetbrains [documentation](https://www.jetbrains.com/help/idea/editorconfig.html).
 
+For IntelliJ users, an example `.editorconfig` file is available [here](contrib/intellij.editorconfig). See the [Jetbrains documentation](https://www.jetbrains.com/help/idea/editorconfig.html) for usage details.
 
 ### Known Issues
 
-On MacOSX/darwin you might get this issue:
+#### MacOS Issue:
+
+On MacOS, you might encounter the following error:
+
 ```
- goimports: can't extract issues from gofmt diff output
+goimports: can't extract issues from gofmt diff output
 ```
-To solve install the `diffutils` package:
+
+To resolve this, install `diffutils`:
 
 ```bash
- brew install diffutils
+brew install diffutils
 ```
 

@@ -1,6 +1,6 @@
 module github.com/serverlessworkflow/sdk-go/v3
 
-go 1.19
+go 1.22
 
 require (
 	github.com/google/addlicense v0.0.0-20210428195630-6d92264d7170 // indirect

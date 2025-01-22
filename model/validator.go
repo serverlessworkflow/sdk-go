@@ -17,15 +17,15 @@ package model
 import (
 	"errors"
 	"fmt"
-	"regexp"
-
 	"github.com/go-playground/validator/v10"
+	"regexp"
+	"strings"
 )
 
 var (
-	iso8601DurationPattern = regexp.MustCompile(`^P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?$`)
+	iso8601DurationPattern = regexp.MustCompile(`^P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?$`)
 	semanticVersionPattern = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
-	hostnameRFC1123Pattern = regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`)
+	hostnameRFC1123Pattern = regexp.MustCompile(`^(([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z]{2,63}|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)$`)
 )
 
 var validate *validator.Validate
@@ -47,11 +47,8 @@ func init() {
 	registerValidator("client_auth_type", validateOptionalOAuthClientAuthentication)
 	registerValidator("encoding_type", validateOptionalOAuth2TokenRequestEncoding)
 
-	registerValidator("semver_pattern", func(fl validator.FieldLevel) bool {
-		return semanticVersionPattern.MatchString(fl.Field().String())
-	})
 	registerValidator("hostname_rfc1123", func(fl validator.FieldLevel) bool {
-		return hostnameRFC1123Pattern.MatchString(fl.Field().String())
+		return isHostnameValid(fl.Field().String())
 	})
 	registerValidator("uri_pattern", func(fl validator.FieldLevel) bool {
 		value, ok := fl.Field().Interface().(string)
@@ -67,6 +64,7 @@ func init() {
 		}
 		return LiteralUriTemplatePattern.MatchString(value)
 	})
+	registerValidator("semver_pattern", validateSemanticVersion)
 	registerValidator("iso8601_duration", validateISO8601Duration)
 
 	registerValidator("object_or_string", validateObjectOrString)
@@ -349,9 +347,43 @@ func validateJsonPointerOrRuntimeExpr(fl validator.FieldLevel) bool {
 }
 
 func validateISO8601Duration(fl validator.FieldLevel) bool {
-	value, ok := fl.Field().Interface().(string)
+	input, ok := fl.Field().Interface().(string)
 	if !ok {
 		return false
 	}
-	return iso8601DurationPattern.MatchString(value)
+
+	return isISO8601DurationValid(input)
+}
+
+func validateSemanticVersion(fl validator.FieldLevel) bool {
+	input, ok := fl.Field().Interface().(string)
+	if !ok {
+		return false
+	}
+
+	return isSemanticVersionValid(input)
+}
+
+// isISO8601DurationValid validates if a string is a valid ISO 8601 duration.
+func isISO8601DurationValid(input string) bool {
+	if !iso8601DurationPattern.MatchString(input) {
+		return false
+	}
+
+	trimmed := strings.TrimPrefix(input, "P")
+	if trimmed == "" || trimmed == "T" {
+		return false
+	}
+
+	return true
+}
+
+// isSemanticVersionValid validates if a string is a valid semantic version.
+func isSemanticVersionValid(input string) bool {
+	return semanticVersionPattern.MatchString(input)
+}
+
+// isHostnameValid validates if a string is a valid RFC 1123 hostname.
+func isHostnameValid(input string) bool {
+	return hostnameRFC1123Pattern.MatchString(input)
 }

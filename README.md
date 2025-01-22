@@ -41,7 +41,7 @@ The current status of features implemented in the SDK is listed below:
 | [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v1.0.0) |  [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x)  |
 | [v2.0.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.0.1) |  [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x)  |
 | [v2.1.2](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.1.2) |  [v0.7](https://github.com/serverlessworkflow/specification/tree/0.7.x)  |
-| [v2.4.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.4.1) |  [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x)  |
+| [v2.4.3](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.4.1) |  [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x)  |
 | [v3.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v3.0.0) | [v1.0.0](https://github.com/serverlessworkflow/specification/releases/tag/v1.0.0-alpha5) |
 
 ---
@@ -67,7 +67,30 @@ import "github.com/serverlessworkflow/sdk-go/v3/model"
 You can now use the SDK types and functions, for example:
 
 ```go
-myHttpTask := model.CallHTTP{}
+package main
+
+import (
+	"github.com/serverlessworkflow/sdk-go/v3/builder"
+    "github.com/serverlessworkflow/sdk-go/v3/model"
+)
+
+func main() {
+  workflowBuilder := New().
+    SetDocument("1.0.0", "examples", "example-workflow", "1.0.0").
+          AddTask("task1", &model.CallHTTP{
+            TaskBase: model.TaskBase{
+              If: &model.RuntimeExpression{Value: "${condition}"},
+            },
+            Call: "http",
+            With: model.HTTPArguments{
+              Method:   "GET",
+              Endpoint: model.NewEndpoint("http://example.com"),
+            },
+          })
+    workflow, _ := builder.Object(workflowBuilder)
+    // use your models
+}
+
 ```
 
 ### Parsing Workflow Files

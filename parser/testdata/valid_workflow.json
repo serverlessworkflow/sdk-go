@@ -1,0 +1,19 @@
+{
+  "document": {
+    "dsl": "1.0.0",
+    "namespace": "examples",
+    "name": "example-workflow",
+    "version": "1.0.0"
+  },
+  "do": [
+    {
+      "task1": {
+        "call": "http",
+        "with": {
+          "method": "GET",
+          "endpoint": "http://example.com"
+        }
+      }
+    }
+  ]
+}

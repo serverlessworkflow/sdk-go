@@ -1,0 +1,12 @@
+document:
+  name: conditional-logic
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        temperature: 30
+  - task2:
+      set:
+        weather: "${ if .temperature > 25 then 'hot' else 'cold' end }"

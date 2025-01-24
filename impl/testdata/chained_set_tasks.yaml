@@ -1,0 +1,15 @@
+document:
+  name: chained-workflow
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        baseValue: 10
+  - task2:
+      set:
+        doubled: "${ .baseValue * 2 }"
+  - task3:
+      set:
+        tripled: "${ .doubled * 3 }"

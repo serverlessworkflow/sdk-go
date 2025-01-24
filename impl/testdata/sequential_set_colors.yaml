@@ -1,0 +1,15 @@
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  name: do
+  version: '1.0.0'
+do:
+  - setRed:
+      set:
+        colors: ${ .colors + ["red"] }
+  - setGreen:
+      set:
+        colors: ${ .colors + ["green"] }
+  - setBlue:
+      set:
+        colors: ${ .colors + ["blue"] }

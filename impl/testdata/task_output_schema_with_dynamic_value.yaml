@@ -1,0 +1,18 @@
+document:
+  name: task-output-schema-with-dynamic-value
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        finalOutputKey: "${ .taskInputKey }"
+      output:
+        schema:
+          format: "json"
+          document:
+            type: "object"
+            properties:
+              finalOutputKey:
+                type: "string"
+            required: ["finalOutputKey"]

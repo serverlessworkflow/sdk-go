@@ -79,7 +79,7 @@ func TestEndpoint_UnmarshalJSON(t *testing.T) {
 		assert.Error(t, err, "Unmarshal should return an error for invalid JSON structure")
 	})
 
-	t.Run("Empty Input", func(t *testing.T) {
+	t.Run("Empty input", func(t *testing.T) {
 		input := `{}`
 		var endpoint Endpoint
 		err := json.Unmarshal([]byte(input), &endpoint)
@@ -99,7 +99,7 @@ func TestEndpoint_MarshalJSON(t *testing.T) {
 
 		data, err := json.Marshal(endpoint)
 		assert.NoError(t, err, "Marshal should not return an error")
-		assert.JSONEq(t, `"${example}"`, string(data), "Output JSON should match")
+		assert.JSONEq(t, `"${example}"`, string(data), "output JSON should match")
 	})
 
 	t.Run("Marshal URITemplate", func(t *testing.T) {
@@ -109,7 +109,7 @@ func TestEndpoint_MarshalJSON(t *testing.T) {
 
 		data, err := json.Marshal(endpoint)
 		assert.NoError(t, err, "Marshal should not return an error")
-		assert.JSONEq(t, `"http://example.com/{id}"`, string(data), "Output JSON should match")
+		assert.JSONEq(t, `"http://example.com/{id}"`, string(data), "output JSON should match")
 	})
 
 	t.Run("Marshal EndpointConfiguration", func(t *testing.T) {
@@ -131,7 +131,7 @@ func TestEndpoint_MarshalJSON(t *testing.T) {
 				"basic": { "username": "john", "password": "secret" }
 			}
 		}`
-		assert.JSONEq(t, expected, string(data), "Output JSON should match")
+		assert.JSONEq(t, expected, string(data), "output JSON should match")
 	})
 
 	t.Run("Marshal Empty Endpoint", func(t *testing.T) {
@@ -139,6 +139,6 @@ func TestEndpoint_MarshalJSON(t *testing.T) {
 
 		data, err := json.Marshal(endpoint)
 		assert.NoError(t, err, "Marshal should not return an error")
-		assert.JSONEq(t, `{}`, string(data), "Output JSON should be empty")
+		assert.JSONEq(t, `{}`, string(data), "output JSON should be empty")
 	})
 }

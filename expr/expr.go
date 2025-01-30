@@ -34,7 +34,7 @@ func IsValid(expression string) bool {
 }
 
 // TraverseAndEvaluate recursively processes and evaluates all expressions in a JSON-like structure
-func TraverseAndEvaluate(node interface{}, input map[string]interface{}) (interface{}, error) {
+func TraverseAndEvaluate(node interface{}, input interface{}) (interface{}, error) {
 	switch v := node.(type) {
 	case map[string]interface{}:
 		// Traverse map
@@ -72,7 +72,7 @@ func TraverseAndEvaluate(node interface{}, input map[string]interface{}) (interf
 }
 
 // EvaluateJQExpression evaluates a jq expression against a given JSON input
-func EvaluateJQExpression(expression string, input map[string]interface{}) (interface{}, error) {
+func EvaluateJQExpression(expression string, input interface{}) (interface{}, error) {
 	// Parse the sanitized jq expression
 	query, err := gojq.Parse(expression)
 	if err != nil {

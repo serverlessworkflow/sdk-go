@@ -13,5 +13,5 @@ do:
   - setBlue:
       set:
         colors: ${ .colors + ["blue"] }
-      output:
-        as: "${ {  resultColors: .colors } }"
+output:
+  as: "${ { result: .colors } }"

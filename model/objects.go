@@ -53,6 +53,18 @@ type ObjectOrRuntimeExpr struct {
 	Value interface{} `json:"-" validate:"object_or_runtime_expr"` // Custom validation tag.
 }
 
+func (o *ObjectOrRuntimeExpr) AsStringOrMap() interface{} {
+	switch o.Value.(type) {
+	case map[string]interface{}:
+		return o.Value.(map[string]interface{})
+	case string:
+		return o.Value.(string)
+	case RuntimeExpression:
+		return o.Value.(RuntimeExpression).Value
+	}
+	return nil
+}
+
 // UnmarshalJSON unmarshals data into either a RuntimeExpression or an object.
 func (o *ObjectOrRuntimeExpr) UnmarshalJSON(data []byte) error {
 	// Attempt to decode as a RuntimeExpression
@@ -257,4 +269,19 @@ func (j *JsonPointerOrRuntimeExpression) MarshalJSON() ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("JsonPointerOrRuntimeExpression contains unsupported type")
 	}
+}
+
+func (j *JsonPointerOrRuntimeExpression) String() string {
+	switch v := j.Value.(type) {
+	case RuntimeExpression:
+		return v.String()
+	case string:
+		return v
+	default:
+		return ""
+	}
+}
+
+func (j *JsonPointerOrRuntimeExpression) IsValid() bool {
+	return JSONPointerPattern.MatchString(j.String())
 }

@@ -30,10 +30,10 @@ func TestSetTaskExecutor_Exec(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task1", setTask)
+	executor, err := NewSetTaskRunner("task1", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -64,10 +64,10 @@ func TestSetTaskExecutor_StaticValues(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_static", setTask)
+	executor, err := NewSetTaskRunner("task_static", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -94,10 +94,10 @@ func TestSetTaskExecutor_RuntimeExpressions(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_runtime_expr", setTask)
+	executor, err := NewSetTaskRunner("task_runtime_expr", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -126,10 +126,10 @@ func TestSetTaskExecutor_NestedStructures(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_nested_structures", setTask)
+	executor, err := NewSetTaskRunner("task_nested_structures", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -161,10 +161,10 @@ func TestSetTaskExecutor_StaticAndDynamicValues(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_static_dynamic", setTask)
+	executor, err := NewSetTaskRunner("task_static_dynamic", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -186,12 +186,12 @@ func TestSetTaskExecutor_MissingInputData(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_missing_input", setTask)
+	executor, err := NewSetTaskRunner("task_missing_input", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
-	assert.Nil(t, output["value"])
+	assert.Nil(t, output.(map[string]interface{})["value"])
 }
 
 func TestSetTaskExecutor_ExpressionsWithFunctions(t *testing.T) {
@@ -205,10 +205,10 @@ func TestSetTaskExecutor_ExpressionsWithFunctions(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_expr_functions", setTask)
+	executor, err := NewSetTaskRunner("task_expr_functions", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -231,10 +231,10 @@ func TestSetTaskExecutor_ConditionalExpressions(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_conditional_expr", setTask)
+	executor, err := NewSetTaskRunner("task_conditional_expr", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -258,10 +258,10 @@ func TestSetTaskExecutor_ArrayDynamicIndex(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_array_indexing", setTask)
+	executor, err := NewSetTaskRunner("task_array_indexing", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -284,10 +284,10 @@ func TestSetTaskExecutor_NestedConditionalLogic(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_nested_condition", setTask)
+	executor, err := NewSetTaskRunner("task_nested_condition", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -308,10 +308,10 @@ func TestSetTaskExecutor_DefaultValues(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_default_values", setTask)
+	executor, err := NewSetTaskRunner("task_default_values", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -348,10 +348,10 @@ func TestSetTaskExecutor_ComplexNestedStructures(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_complex_nested", setTask)
+	executor, err := NewSetTaskRunner("task_complex_nested", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{
@@ -384,10 +384,10 @@ func TestSetTaskExecutor_MultipleExpressions(t *testing.T) {
 		},
 	}
 
-	executor, err := NewSetTaskExecutor("task_multiple_expr", setTask)
+	executor, err := NewSetTaskRunner("task_multiple_expr", setTask)
 	assert.NoError(t, err)
 
-	output, err := executor.Exec(input)
+	output, err := executor.Run(input)
 	assert.NoError(t, err)
 
 	expectedOutput := map[string]interface{}{

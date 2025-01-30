@@ -26,6 +26,10 @@ type TryTask struct {
 	Catch    *TryTaskCatch `json:"catch" validate:"required"`
 }
 
+func (t *TryTask) GetBase() *TaskBase {
+	return &t.TaskBase
+}
+
 type TryTaskCatch struct {
 	Errors struct {
 		With *ErrorFilter `json:"with,omitempty"`

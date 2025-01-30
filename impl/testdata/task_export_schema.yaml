@@ -1,0 +1,18 @@
+document:
+  name: task-export-schema
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        exportedKey: "${ .key }"
+      export:
+        schema:
+          format: "json"
+          document:
+            type: "object"
+            properties:
+              exportedKey:
+                type: "string"
+            required: ["exportedKey"]

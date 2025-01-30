@@ -25,6 +25,10 @@ type WaitTask struct {
 	Wait     *Duration `json:"wait" validate:"required"`
 }
 
+func (wt *WaitTask) GetBase() *TaskBase {
+	return &wt.TaskBase
+}
+
 // MarshalJSON for WaitTask to ensure proper serialization.
 func (wt *WaitTask) MarshalJSON() ([]byte, error) {
 	type Alias WaitTask

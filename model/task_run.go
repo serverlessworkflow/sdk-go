@@ -25,6 +25,10 @@ type RunTask struct {
 	Run      RunTaskConfiguration `json:"run" validate:"required"`
 }
 
+func (r *RunTask) GetBase() *TaskBase {
+	return &r.TaskBase
+}
+
 type RunTaskConfiguration struct {
 	Await     *bool        `json:"await,omitempty"`
 	Container *Container   `json:"container,omitempty"`

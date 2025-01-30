@@ -22,6 +22,10 @@ type ForTask struct {
 	Do       *TaskList            `json:"do" validate:"required,dive"`
 }
 
+func (f *ForTask) GetBase() *TaskBase {
+	return &f.TaskBase
+}
+
 // ForTaskConfiguration defines the loop configuration for iterating over a collection.
 type ForTaskConfiguration struct {
 	Each string `json:"each,omitempty"`         // Variable name for the current item

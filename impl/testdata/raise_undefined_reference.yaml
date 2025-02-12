@@ -1,0 +1,9 @@
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: test
+  name: raise-undefined-reference
+  version: '1.0.0'
+do:
+  - missingError:
+      raise:
+        error: UndefinedError

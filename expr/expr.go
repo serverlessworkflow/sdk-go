@@ -61,7 +61,7 @@ func TraverseAndEvaluate(node interface{}, input interface{}) (interface{}, erro
 	case string:
 		// Check if the string is a runtime expression (e.g., ${ .some.path })
 		if IsStrictExpr(v) {
-			return EvaluateJQExpression(Sanitize(v), input)
+			return evaluateJQExpression(Sanitize(v), input)
 		}
 		return v, nil
 
@@ -71,8 +71,8 @@ func TraverseAndEvaluate(node interface{}, input interface{}) (interface{}, erro
 	}
 }
 
-// EvaluateJQExpression evaluates a jq expression against a given JSON input
-func EvaluateJQExpression(expression string, input interface{}) (interface{}, error) {
+// evaluateJQExpression evaluates a jq expression against a given JSON input
+func evaluateJQExpression(expression string, input interface{}) (interface{}, error) {
 	// Parse the sanitized jq expression
 	query, err := gojq.Parse(expression)
 	if err != nil {

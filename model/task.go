@@ -67,6 +67,28 @@ func (ntm *NamedTaskMap) UnmarshalJSON(data []byte) error {
 // TaskList represents a list of named tasks to perform.
 type TaskList []*TaskItem
 
+// Next gets the next item in the list based on the current index
+func (tl *TaskList) Next(currentIdx int) (int, *TaskItem) {
+	if currentIdx == -1 || currentIdx >= len(*tl) {
+		return -1, nil
+	}
+
+	current := (*tl)[currentIdx]
+	if current.GetBase() != nil && current.GetBase().Then != nil {
+		then := current.GetBase().Then
+		if then.IsTermination() {
+			return -1, nil
+		}
+		return tl.KeyAndIndex(then.Value)
+	}
+
+	// Proceed sequentially if no 'then' is specified
+	if currentIdx+1 < len(*tl) {
+		return currentIdx + 1, (*tl)[currentIdx+1]
+	}
+	return -1, nil
+}
+
 // UnmarshalJSON for TaskList to ensure proper deserialization.
 func (tl *TaskList) UnmarshalJSON(data []byte) error {
 	var rawTasks []json.RawMessage
@@ -161,12 +183,18 @@ func (tl *TaskList) MarshalJSON() ([]byte, error) {
 
 // Key retrieves a TaskItem by its key.
 func (tl *TaskList) Key(key string) *TaskItem {
-	for _, item := range *tl {
+	_, keyItem := tl.KeyAndIndex(key)
+	return keyItem
+}
+
+func (tl *TaskList) KeyAndIndex(key string) (int, *TaskItem) {
+	for i, item := range *tl {
 		if item.Key == key {
-			return item
+			return i, item
 		}
 	}
-	return nil
+	// TODO: Add logging here for missing task references
+	return -1, nil
 }
 
 // TaskItem represents a named task and its associated definition.

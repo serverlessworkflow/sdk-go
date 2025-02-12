@@ -51,7 +51,7 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	}()
 
 	// Process input
-	if input, err = wr.processInput(input); err != nil {
+	if input, err = wr.processWorkflowInput(input); err != nil {
 		return nil, err
 	}
 
@@ -64,7 +64,7 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	output = wr.RunnerCtx.GetOutput()
 
 	// Process output
-	if output, err = wr.processOutput(output); err != nil {
+	if output, err = wr.processWorkflowOutput(output); err != nil {
 		return nil, err
 	}
 
@@ -72,8 +72,16 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	return output, nil
 }
 
-// processInput validates and transforms input if needed.
-func (wr *workflowRunnerImpl) processInput(input interface{}) (interface{}, error) {
+// wrapWorkflowError ensures workflow errors have a proper instance reference.
+func (wr *workflowRunnerImpl) wrapWorkflowError(err error, taskName string) error {
+	if knownErr := model.AsError(err); knownErr != nil {
+		return knownErr.WithInstanceRef(wr.Workflow, taskName)
+	}
+	return model.NewErrRuntime(err, taskName)
+}
+
+// processWorkflowInput validates and transforms input if needed.
+func (wr *workflowRunnerImpl) processWorkflowInput(input interface{}) (interface{}, error) {
 	if wr.Workflow.Input != nil {
 		var err error
 		if err = validateSchema(input, wr.Workflow.Input.Schema, "/"); err != nil {
@@ -99,31 +107,37 @@ func (wr *workflowRunnerImpl) executeTasks(tasks *model.TaskList) error {
 		return nil
 	}
 
-	// TODO: implement control flow: continue, end, then
-	for _, taskItem := range *tasks {
+	idx := 0
+	currentTask := (*tasks)[idx]
+
+	for currentTask != nil {
 		wr.RunnerCtx.SetInput(wr.RunnerCtx.GetOutput())
-		if shouldRun, err := wr.shouldRunTask(taskItem); err != nil {
+		if shouldRun, err := wr.shouldRunTask(currentTask); err != nil {
 			return err
 		} else if !shouldRun {
 			wr.RunnerCtx.SetOutput(wr.RunnerCtx.GetInput())
+			idx, currentTask = tasks.Next(idx)
 			continue
 		}
 
-		wr.RunnerCtx.SetTaskStatus(taskItem.Key, PendingStatus)
-		runner, err := NewTaskRunner(taskItem.Key, taskItem.Task)
+		wr.RunnerCtx.SetTaskStatus(currentTask.Key, PendingStatus)
+		runner, err := NewTaskRunner(currentTask.Key, currentTask.Task, wr)
 		if err != nil {
 			return err
 		}
 
-		wr.RunnerCtx.SetTaskStatus(taskItem.Key, RunningStatus)
+		wr.RunnerCtx.SetTaskStatus(currentTask.Key, RunningStatus)
 		var output interface{}
-		if output, err = wr.runTask(runner, taskItem.Task.GetBase()); err != nil {
-			wr.RunnerCtx.SetTaskStatus(taskItem.Key, FaultedStatus)
+		if output, err = wr.runTask(runner, currentTask.Task.GetBase()); err != nil {
+			wr.RunnerCtx.SetTaskStatus(currentTask.Key, FaultedStatus)
 			return err
 		}
+		// TODO: make sure that `output` is a map[string]interface{}, so compatible to JSON traversal.
 
-		wr.RunnerCtx.SetTaskStatus(taskItem.Key, CompletedStatus)
+		wr.RunnerCtx.SetTaskStatus(currentTask.Key, CompletedStatus)
 		wr.RunnerCtx.SetOutput(output)
+
+		idx, currentTask = tasks.Next(idx)
 	}
 
 	return nil
@@ -131,7 +145,7 @@ func (wr *workflowRunnerImpl) executeTasks(tasks *model.TaskList) error {
 
 func (wr *workflowRunnerImpl) shouldRunTask(task *model.TaskItem) (bool, error) {
 	if task.GetBase().If != nil {
-		output, err := expr.EvaluateJQExpression(task.GetBase().If.String(), wr.RunnerCtx.GetInput())
+		output, err := expr.TraverseAndEvaluate(task.GetBase().If.String(), wr.RunnerCtx.GetInput())
 		if err != nil {
 			return false, model.NewErrExpression(err, task.Key)
 		}
@@ -142,8 +156,8 @@ func (wr *workflowRunnerImpl) shouldRunTask(task *model.TaskItem) (bool, error) 
 	return true, nil
 }
 
-// processOutput applies output transformations.
-func (wr *workflowRunnerImpl) processOutput(output interface{}) (interface{}, error) {
+// processWorkflowOutput applies output transformations.
+func (wr *workflowRunnerImpl) processWorkflowOutput(output interface{}) (interface{}, error) {
 	if wr.Workflow.Output != nil {
 		var err error
 		if output, err = traverseAndEvaluate(wr.Workflow.Output.As, wr.RunnerCtx.GetOutput(), "/"); err != nil {
@@ -161,14 +175,38 @@ func (wr *workflowRunnerImpl) processOutput(output interface{}) (interface{}, er
 
 // ----------------- Task funcs ------------------- //
 
+// TODO: refactor to receive a resolver handler instead of the workflow runner
+
 // NewTaskRunner creates a TaskRunner instance based on the task type.
-func NewTaskRunner(taskName string, task model.Task) (TaskRunner, error) {
+func NewTaskRunner(taskName string, task model.Task, wr *workflowRunnerImpl) (TaskRunner, error) {
 	switch t := task.(type) {
 	case *model.SetTask:
 		return NewSetTaskRunner(taskName, t)
+	case *model.RaiseTask:
+		if err := wr.resolveErrorDefinition(t); err != nil {
+			return nil, err
+		}
+		return NewRaiseTaskRunner(taskName, t)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}
+}
+
+// TODO: can e refactored to a definition resolver callable from the context
+func (wr *workflowRunnerImpl) resolveErrorDefinition(t *model.RaiseTask) error {
+	if t.Raise.Error.Ref != nil {
+		notFoundErr := model.NewErrValidation(fmt.Errorf("%v error definition not found in 'uses'", t.Raise.Error.Ref), "")
+		if wr.Workflow.Use != nil && wr.Workflow.Use.Errors != nil {
+			definition, ok := wr.Workflow.Use.Errors[*t.Raise.Error.Ref]
+			if !ok {
+				return notFoundErr
+			}
+			t.Raise.Error.Definition = definition
+			return nil
+		}
+		return notFoundErr
+	}
+	return nil
 }
 
 // runTask executes an individual task.
@@ -232,14 +270,6 @@ func (wr *workflowRunnerImpl) validateAndEvaluateTaskOutput(task *model.TaskBase
 	}
 
 	return output, nil
-}
-
-// wrapWorkflowError ensures workflow errors have a proper instance reference.
-func (wr *workflowRunnerImpl) wrapWorkflowError(err error, taskName string) error {
-	if knownErr := model.AsError(err); knownErr != nil {
-		return knownErr.WithInstanceRef(wr.Workflow, taskName)
-	}
-	return model.NewErrRuntime(err, taskName)
 }
 
 func validateSchema(data interface{}, schema *model.Schema, taskName string) error {

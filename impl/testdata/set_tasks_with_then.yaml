@@ -1,0 +1,16 @@
+document:
+  name: then-workflow
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        value: 30
+      then: task3
+  - task2:
+      set:
+        skipped: true
+  - task3:
+      set:
+        result: "${ .value * 3 }"

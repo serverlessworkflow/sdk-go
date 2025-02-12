@@ -1,0 +1,18 @@
+# $schema: https://raw.githubusercontent.com/serverlessworkflow/specification/refs/heads/main/schema/workflow.yaml
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: test
+  name: raise-conditional
+  version: '1.0.0'
+do:
+  - underageError:
+      if: ${ .user.age < 18 }
+      raise:
+        error:
+          type: https://serverlessworkflow.io/spec/1.0.0/errors/authorization
+          status: 403
+          title: Authorization Error
+          detail: "User is under the required age"
+  - continueProcess:
+      set:
+        message: "User is allowed"

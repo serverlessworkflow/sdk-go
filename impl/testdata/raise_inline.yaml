@@ -1,0 +1,13 @@
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: test
+  name: raise-inline
+  version: '1.0.0'
+do:
+  - inlineError:
+      raise:
+        error:
+          type: https://serverlessworkflow.io/spec/1.0.0/errors/validation
+          status: 400
+          title: Validation Error
+          detail: ${ "Invalid input provided to workflow '\( $workflow.definition.document.name )'" }

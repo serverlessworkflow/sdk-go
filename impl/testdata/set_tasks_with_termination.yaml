@@ -1,0 +1,13 @@
+document:
+  name: termination-workflow
+  dsl: '1.0.0-alpha5'
+  namespace: default
+  version: '1.0.0'
+do:
+  - task1:
+      set:
+        finalValue: 20
+      then: end
+  - task2:
+      set:
+        skipped: true

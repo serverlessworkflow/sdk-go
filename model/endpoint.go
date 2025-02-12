@@ -33,6 +33,7 @@ var LiteralUriTemplatePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+\-.]*://
 type URITemplate interface {
 	IsURITemplate() bool
 	String() string
+	GetValue() interface{}
 }
 
 // UnmarshalURITemplate is a shared function for unmarshalling URITemplate fields.
@@ -69,6 +70,10 @@ func (t *LiteralUriTemplate) String() string {
 	return t.Value
 }
 
+func (t *LiteralUriTemplate) GetValue() interface{} {
+	return t.Value
+}
+
 type LiteralUri struct {
 	Value string `json:"-" validate:"required,uri_pattern"` // Validate pattern for URI.
 }
@@ -82,6 +87,10 @@ func (u *LiteralUri) MarshalJSON() ([]byte, error) {
 }
 
 func (u *LiteralUri) String() string {
+	return u.Value
+}
+
+func (u *LiteralUri) GetValue() interface{} {
 	return u.Value
 }
 

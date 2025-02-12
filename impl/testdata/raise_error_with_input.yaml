@@ -1,0 +1,13 @@
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: test
+  name: raise-with-input
+  version: '1.0.0'
+do:
+  - dynamicError:
+      raise:
+        error:
+          type: https://serverlessworkflow.io/spec/1.0.0/errors/authentication
+          status: 401
+          title: Authentication Error
+          detail: '${ "User authentication failed: \( .reason )" }'

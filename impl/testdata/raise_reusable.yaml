@@ -1,0 +1,16 @@
+document:
+  dsl: '1.0.0-alpha5'
+  namespace: test
+  name: raise-reusable
+  version: '1.0.0'
+use:
+  errors:
+    AuthenticationError:
+      type: https://serverlessworkflow.io/spec/1.0.0/errors/authentication
+      status: 401
+      title: Authentication Error
+      detail: "User is not authenticated"
+do:
+  - authError:
+      raise:
+        error: AuthenticationError

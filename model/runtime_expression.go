@@ -65,3 +65,7 @@ func (r *RuntimeExpression) MarshalJSON() ([]byte, error) {
 func (r *RuntimeExpression) String() string {
 	return r.Value
 }
+
+func (r *RuntimeExpression) GetValue() interface{} {
+	return r.Value
+}

@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -10,6 +11,21 @@ import (
 
 // runWorkflowTest is a reusable test function for workflows
 func runWorkflowTest(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) {
+	// Run the workflow
+	output, err := runWorkflow(t, workflowPath, input, expectedOutput)
+	assert.NoError(t, err)
+
+	assertWorkflowRun(t, expectedOutput, output)
+}
+
+func runWorkflowWithErr(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}, assertErr func(error)) {
+	output, err := runWorkflow(t, workflowPath, input, expectedOutput)
+	assert.Error(t, err)
+	assertErr(err)
+	assertWorkflowRun(t, expectedOutput, output)
+}
+
+func runWorkflow(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) (output interface{}, err error) {
 	// Read the workflow YAML from the testdata directory
 	yamlBytes, err := os.ReadFile(filepath.Clean(workflowPath))
 	assert.NoError(t, err, "Failed to read workflow YAML file")
@@ -22,11 +38,16 @@ func runWorkflowTest(t *testing.T, workflowPath string, input, expectedOutput ma
 	runner := NewDefaultRunner(workflow)
 
 	// Run the workflow
-	output, err := runner.Run(input)
+	output, err = runner.Run(input)
+	return output, err
+}
 
-	// Assertions
-	assert.NoError(t, err)
-	assert.Equal(t, expectedOutput, output, "Workflow output mismatch")
+func assertWorkflowRun(t *testing.T, expectedOutput map[string]interface{}, output interface{}) {
+	if expectedOutput == nil {
+		assert.Nil(t, output, "Expected nil Workflow run output")
+	} else {
+		assert.Equal(t, expectedOutput, output, "Workflow output mismatch")
+	}
 }
 
 // TestWorkflowRunner_Run_YAML validates multiple workflows
@@ -197,4 +218,81 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		}
 		runWorkflowTest(t, workflowPath, input, expectedOutput)
 	})
+}
+
+func TestWorkflowRunner_Run_YAML_ControlFlow(t *testing.T) {
+	t.Run("Set Tasks with Then Directive", func(t *testing.T) {
+		workflowPath := "./testdata/set_tasks_with_then.yaml"
+		input := map[string]interface{}{}
+		expectedOutput := map[string]interface{}{
+			"result": float64(90),
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("Set Tasks with Termination", func(t *testing.T) {
+		workflowPath := "./testdata/set_tasks_with_termination.yaml"
+		input := map[string]interface{}{}
+		expectedOutput := map[string]interface{}{
+			"finalValue": float64(20),
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("Set Tasks with Invalid Then Reference", func(t *testing.T) {
+		workflowPath := "./testdata/set_tasks_invalid_then.yaml"
+		input := map[string]interface{}{}
+		expectedOutput := map[string]interface{}{
+			"partialResult": float64(15),
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+}
+
+func TestWorkflowRunner_Run_YAML_RaiseTasks(t *testing.T) {
+	// TODO: add $workflow context to the expr processing
+	//t.Run("Raise Inline Error", func(t *testing.T) {
+	//	runWorkflowTest(t, "./testdata/raise_inline.yaml", nil, nil)
+	//})
+
+	t.Run("Raise Referenced Error", func(t *testing.T) {
+		runWorkflowWithErr(t, "./testdata/raise_reusable.yaml", nil, nil,
+			func(err error) {
+				assert.Equal(t, model.ErrorTypeAuthentication, model.AsError(err).Type.String())
+			})
+	})
+
+	t.Run("Raise Error with Dynamic Detail", func(t *testing.T) {
+		input := map[string]interface{}{
+			"reason": "User token expired",
+		}
+		runWorkflowWithErr(t, "./testdata/raise_error_with_input.yaml", input, nil,
+			func(err error) {
+				assert.Equal(t, model.ErrorTypeAuthentication, model.AsError(err).Type.String())
+				assert.Equal(t, "User authentication failed: User token expired", model.AsError(err).Detail.String())
+			})
+	})
+
+	t.Run("Raise Undefined Error Reference", func(t *testing.T) {
+		runWorkflowWithErr(t, "./testdata/raise_undefined_reference.yaml", nil, nil,
+			func(err error) {
+				assert.Equal(t, model.ErrorTypeValidation, model.AsError(err).Type.String())
+			})
+	})
+}
+
+func TestWorkflowRunner_Run_YAML_RaiseTasks_ControlFlow(t *testing.T) {
+	t.Run("Raise Error with Conditional Logic", func(t *testing.T) {
+		input := map[string]interface{}{
+			"user": map[string]interface{}{
+				"age": 16,
+			},
+		}
+		runWorkflowWithErr(t, "./testdata/raise_conditional.yaml", input, nil,
+			func(err error) {
+				assert.Equal(t, model.ErrorTypeAuthorization, model.AsError(err).Type.String())
+				assert.Equal(t, "User is under the required age", model.AsError(err).Detail.String())
+			})
+	})
+
 }

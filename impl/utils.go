@@ -1,5 +1,10 @@
 package impl
 
+import (
+	"github.com/serverlessworkflow/sdk-go/v3/expr"
+	"github.com/serverlessworkflow/sdk-go/v3/model"
+)
+
 // Deep clone a map to avoid modifying the original object
 func deepClone(obj map[string]interface{}) map[string]interface{} {
 	clone := make(map[string]interface{})
@@ -21,4 +26,24 @@ func deepCloneValue(value interface{}) interface{} {
 		return clonedSlice
 	}
 	return value
+}
+
+func validateSchema(data interface{}, schema *model.Schema, taskName string) error {
+	if schema != nil {
+		if err := ValidateJSONSchema(data, schema); err != nil {
+			return model.NewErrValidation(err, taskName)
+		}
+	}
+	return nil
+}
+
+func traverseAndEvaluate(runtimeExpr *model.ObjectOrRuntimeExpr, input interface{}, taskName string) (output interface{}, err error) {
+	if runtimeExpr == nil {
+		return input, nil
+	}
+	output, err = expr.TraverseAndEvaluate(runtimeExpr.AsStringOrMap(), input)
+	if err != nil {
+		return nil, model.NewErrExpression(err, taskName)
+	}
+	return output, nil
 }

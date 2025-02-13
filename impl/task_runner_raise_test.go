@@ -24,7 +24,7 @@ func TestRaiseTaskRunner_WithDefinedError(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask)
+	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask, nil)
 	assert.NoError(t, err)
 
 	output, err := runner.Run(input)
@@ -51,7 +51,7 @@ func TestRaiseTaskRunner_WithReferencedError(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_ref", raiseTask)
+	runner, err := NewRaiseTaskRunner("task_raise_ref", raiseTask, nil)
 	assert.Error(t, err)
 	assert.Nil(t, runner)
 }
@@ -74,7 +74,7 @@ func TestRaiseTaskRunner_TimeoutErrorWithExpression(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask)
+	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask, nil)
 	assert.NoError(t, err)
 
 	output, err := runner.Run(input)

@@ -8,6 +8,7 @@ import (
 
 var _ TaskRunner = &SetTaskRunner{}
 var _ TaskRunner = &RaiseTaskRunner{}
+var _ TaskRunner = &ForTaskRunner{}
 
 type TaskRunner interface {
 	Run(input interface{}) (interface{}, error)
@@ -52,14 +53,34 @@ func (s *SetTaskRunner) Run(input interface{}) (output interface{}, err error) {
 	return output, nil
 }
 
-func NewRaiseTaskRunner(taskName string, task *model.RaiseTask) (*RaiseTaskRunner, error) {
-	if task == nil || task.Raise.Error.Definition == nil {
+func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, workflowDef *model.Workflow) (*RaiseTaskRunner, error) {
+	if err := resolveErrorDefinition(task, workflowDef); err != nil {
+		return nil, err
+	}
+	if task.Raise.Error.Definition == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("no raise configuration provided for RaiseTask %s", taskName), taskName)
 	}
 	return &RaiseTaskRunner{
 		Task:     task,
 		TaskName: taskName,
 	}, nil
+}
+
+// TODO: can e refactored to a definition resolver callable from the context
+func resolveErrorDefinition(t *model.RaiseTask, workflowDef *model.Workflow) error {
+	if workflowDef != nil && t.Raise.Error.Ref != nil {
+		notFoundErr := model.NewErrValidation(fmt.Errorf("%v error definition not found in 'uses'", t.Raise.Error.Ref), "")
+		if workflowDef.Use != nil && workflowDef.Use.Errors != nil {
+			definition, ok := workflowDef.Use.Errors[*t.Raise.Error.Ref]
+			if !ok {
+				return notFoundErr
+			}
+			t.Raise.Error.Definition = definition
+			return nil
+		}
+		return notFoundErr
+	}
+	return nil
 }
 
 type RaiseTaskRunner struct {
@@ -112,4 +133,27 @@ func (r *RaiseTaskRunner) Run(input interface{}) (output interface{}, err error)
 
 func (r *RaiseTaskRunner) GetTaskName() string {
 	return r.TaskName
+}
+
+func NewForTaskRunner(taskName string, task *model.ForTask) (*ForTaskRunner, error) {
+	if task == nil {
+		return nil, model.NewErrValidation(fmt.Errorf("invalid For task %s", taskName), taskName)
+	}
+	return &ForTaskRunner{
+		Task:     task,
+		TaskName: taskName,
+	}, nil
+}
+
+type ForTaskRunner struct {
+	Task     *model.ForTask
+	TaskName string
+}
+
+func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
+	return input, nil
+}
+
+func (f *ForTaskRunner) GetTaskName() string {
+	return f.TaskName
 }

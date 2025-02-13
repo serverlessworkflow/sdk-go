@@ -10,8 +10,8 @@ type ctxKey string
 
 const runnerCtxKey ctxKey = "wfRunnerContext"
 
-// WorkflowRunnerContext holds the necessary data for the workflow execution within the instance.
-type WorkflowRunnerContext struct {
+// WorkflowContext holds the necessary data for the workflow execution within the instance.
+type WorkflowContext struct {
 	mu               sync.Mutex
 	input            interface{} // input can hold any type
 	output           interface{} // output can hold any type
@@ -20,112 +20,116 @@ type WorkflowRunnerContext struct {
 	TasksStatusPhase map[string][]StatusPhaseLog // Holds `$context` as the key
 }
 
-func (runnerCtx *WorkflowRunnerContext) SetStatus(status StatusPhase) {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	if runnerCtx.StatusPhase == nil {
-		runnerCtx.StatusPhase = []StatusPhaseLog{}
-	}
-	runnerCtx.StatusPhase = append(runnerCtx.StatusPhase, NewStatusPhaseLog(status))
+type TaskContext interface {
+	SetTaskStatus(task string, status StatusPhase)
 }
 
-func (runnerCtx *WorkflowRunnerContext) SetTaskStatus(task string, status StatusPhase) {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	if runnerCtx.TasksStatusPhase == nil {
-		runnerCtx.TasksStatusPhase = map[string][]StatusPhaseLog{}
+func (ctx *WorkflowContext) SetStatus(status StatusPhase) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.StatusPhase == nil {
+		ctx.StatusPhase = []StatusPhaseLog{}
 	}
-	runnerCtx.TasksStatusPhase[task] = append(runnerCtx.TasksStatusPhase[task], NewStatusPhaseLog(status))
+	ctx.StatusPhase = append(ctx.StatusPhase, NewStatusPhaseLog(status))
 }
 
-// SetWorkflowCtx safely sets the `$context` value
-func (runnerCtx *WorkflowRunnerContext) SetWorkflowCtx(value interface{}) {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	if runnerCtx.context == nil {
-		runnerCtx.context = make(map[string]interface{})
+func (ctx *WorkflowContext) SetTaskStatus(task string, status StatusPhase) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.TasksStatusPhase == nil {
+		ctx.TasksStatusPhase = map[string][]StatusPhaseLog{}
 	}
-	runnerCtx.context["$context"] = value
+	ctx.TasksStatusPhase[task] = append(ctx.TasksStatusPhase[task], NewStatusPhaseLog(status))
 }
 
-// GetWorkflowCtx safely retrieves the `$context` value
-func (runnerCtx *WorkflowRunnerContext) GetWorkflowCtx() interface{} {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	if runnerCtx.context == nil {
+// SetInstanceCtx safely sets the `$context` value
+func (ctx *WorkflowContext) SetInstanceCtx(value interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.context == nil {
+		ctx.context = make(map[string]interface{})
+	}
+	ctx.context["$context"] = value
+}
+
+// GetInstanceCtx safely retrieves the `$context` value
+func (ctx *WorkflowContext) GetInstanceCtx() interface{} {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.context == nil {
 		return nil
 	}
-	return runnerCtx.context["$context"]
+	return ctx.context["$context"]
 }
 
 // SetInput safely sets the input
-func (runnerCtx *WorkflowRunnerContext) SetInput(input interface{}) {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	runnerCtx.input = input
+func (ctx *WorkflowContext) SetInput(input interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	ctx.input = input
 }
 
 // GetInput safely retrieves the input
-func (runnerCtx *WorkflowRunnerContext) GetInput() interface{} {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	return runnerCtx.input
+func (ctx *WorkflowContext) GetInput() interface{} {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	return ctx.input
 }
 
 // SetOutput safely sets the output
-func (runnerCtx *WorkflowRunnerContext) SetOutput(output interface{}) {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	runnerCtx.output = output
+func (ctx *WorkflowContext) SetOutput(output interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	ctx.output = output
 }
 
 // GetOutput safely retrieves the output
-func (runnerCtx *WorkflowRunnerContext) GetOutput() interface{} {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
-	return runnerCtx.output
+func (ctx *WorkflowContext) GetOutput() interface{} {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	return ctx.output
 }
 
 // GetInputAsMap safely retrieves the input as a map[string]interface{}.
 // If input is not a map, it creates a map with an empty string key and the input as the value.
-func (runnerCtx *WorkflowRunnerContext) GetInputAsMap() map[string]interface{} {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
+func (ctx *WorkflowContext) GetInputAsMap() map[string]interface{} {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
 
-	if inputMap, ok := runnerCtx.input.(map[string]interface{}); ok {
+	if inputMap, ok := ctx.input.(map[string]interface{}); ok {
 		return inputMap
 	}
 
 	// If input is not a map, create a map with an empty key and set input as the value
 	return map[string]interface{}{
-		"": runnerCtx.input,
+		"": ctx.input,
 	}
 }
 
 // GetOutputAsMap safely retrieves the output as a map[string]interface{}.
 // If output is not a map, it creates a map with an empty string key and the output as the value.
-func (runnerCtx *WorkflowRunnerContext) GetOutputAsMap() map[string]interface{} {
-	runnerCtx.mu.Lock()
-	defer runnerCtx.mu.Unlock()
+func (ctx *WorkflowContext) GetOutputAsMap() map[string]interface{} {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
 
-	if outputMap, ok := runnerCtx.output.(map[string]interface{}); ok {
+	if outputMap, ok := ctx.output.(map[string]interface{}); ok {
 		return outputMap
 	}
 
 	// If output is not a map, create a map with an empty key and set output as the value
 	return map[string]interface{}{
-		"": runnerCtx.output,
+		"": ctx.output,
 	}
 }
 
-// WithRunnerContext adds the WorkflowRunnerContext to a parent context
-func WithRunnerContext(parent context.Context, wfCtx *WorkflowRunnerContext) context.Context {
+// WithWorkflowContext adds the WorkflowContext to a parent context
+func WithWorkflowContext(parent context.Context, wfCtx *WorkflowContext) context.Context {
 	return context.WithValue(parent, runnerCtxKey, wfCtx)
 }
 
-// GetRunnerContext retrieves the WorkflowRunnerContext from a context
-func GetRunnerContext(ctx context.Context) (*WorkflowRunnerContext, error) {
-	wfCtx, ok := ctx.Value(runnerCtxKey).(*WorkflowRunnerContext)
+// GetWorkflowContext retrieves the WorkflowContext from a context
+func GetWorkflowContext(ctx context.Context) (*WorkflowContext, error) {
+	wfCtx, ok := ctx.Value(runnerCtxKey).(*WorkflowContext)
 	if !ok {
 		return nil, errors.New("workflow context not found")
 	}

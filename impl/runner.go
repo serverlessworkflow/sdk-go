@@ -1,7 +1,22 @@
+// Copyright 2025 The Serverless Workflow Specification Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package impl
 
 import (
 	"context"
+	"fmt"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -53,7 +68,7 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	}()
 
 	// Process input
-	if input, err = wr.processWorkflowInput(input); err != nil {
+	if input, err = wr.processInput(input); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +85,7 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	}
 
 	// Process output
-	if output, err = wr.processWorkflowOutput(output); err != nil {
+	if output, err = wr.processOutput(output); err != nil {
 		return nil, err
 	}
 
@@ -84,45 +99,25 @@ func (wr *workflowRunnerImpl) wrapWorkflowError(err error, taskName string) erro
 	if knownErr := model.AsError(err); knownErr != nil {
 		return knownErr.WithInstanceRef(wr.Workflow, taskName)
 	}
-	return model.NewErrRuntime(err, taskName)
+	return model.NewErrRuntime(fmt.Errorf("workflow '%s', task '%s': %w", wr.Workflow.Document.Name, taskName, err), taskName)
 }
 
-// processWorkflowInput validates and transforms input if needed.
-func (wr *workflowRunnerImpl) processWorkflowInput(input interface{}) (interface{}, error) {
+// processInput validates and transforms input if needed.
+func (wr *workflowRunnerImpl) processInput(input interface{}) (output interface{}, err error) {
 	if wr.Workflow.Input != nil {
-		var err error
-		if err = validateSchema(input, wr.Workflow.Input.Schema, "/"); err != nil {
+		output, err = processIO(input, wr.Workflow.Input.Schema, wr.Workflow.Input.From, "/")
+		if err != nil {
 			return nil, err
 		}
-
-		if wr.Workflow.Input.From != nil {
-			if input, err = traverseAndEvaluate(wr.Workflow.Input.From, input, "/"); err != nil {
-				return nil, err
-			}
-			wr.RunnerCtx.SetInstanceCtx(input)
-		}
+		return output, nil
 	}
-
-	wr.RunnerCtx.SetInput(input)
-	wr.RunnerCtx.SetOutput(input)
 	return input, nil
 }
 
-// processWorkflowOutput applies output transformations.
-func (wr *workflowRunnerImpl) processWorkflowOutput(output interface{}) (interface{}, error) {
+// processOutput applies output transformations.
+func (wr *workflowRunnerImpl) processOutput(output interface{}) (interface{}, error) {
 	if wr.Workflow.Output != nil {
-		var err error
-		if output, err = traverseAndEvaluate(wr.Workflow.Output.As, output, "/"); err != nil {
-			return nil, err
-		}
-
-		if err = validateSchema(output, wr.Workflow.Output.Schema, "/"); err != nil {
-			return nil, err
-		}
+		return processIO(output, wr.Workflow.Output.Schema, wr.Workflow.Output.As, "/")
 	}
-
-	wr.RunnerCtx.SetOutput(output)
 	return output, nil
 }
-
-// ----------------- Task funcs ------------------- //

@@ -1,3 +1,17 @@
+// Copyright 2025 The Serverless Workflow Specification Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package impl
 
 import (
@@ -24,6 +38,8 @@ func NewTaskRunner(taskName string, task model.Task, taskSupport TaskSupport) (T
 		return NewRaiseTaskRunner(taskName, t, taskSupport.GetWorkflowDef())
 	case *model.DoTask:
 		return NewDoTaskRunner(t.Do, taskSupport)
+	case *model.ForTask:
+		return NewForTaskRunner(taskName, t, taskSupport)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}
@@ -54,7 +70,7 @@ func (d *DoTaskRunner) GetTaskName() string {
 
 // executeTasks runs all defined tasks sequentially.
 func (d *DoTaskRunner) executeTasks(input interface{}, tasks *model.TaskList) (output interface{}, err error) {
-	output = deepCloneValue(input)
+	output = input
 	if tasks == nil {
 		return output, nil
 	}
@@ -109,7 +125,7 @@ func (d *DoTaskRunner) runTask(input interface{}, runner TaskRunner, task *model
 	taskName := runner.GetTaskName()
 
 	if task.Input != nil {
-		if input, err = d.validateAndEvaluateTaskInput(task, input, taskName); err != nil {
+		if input, err = d.processTaskInput(task, input, taskName); err != nil {
 			return nil, err
 		}
 	}
@@ -119,15 +135,15 @@ func (d *DoTaskRunner) runTask(input interface{}, runner TaskRunner, task *model
 		return nil, err
 	}
 
-	if output, err = d.validateAndEvaluateTaskOutput(task, output, taskName); err != nil {
+	if output, err = d.processTaskOutput(task, output, taskName); err != nil {
 		return nil, err
 	}
 
 	return output, nil
 }
 
-// validateAndEvaluateTaskInput processes task input validation and transformation.
-func (d *DoTaskRunner) validateAndEvaluateTaskInput(task *model.TaskBase, taskInput interface{}, taskName string) (output interface{}, err error) {
+// processTaskInput processes task input validation and transformation.
+func (d *DoTaskRunner) processTaskInput(task *model.TaskBase, taskInput interface{}, taskName string) (output interface{}, err error) {
 	if task.Input == nil {
 		return taskInput, nil
 	}
@@ -143,8 +159,8 @@ func (d *DoTaskRunner) validateAndEvaluateTaskInput(task *model.TaskBase, taskIn
 	return output, nil
 }
 
-// validateAndEvaluateTaskOutput processes task output validation and transformation.
-func (d *DoTaskRunner) validateAndEvaluateTaskOutput(task *model.TaskBase, taskOutput interface{}, taskName string) (output interface{}, err error) {
+// processTaskOutput processes task output validation and transformation.
+func (d *DoTaskRunner) processTaskOutput(task *model.TaskBase, taskOutput interface{}, taskName string) (output interface{}, err error) {
 	if task.Output == nil {
 		return taskOutput, nil
 	}

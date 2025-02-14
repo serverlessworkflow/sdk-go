@@ -1,3 +1,17 @@
+// Copyright 2025 The Serverless Workflow Specification Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package impl
 
 import (
@@ -32,10 +46,6 @@ type SetTaskRunner struct {
 
 func (s *SetTaskRunner) GetTaskName() string {
 	return s.TaskName
-}
-
-func (s *SetTaskRunner) String() string {
-	return fmt.Sprintf("SetTaskRunner{Task: %s}", s.GetTaskName())
 }
 
 func (s *SetTaskRunner) Run(input interface{}) (output interface{}, err error) {
@@ -135,19 +145,27 @@ func (r *RaiseTaskRunner) GetTaskName() string {
 	return r.TaskName
 }
 
-func NewForTaskRunner(taskName string, task *model.ForTask) (*ForTaskRunner, error) {
-	if task == nil {
+func NewForTaskRunner(taskName string, task *model.ForTask, taskSupport TaskSupport) (*ForTaskRunner, error) {
+	if task == nil || task.Do == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("invalid For task %s", taskName), taskName)
 	}
+
+	doRunner, err := NewDoTaskRunner(task.Do, taskSupport)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ForTaskRunner{
 		Task:     task,
 		TaskName: taskName,
+		DoRunner: doRunner,
 	}, nil
 }
 
 type ForTaskRunner struct {
 	Task     *model.ForTask
 	TaskName string
+	DoRunner *DoTaskRunner
 }
 
 func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {

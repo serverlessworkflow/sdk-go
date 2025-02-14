@@ -16,8 +16,9 @@ package model
 
 import (
 	"encoding/json"
-	"sigs.k8s.io/yaml"
 	"testing"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/stretchr/testify/assert"
 )

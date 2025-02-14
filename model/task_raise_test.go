@@ -38,8 +38,8 @@ func TestRaiseTask_MarshalJSON(t *testing.T) {
 				Definition: &Error{
 					Type:   &URITemplateOrRuntimeExpr{Value: "http://example.com/error"},
 					Status: 500,
-					Title:  "Internal Server Error",
-					Detail: "An unexpected error occurred.",
+					Title:  NewStringOrRuntimeExpr("Internal Server Error"),
+					Detail: NewStringOrRuntimeExpr("An unexpected error occurred."),
 				},
 			},
 		},
@@ -94,6 +94,6 @@ func TestRaiseTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, raiseTask.Metadata)
 	assert.Equal(t, "http://example.com/error", raiseTask.Raise.Error.Definition.Type.String())
 	assert.Equal(t, 500, raiseTask.Raise.Error.Definition.Status)
-	assert.Equal(t, "Internal Server Error", raiseTask.Raise.Error.Definition.Title)
-	assert.Equal(t, "An unexpected error occurred.", raiseTask.Raise.Error.Definition.Detail)
+	assert.Equal(t, "Internal Server Error", raiseTask.Raise.Error.Definition.Title.String())
+	assert.Equal(t, "An unexpected error occurred.", raiseTask.Raise.Error.Definition.Detail.String())
 }

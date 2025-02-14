@@ -17,9 +17,10 @@ package model
 import (
 	"errors"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"regexp"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var (

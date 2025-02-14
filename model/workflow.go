@@ -221,6 +221,11 @@ func (f *FlowDirective) IsEnum() bool {
 	return exists
 }
 
+// IsTermination checks if the FlowDirective matches FlowDirectiveExit or FlowDirectiveEnd.
+func (f *FlowDirective) IsTermination() bool {
+	return f.Value == string(FlowDirectiveExit) || f.Value == string(FlowDirectiveEnd)
+}
+
 func (f *FlowDirective) UnmarshalJSON(data []byte) error {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {

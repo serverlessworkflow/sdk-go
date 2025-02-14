@@ -22,6 +22,10 @@ type SwitchTask struct {
 	Switch   []SwitchItem     `json:"switch" validate:"required,min=1,dive,switch_item"`
 }
 
+func (st *SwitchTask) GetBase() *TaskBase {
+	return &st.TaskBase
+}
+
 type SwitchItem map[string]SwitchCase
 
 // SwitchCase defines a condition and the corresponding outcome for a switch task.

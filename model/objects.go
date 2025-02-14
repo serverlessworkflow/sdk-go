@@ -21,9 +21,29 @@ import (
 	"regexp"
 )
 
+var _ Object = &ObjectOrString{}
+var _ Object = &ObjectOrRuntimeExpr{}
+var _ Object = &RuntimeExpression{}
+var _ Object = &URITemplateOrRuntimeExpr{}
+var _ Object = &StringOrRuntimeExpr{}
+var _ Object = &JsonPointerOrRuntimeExpression{}
+
+type Object interface {
+	String() string
+	GetValue() interface{}
+}
+
 // ObjectOrString is a type that can hold either a string or an object.
 type ObjectOrString struct {
 	Value interface{} `validate:"object_or_string"`
+}
+
+func (o *ObjectOrString) String() string {
+	return fmt.Sprintf("%v", o.Value)
+}
+
+func (o *ObjectOrString) GetValue() interface{} {
+	return o.Value
 }
 
 // UnmarshalJSON unmarshals data into either a string or an object.
@@ -51,6 +71,26 @@ func (o *ObjectOrString) MarshalJSON() ([]byte, error) {
 // ObjectOrRuntimeExpr is a type that can hold either a RuntimeExpression or an object.
 type ObjectOrRuntimeExpr struct {
 	Value interface{} `json:"-" validate:"object_or_runtime_expr"` // Custom validation tag.
+}
+
+func (o *ObjectOrRuntimeExpr) String() string {
+	return fmt.Sprintf("%v", o.Value)
+}
+
+func (o *ObjectOrRuntimeExpr) GetValue() interface{} {
+	return o.Value
+}
+
+func (o *ObjectOrRuntimeExpr) AsStringOrMap() interface{} {
+	switch o.Value.(type) {
+	case map[string]interface{}:
+		return o.Value.(map[string]interface{})
+	case string:
+		return o.Value.(string)
+	case RuntimeExpression:
+		return o.Value.(RuntimeExpression).Value
+	}
+	return nil
 }
 
 // UnmarshalJSON unmarshals data into either a RuntimeExpression or an object.
@@ -102,9 +142,19 @@ func (o *ObjectOrRuntimeExpr) Validate() error {
 	return nil
 }
 
+func NewStringOrRuntimeExpr(value string) *StringOrRuntimeExpr {
+	return &StringOrRuntimeExpr{
+		Value: value,
+	}
+}
+
 // StringOrRuntimeExpr is a type that can hold either a RuntimeExpression or a string.
 type StringOrRuntimeExpr struct {
 	Value interface{} `json:"-" validate:"string_or_runtime_expr"` // Custom validation tag.
+}
+
+func (s *StringOrRuntimeExpr) AsObjectOrRuntimeExpr() *ObjectOrRuntimeExpr {
+	return &ObjectOrRuntimeExpr{Value: s.Value}
 }
 
 // UnmarshalJSON unmarshals data into either a RuntimeExpression or a string.
@@ -148,6 +198,10 @@ func (s *StringOrRuntimeExpr) String() string {
 	default:
 		return ""
 	}
+}
+
+func (s *StringOrRuntimeExpr) GetValue() interface{} {
+	return s.Value
 }
 
 // URITemplateOrRuntimeExpr represents a type that can be a URITemplate or a RuntimeExpression.
@@ -211,8 +265,14 @@ func (u *URITemplateOrRuntimeExpr) String() string {
 		return v.String()
 	case RuntimeExpression:
 		return v.String()
+	case string:
+		return v
 	}
 	return ""
+}
+
+func (u *URITemplateOrRuntimeExpr) GetValue() interface{} {
+	return u.Value
 }
 
 // JsonPointerOrRuntimeExpression represents a type that can be a JSON Pointer or a RuntimeExpression.
@@ -257,4 +317,23 @@ func (j *JsonPointerOrRuntimeExpression) MarshalJSON() ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("JsonPointerOrRuntimeExpression contains unsupported type")
 	}
+}
+
+func (j *JsonPointerOrRuntimeExpression) String() string {
+	switch v := j.Value.(type) {
+	case RuntimeExpression:
+		return v.String()
+	case string:
+		return v
+	default:
+		return ""
+	}
+}
+
+func (j *JsonPointerOrRuntimeExpression) GetValue() interface{} {
+	return j.Value
+}
+
+func (j *JsonPointerOrRuntimeExpression) IsValid() bool {
+	return JSONPointerPattern.MatchString(j.String())
 }

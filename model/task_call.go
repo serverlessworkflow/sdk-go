@@ -22,6 +22,10 @@ type CallHTTP struct {
 	With     HTTPArguments    `json:"with" validate:"required"`
 }
 
+func (c *CallHTTP) GetBase() *TaskBase {
+	return &c.TaskBase
+}
+
 type HTTPArguments struct {
 	Method   string                 `json:"method" validate:"required,oneofci=GET POST PUT DELETE PATCH"`
 	Endpoint *Endpoint              `json:"endpoint" validate:"required"`
@@ -37,6 +41,10 @@ type CallOpenAPI struct {
 	With     OpenAPIArguments `json:"with" validate:"required"`
 }
 
+func (c *CallOpenAPI) GetBase() *TaskBase {
+	return &c.TaskBase
+}
+
 type OpenAPIArguments struct {
 	Document       *ExternalResource                  `json:"document" validate:"required"`
 	OperationID    string                             `json:"operationId" validate:"required"`
@@ -49,6 +57,10 @@ type CallGRPC struct {
 	TaskBase `json:",inline"`
 	Call     string        `json:"call" validate:"required,eq=grpc"`
 	With     GRPCArguments `json:"with" validate:"required"`
+}
+
+func (c *CallGRPC) GetBase() *TaskBase {
+	return &c.TaskBase
 }
 
 type GRPCArguments struct {
@@ -70,6 +82,10 @@ type CallAsyncAPI struct {
 	TaskBase `json:",inline"`
 	Call     string            `json:"call" validate:"required,eq=asyncapi"`
 	With     AsyncAPIArguments `json:"with" validate:"required"`
+}
+
+func (c *CallAsyncAPI) GetBase() *TaskBase {
+	return &c.TaskBase
 }
 
 type AsyncAPIArguments struct {
@@ -109,4 +125,8 @@ type CallFunction struct {
 	TaskBase `json:",inline"`       // Inline TaskBase fields
 	Call     string                 `json:"call" validate:"required"`
 	With     map[string]interface{} `json:"with,omitempty"`
+}
+
+func (c *CallFunction) GetBase() *TaskBase {
+	return &c.TaskBase
 }

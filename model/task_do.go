@@ -19,3 +19,7 @@ type DoTask struct {
 	TaskBase `json:",inline"` // Inline TaskBase fields
 	Do       *TaskList        `json:"do" validate:"required,dive"`
 }
+
+func (d *DoTask) GetBase() *TaskBase {
+	return &d.TaskBase
+}

@@ -22,6 +22,10 @@ type SetTask struct {
 	Set      map[string]interface{} `json:"set" validate:"required,min=1,dive"`
 }
 
+func (st *SetTask) GetBase() *TaskBase {
+	return &st.TaskBase
+}
+
 // MarshalJSON for SetTask to ensure proper serialization.
 func (st *SetTask) MarshalJSON() ([]byte, error) {
 	type Alias SetTask

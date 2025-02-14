@@ -19,26 +19,14 @@ import (
 	"errors"
 )
 
-type Error struct {
-	Type     *URITemplateOrRuntimeExpr       `json:"type" validate:"required"`
-	Status   int                             `json:"status" validate:"required"`
-	Title    string                          `json:"title,omitempty"`
-	Detail   string                          `json:"detail,omitempty"`
-	Instance *JsonPointerOrRuntimeExpression `json:"instance,omitempty"  validate:"omitempty"`
-}
-
-type ErrorFilter struct {
-	Type     string `json:"type,omitempty"`
-	Status   int    `json:"status,omitempty"`
-	Instance string `json:"instance,omitempty"`
-	Title    string `json:"title,omitempty"`
-	Details  string `json:"details,omitempty"`
-}
-
 // RaiseTask represents a task configuration to raise errors.
 type RaiseTask struct {
 	TaskBase `json:",inline"`       // Inline TaskBase fields
 	Raise    RaiseTaskConfiguration `json:"raise" validate:"required"`
+}
+
+func (r *RaiseTask) GetBase() *TaskBase {
+	return &r.TaskBase
 }
 
 type RaiseTaskConfiguration struct {

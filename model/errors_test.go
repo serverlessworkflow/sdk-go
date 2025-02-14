@@ -15,8 +15,9 @@
 package model
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestGenerateJSONPointer_SimpleTask tests a simple workflow task.

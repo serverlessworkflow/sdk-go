@@ -15,12 +15,13 @@
 package impl
 
 import (
-	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"github.com/serverlessworkflow/sdk-go/v3/parser"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/serverlessworkflow/sdk-go/v3/parser"
+	"github.com/stretchr/testify/assert"
 )
 
 // runWorkflowTest is a reusable test function for workflows

@@ -17,8 +17,9 @@ package expr
 import (
 	"errors"
 	"fmt"
-	"github.com/itchyny/gojq"
 	"strings"
+
+	"github.com/itchyny/gojq"
 )
 
 // IsStrictExpr returns true if the string is enclosed in `${ }`

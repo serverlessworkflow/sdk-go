@@ -15,10 +15,11 @@
 package impl
 
 import (
-	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSetTaskExecutor_Exec(t *testing.T) {

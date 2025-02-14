@@ -17,9 +17,10 @@ package impl
 import (
 	"encoding/json"
 	"errors"
+	"testing"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestRaiseTaskRunner_WithDefinedError(t *testing.T) {
@@ -47,16 +48,20 @@ func TestRaiseTaskRunner_WithDefinedError(t *testing.T) {
 
 	expectedErr := model.NewErrValidation(errors.New("Invalid input data"), "task_raise_defined")
 
-	assert.Equal(t, expectedErr.Type.String(), err.(*model.Error).Type.String())
-	assert.Equal(t, expectedErr.Status, err.(*model.Error).Status)
-	assert.Equal(t, expectedErr.Title.String(), err.(*model.Error).Title.String())
-	assert.Equal(t, "Invalid input data", err.(*model.Error).Detail.String())
-	assert.Equal(t, expectedErr.Instance.String(), err.(*model.Error).Instance.String())
+	var modelErr *model.Error
+	if errors.As(err, &modelErr) {
+		assert.Equal(t, expectedErr.Type.String(), modelErr.Type.String())
+		assert.Equal(t, expectedErr.Status, modelErr.Status)
+		assert.Equal(t, expectedErr.Title.String(), modelErr.Title.String())
+		assert.Equal(t, "Invalid input data", modelErr.Detail.String())
+		assert.Equal(t, expectedErr.Instance.String(), modelErr.Instance.String())
+	} else {
+		t.Errorf("expected error of type *model.Error but got %T", err)
+	}
 }
 
 func TestRaiseTaskRunner_WithReferencedError(t *testing.T) {
-	var ref string
-	ref = "someErrorRef"
+	ref := "someErrorRef"
 	raiseTask := &model.RaiseTask{
 		Raise: model.RaiseTaskConfiguration{
 			Error: model.RaiseTaskError{
@@ -97,11 +102,16 @@ func TestRaiseTaskRunner_TimeoutErrorWithExpression(t *testing.T) {
 
 	expectedErr := model.NewErrTimeout(errors.New("Request took too long"), "task_raise_timeout_expr")
 
-	assert.Equal(t, expectedErr.Type.String(), err.(*model.Error).Type.String())
-	assert.Equal(t, expectedErr.Status, err.(*model.Error).Status)
-	assert.Equal(t, expectedErr.Title.String(), err.(*model.Error).Title.String())
-	assert.Equal(t, "Request took too long", err.(*model.Error).Detail.String())
-	assert.Equal(t, expectedErr.Instance.String(), err.(*model.Error).Instance.String())
+	var modelErr *model.Error
+	if errors.As(err, &modelErr) {
+		assert.Equal(t, expectedErr.Type.String(), modelErr.Type.String())
+		assert.Equal(t, expectedErr.Status, modelErr.Status)
+		assert.Equal(t, expectedErr.Title.String(), modelErr.Title.String())
+		assert.Equal(t, "Request took too long", modelErr.Detail.String())
+		assert.Equal(t, expectedErr.Instance.String(), modelErr.Instance.String())
+	} else {
+		t.Errorf("expected error of type *model.Error but got %T", err)
+	}
 }
 
 func TestRaiseTaskRunner_Serialization(t *testing.T) {
@@ -134,8 +144,7 @@ func TestRaiseTaskRunner_Serialization(t *testing.T) {
 }
 
 func TestRaiseTaskRunner_ReferenceSerialization(t *testing.T) {
-	var ref string
-	ref = "errorReference"
+	ref := "errorReference"
 	raiseTask := &model.RaiseTask{
 		Raise: model.RaiseTaskConfiguration{
 			Error: model.RaiseTaskError{

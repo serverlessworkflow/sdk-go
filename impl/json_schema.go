@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/xeipuuv/gojsonschema"
 )

@@ -17,6 +17,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/serverlessworkflow/sdk-go/v3/expr"
 )
 

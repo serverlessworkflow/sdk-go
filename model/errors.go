@@ -297,13 +297,13 @@ func GenerateJSONPointer(workflow *Workflow, targetNode interface{}) (string, er
 	// Convert struct to JSON
 	jsonData, err := json.Marshal(workflow)
 	if err != nil {
-		return "", fmt.Errorf("error marshalling to JSON: %v", err)
+		return "", fmt.Errorf("error marshalling to JSON: %w", err)
 	}
 
 	// Convert JSON to a generic map for traversal
 	var jsonMap map[string]interface{}
 	if err := json.Unmarshal(jsonData, &jsonMap); err != nil {
-		return "", fmt.Errorf("error unmarshalling JSON: %v", err)
+		return "", fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 
 	transformedNode := ""

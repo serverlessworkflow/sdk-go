@@ -309,5 +309,22 @@ func TestWorkflowRunner_Run_YAML_RaiseTasks_ControlFlow(t *testing.T) {
 				assert.Equal(t, "User is under the required age", model.AsError(err).Detail.String())
 			})
 	})
+}
+
+func TestForTaskRunner_Run(t *testing.T) {
+	t.Skip("Skipping until the For task is implemented - missing JQ variables implementation")
+	t.Run("Simple For with Colors", func(t *testing.T) {
+		workflowPath := "./testdata/for_colors.yaml"
+		input := map[string]interface{}{
+			"colors": []string{"red", "green", "blue"},
+		}
+		expectedOutput := map[string]interface{}{
+			"processed": map[string]interface{}{
+				"colors":  []string{"red", "green", "blue"},
+				"indexed": []float64{0, 1, 2},
+			},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
 
 }

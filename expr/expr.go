@@ -86,6 +86,8 @@ func TraverseAndEvaluate(node interface{}, input interface{}) (interface{}, erro
 	}
 }
 
+// TODO: add support to variables see https://github.com/itchyny/gojq/blob/main/option_variables_test.go
+
 // evaluateJQExpression evaluates a jq expression against a given JSON input
 func evaluateJQExpression(expression string, input interface{}) (interface{}, error) {
 	// Parse the sanitized jq expression

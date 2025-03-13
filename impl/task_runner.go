@@ -16,6 +16,8 @@ package impl
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/serverlessworkflow/sdk-go/v3/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -163,6 +165,11 @@ func NewForTaskRunner(taskName string, task *model.ForTask, taskSupport TaskSupp
 	}, nil
 }
 
+const (
+	forTaskDefaultEach = "$item"
+	forTaskDefaultAt   = "$index"
+)
+
 type ForTaskRunner struct {
 	Task     *model.ForTask
 	TaskName string
@@ -170,7 +177,74 @@ type ForTaskRunner struct {
 }
 
 func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
-	return input, nil
+	f.sanitizeFor()
+	in, err := expr.TraverseAndEvaluate(f.Task.For.In, input)
+	if err != nil {
+		return nil, err
+	}
+
+	var forOutput interface{}
+	rv := reflect.ValueOf(in)
+	switch rv.Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < rv.Len(); i++ {
+			item := rv.Index(i).Interface()
+
+			if forOutput, err = f.processForItem(i, item, forOutput); err != nil {
+				return nil, err
+			}
+		}
+	case reflect.Invalid:
+		return input, nil
+	default:
+		if forOutput, err = f.processForItem(0, in, forOutput); err != nil {
+			return nil, err
+		}
+	}
+
+	return forOutput, nil
+}
+
+func (f *ForTaskRunner) processForItem(idx int, item interface{}, forOutput interface{}) (interface{}, error) {
+	forInput := map[string]interface{}{
+		f.Task.For.At:   idx,
+		f.Task.For.Each: item,
+	}
+	if forOutput != nil {
+		if outputMap, ok := forOutput.(map[string]interface{}); ok {
+			for key, value := range outputMap {
+				forInput[key] = value
+			}
+		} else {
+			return nil, fmt.Errorf("task %s item %s at index %d returned a non-json object, impossible to merge context", f.TaskName, f.Task.For.Each, idx)
+		}
+	}
+	var err error
+	forOutput, err = f.DoRunner.Run(forInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return forOutput, nil
+}
+
+func (f *ForTaskRunner) sanitizeFor() {
+	f.Task.For.Each = strings.TrimSpace(f.Task.For.Each)
+	f.Task.For.At = strings.TrimSpace(f.Task.For.At)
+
+	if f.Task.For.Each == "" {
+		f.Task.For.Each = forTaskDefaultEach
+	}
+	if f.Task.For.At == "" {
+		f.Task.For.At = forTaskDefaultAt
+	}
+
+	if !strings.HasPrefix(f.Task.For.Each, "$") {
+		f.Task.For.Each = "$" + f.Task.For.Each
+	}
+	if !strings.HasPrefix(f.Task.For.At, "$") {
+		f.Task.For.At = "$" + f.Task.For.At
+	}
 }
 
 func (f *ForTaskRunner) GetTaskName() string {

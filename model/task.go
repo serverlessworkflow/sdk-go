@@ -143,6 +143,8 @@ func unmarshalTask(key string, taskRaw json.RawMessage) (Task, error) {
 		return nil, fmt.Errorf("failed to parse task type for key '%s': %w", key, err)
 	}
 
+	// TODO: not the most elegant; can be improved in a smarter way
+
 	// Determine task type
 	var task Task
 	if callValue, hasCall := taskType["call"].(string); hasCall {
@@ -154,8 +156,11 @@ func unmarshalTask(key string, taskRaw json.RawMessage) (Task, error) {
 			// Default to CallFunction for unrecognized call values
 			task = &CallFunction{}
 		}
+	} else if _, hasFor := taskType["for"]; hasFor {
+		// Handle special case "for" that also has "do"
+		task = taskTypeRegistry["for"]()
 	} else {
-		// Handle non-call tasks (e.g., "do", "fork")
+		// Handle everything else (e.g., "do", "fork")
 		for typeKey := range taskType {
 			if constructor, exists := taskTypeRegistry[typeKey]; exists {
 				task = constructor()

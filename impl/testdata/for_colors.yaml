@@ -1,0 +1,14 @@
+document:
+  dsl: '1.0.0'
+  namespace: default
+  name: for
+  version: '1.0.0'
+do:
+  - loopColors:
+      for:
+        each: color
+        in: '${ .colors }'
+      do:
+        - markProcessed:
+            set:
+              processed: '${ { colors: (.processed.colors + [ $color ]), indexes: (.processed.indexes + [ $index ])} }'

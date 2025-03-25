@@ -19,7 +19,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -118,4 +118,71 @@ func TestTaskList_Validation(t *testing.T) {
 		}
 	}
 
+}
+
+func TestTaskList_Next_Sequential(t *testing.T) {
+	tasks := TaskList{
+		&TaskItem{Key: "task1", Task: &SetTask{Set: map[string]interface{}{"key1": "value1"}}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+		&TaskItem{Key: "task3", Task: &SetTask{Set: map[string]interface{}{"key3": "value3"}}},
+	}
+
+	idx, currentTask := 0, tasks[0]
+	assert.Equal(t, "task1", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Equal(t, "task2", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Equal(t, "task3", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Nil(t, currentTask)
+	assert.Equal(t, -1, idx)
+}
+
+func TestTaskList_Next_WithThenDirective(t *testing.T) {
+	tasks := TaskList{
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "task3"}}, Set: map[string]interface{}{"key1": "value1"}}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+		&TaskItem{Key: "task3", Task: &SetTask{Set: map[string]interface{}{"key3": "value3"}}},
+	}
+
+	idx, currentTask := 0, tasks[0]
+	assert.Equal(t, "task1", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Equal(t, "task3", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Nil(t, currentTask)
+	assert.Equal(t, -1, idx)
+}
+
+func TestTaskList_Next_Termination(t *testing.T) {
+	tasks := TaskList{
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "end"}}, Set: map[string]interface{}{"key1": "value1"}}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+	}
+
+	idx, currentTask := 0, tasks[0]
+	assert.Equal(t, "task1", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Nil(t, currentTask)
+	assert.Equal(t, -1, idx)
+}
+
+func TestTaskList_Next_InvalidThenReference(t *testing.T) {
+	tasks := TaskList{
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "unknown"}}, Set: map[string]interface{}{"key1": "value1"}}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+	}
+
+	idx, currentTask := 0, tasks[0]
+	assert.Equal(t, "task1", currentTask.Key)
+
+	idx, currentTask = tasks.Next(idx)
+	assert.Nil(t, currentTask)
+	assert.Equal(t, -1, idx)
 }

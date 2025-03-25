@@ -16,9 +16,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"os"
 	"path/filepath"
+
+	"github.com/serverlessworkflow/sdk-go/v3/parser"
 )
 
 func main() {

@@ -20,6 +20,10 @@ type ForkTask struct {
 	Fork     ForkTaskConfiguration `json:"fork" validate:"required"`
 }
 
+func (f *ForkTask) GetBase() *TaskBase {
+	return &f.TaskBase
+}
+
 // ForkTaskConfiguration defines the configuration for the branches to perform concurrently.
 type ForkTaskConfiguration struct {
 	Branches *TaskList `json:"branches" validate:"required,dive"`

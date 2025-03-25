@@ -19,7 +19,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -283,7 +283,7 @@ type InputTestCase struct {
 func TestInputValidation(t *testing.T) {
 	cases := []InputTestCase{
 		{
-			Name: "Valid Input with Schema and From (object)",
+			Name: "Valid input with Schema and From (object)",
 			Input: Input{
 				Schema: &Schema{
 					Format: "json",
@@ -301,7 +301,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: false,
 		},
 		{
-			Name: "Invalid Input with Schema and From (expr)",
+			Name: "Invalid input with Schema and From (expr)",
 			Input: Input{
 				Schema: &Schema{
 					Format: "json",
@@ -313,7 +313,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: true,
 		},
 		{
-			Name: "Valid Input with Schema and From (expr)",
+			Name: "Valid input with Schema and From (expr)",
 			Input: Input{
 				Schema: &Schema{
 					Format: "json",
@@ -325,7 +325,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: true,
 		},
 		{
-			Name: "Invalid Input with Empty From (expr)",
+			Name: "Invalid input with Empty From (expr)",
 			Input: Input{
 				From: &ObjectOrRuntimeExpr{
 					Value: "",
@@ -334,7 +334,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: true,
 		},
 		{
-			Name: "Invalid Input with Empty From (object)",
+			Name: "Invalid input with Empty From (object)",
 			Input: Input{
 				From: &ObjectOrRuntimeExpr{
 					Value: map[string]interface{}{},
@@ -343,7 +343,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: true,
 		},
 		{
-			Name: "Invalid Input with Unsupported From Type",
+			Name: "Invalid input with Unsupported From Type",
 			Input: Input{
 				From: &ObjectOrRuntimeExpr{
 					Value: 123,
@@ -352,7 +352,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: true,
 		},
 		{
-			Name: "Valid Input with Schema Only",
+			Name: "Valid input with Schema Only",
 			Input: Input{
 				Schema: &Schema{
 					Format: "json",
@@ -361,7 +361,7 @@ func TestInputValidation(t *testing.T) {
 			ShouldErr: false,
 		},
 		{
-			Name:      "Input with Neither Schema Nor From",
+			Name:      "input with Neither Schema Nor From",
 			Input:     Input{},
 			ShouldErr: false,
 		},

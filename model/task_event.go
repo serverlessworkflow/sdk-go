@@ -26,6 +26,10 @@ type EmitTask struct {
 	Emit     EmitTaskConfiguration `json:"emit" validate:"required"`
 }
 
+func (e *EmitTask) GetBase() *TaskBase {
+	return &e.TaskBase
+}
+
 func (e *EmitTask) MarshalJSON() ([]byte, error) {
 	type Alias EmitTask // Prevent recursion
 	return json.Marshal((*Alias)(e))
@@ -35,6 +39,10 @@ func (e *EmitTask) MarshalJSON() ([]byte, error) {
 type ListenTask struct {
 	TaskBase `json:",inline"`        // Inline TaskBase fields
 	Listen   ListenTaskConfiguration `json:"listen" validate:"required"`
+}
+
+func (lt *ListenTask) GetBase() *TaskBase {
+	return &lt.TaskBase
 }
 
 type ListenTaskConfiguration struct {

@@ -36,33 +36,8 @@ type TaskBase struct {
 }
 
 // Task represents a discrete unit of work in a workflow.
-type Task interface{}
-
-// TaskItem represents a named task and its associated definition.
-type TaskItem struct {
-	Key  string `json:"-" validate:"required"`
-	Task Task   `json:"-" validate:"required"`
-}
-
-// MarshalJSON for TaskItem to ensure proper serialization as a key-value pair.
-func (ti *TaskItem) MarshalJSON() ([]byte, error) {
-	if ti == nil {
-		return nil, fmt.Errorf("cannot marshal a nil TaskItem")
-	}
-
-	// Serialize the Task
-	taskJSON, err := json.Marshal(ti.Task)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal task: %w", err)
-	}
-
-	// Create a map with the Key and Task
-	taskEntry := map[string]json.RawMessage{
-		ti.Key: taskJSON,
-	}
-
-	// Marshal the map into JSON
-	return json.Marshal(taskEntry)
+type Task interface {
+	GetBase() *TaskBase
 }
 
 type NamedTaskMap map[string]Task
@@ -91,6 +66,28 @@ func (ntm *NamedTaskMap) UnmarshalJSON(data []byte) error {
 
 // TaskList represents a list of named tasks to perform.
 type TaskList []*TaskItem
+
+// Next gets the next item in the list based on the current index
+func (tl *TaskList) Next(currentIdx int) (int, *TaskItem) {
+	if currentIdx == -1 || currentIdx >= len(*tl) {
+		return -1, nil
+	}
+
+	current := (*tl)[currentIdx]
+	if current.GetBase() != nil && current.GetBase().Then != nil {
+		then := current.GetBase().Then
+		if then.IsTermination() {
+			return -1, nil
+		}
+		return tl.KeyAndIndex(then.Value)
+	}
+
+	// Proceed sequentially if no 'then' is specified
+	if currentIdx+1 < len(*tl) {
+		return currentIdx + 1, (*tl)[currentIdx+1]
+	}
+	return -1, nil
+}
 
 // UnmarshalJSON for TaskList to ensure proper deserialization.
 func (tl *TaskList) UnmarshalJSON(data []byte) error {
@@ -146,6 +143,8 @@ func unmarshalTask(key string, taskRaw json.RawMessage) (Task, error) {
 		return nil, fmt.Errorf("failed to parse task type for key '%s': %w", key, err)
 	}
 
+	// TODO: not the most elegant; can be improved in a smarter way
+
 	// Determine task type
 	var task Task
 	if callValue, hasCall := taskType["call"].(string); hasCall {
@@ -157,8 +156,11 @@ func unmarshalTask(key string, taskRaw json.RawMessage) (Task, error) {
 			// Default to CallFunction for unrecognized call values
 			task = &CallFunction{}
 		}
+	} else if _, hasFor := taskType["for"]; hasFor {
+		// Handle special case "for" that also has "do"
+		task = taskTypeRegistry["for"]()
 	} else {
-		// Handle non-call tasks (e.g., "do", "fork")
+		// Handle everything else (e.g., "do", "fork")
 		for typeKey := range taskType {
 			if constructor, exists := taskTypeRegistry[typeKey]; exists {
 				task = constructor()
@@ -186,59 +188,49 @@ func (tl *TaskList) MarshalJSON() ([]byte, error) {
 
 // Key retrieves a TaskItem by its key.
 func (tl *TaskList) Key(key string) *TaskItem {
-	for _, item := range *tl {
-		if item.Key == key {
-			return item
-		}
-	}
-	return nil
+	_, keyItem := tl.KeyAndIndex(key)
+	return keyItem
 }
 
-// AsTask extracts the TaskBase from the Task if the Task embeds TaskBase.
-// Returns nil if the Task does not embed TaskBase.
-func (ti *TaskItem) AsTask() *TaskBase {
-	if ti == nil || ti.Task == nil {
-		return nil
+func (tl *TaskList) KeyAndIndex(key string) (int, *TaskItem) {
+	for i, item := range *tl {
+		if item.Key == key {
+			return i, item
+		}
+	}
+	// TODO: Add logging here for missing task references
+	return -1, nil
+}
+
+// TaskItem represents a named task and its associated definition.
+type TaskItem struct {
+	Key  string `json:"-" validate:"required"`
+	Task Task   `json:"-" validate:"required"`
+}
+
+// MarshalJSON for TaskItem to ensure proper serialization as a key-value pair.
+func (ti *TaskItem) MarshalJSON() ([]byte, error) {
+	if ti == nil {
+		return nil, fmt.Errorf("cannot marshal a nil TaskItem")
 	}
 
-	// Use type assertions to check for TaskBase
-	switch task := ti.Task.(type) {
-	case *CallHTTP:
-		return &task.TaskBase
-	case *CallOpenAPI:
-		return &task.TaskBase
-	case *CallGRPC:
-		return &task.TaskBase
-	case *CallAsyncAPI:
-		return &task.TaskBase
-	case *CallFunction:
-		return &task.TaskBase
-	case *DoTask:
-		return &task.TaskBase
-	case *ForkTask:
-		return &task.TaskBase
-	case *EmitTask:
-		return &task.TaskBase
-	case *ForTask:
-		return &task.TaskBase
-	case *ListenTask:
-		return &task.TaskBase
-	case *RaiseTask:
-		return &task.TaskBase
-	case *RunTask:
-		return &task.TaskBase
-	case *SetTask:
-		return &task.TaskBase
-	case *SwitchTask:
-		return &task.TaskBase
-	case *TryTask:
-		return &task.TaskBase
-	case *WaitTask:
-		return &task.TaskBase
-	default:
-		// If the type does not embed TaskBase, return nil
-		return nil
+	// Serialize the Task
+	taskJSON, err := json.Marshal(ti.Task)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal task: %w", err)
 	}
+
+	// Create a map with the Key and Task
+	taskEntry := map[string]json.RawMessage{
+		ti.Key: taskJSON,
+	}
+
+	// Marshal the map into JSON
+	return json.Marshal(taskEntry)
+}
+
+func (ti *TaskItem) GetBase() *TaskBase {
+	return ti.Task.GetBase()
 }
 
 // AsCallHTTPTask casts the Task to a CallTask if possible, returning nil if the cast fails.

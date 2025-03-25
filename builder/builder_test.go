@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/test"
 
@@ -137,7 +137,7 @@ func TestBuilder_Validate(t *testing.T) {
 			Version:   "1.0.0",
 		},
 		Do: &model.TaskList{
-			{
+			&model.TaskItem{
 				Key: "task1",
 				Task: &model.CallHTTP{
 					Call: "http",
@@ -155,7 +155,7 @@ func TestBuilder_Validate(t *testing.T) {
 
 	// Test validation failure
 	workflow.Do = &model.TaskList{
-		{
+		&model.TaskItem{
 			Key: "task2",
 			Task: &model.CallHTTP{
 				Call: "http",

@@ -31,6 +31,20 @@ type Workflow struct {
 	Schedule *Schedule           `json:"schedule,omitempty" yaml:"schedule,omitempty"`
 }
 
+// AsMap converts the Workflow struct into a JSON Map object.
+func (w *Workflow) AsMap() (map[string]interface{}, error) {
+	jsonBytes, err := json.Marshal(w)
+	if err != nil {
+		return nil, err
+	}
+
+	var m map[string]interface{}
+	if err = json.Unmarshal(jsonBytes, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (w *Workflow) MarshalYAML() (interface{}, error) {
 	// Create a map to hold fields
 	data := map[string]interface{}{

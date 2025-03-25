@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/serverlessworkflow/sdk-go/v3/expr"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -32,19 +32,21 @@ type TaskRunner interface {
 	GetTaskName() string
 }
 
-func NewSetTaskRunner(taskName string, task *model.SetTask) (*SetTaskRunner, error) {
+func NewSetTaskRunner(taskName string, task *model.SetTask, taskSupport TaskSupport) (*SetTaskRunner, error) {
 	if task == nil || task.Set == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("no set configuration provided for SetTask %s", taskName), taskName)
 	}
 	return &SetTaskRunner{
-		Task:     task,
-		TaskName: taskName,
+		Task:        task,
+		TaskName:    taskName,
+		TaskSupport: taskSupport,
 	}, nil
 }
 
 type SetTaskRunner struct {
-	Task     *model.SetTask
-	TaskName string
+	Task        *model.SetTask
+	TaskName    string
+	TaskSupport TaskSupport
 }
 
 func (s *SetTaskRunner) GetTaskName() string {
@@ -53,9 +55,9 @@ func (s *SetTaskRunner) GetTaskName() string {
 
 func (s *SetTaskRunner) Run(input interface{}) (output interface{}, err error) {
 	setObject := deepClone(s.Task.Set)
-	result, err := expr.TraverseAndEvaluate(setObject, input)
+	result, err := traverseAndEvaluate(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, s.TaskSupport.GetContext())
 	if err != nil {
-		return nil, model.NewErrExpression(err, s.TaskName)
+		return nil, err
 	}
 
 	output, ok := result.(map[string]interface{})
@@ -66,16 +68,18 @@ func (s *SetTaskRunner) Run(input interface{}) (output interface{}, err error) {
 	return output, nil
 }
 
-func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, workflowDef *model.Workflow) (*RaiseTaskRunner, error) {
-	if err := resolveErrorDefinition(task, workflowDef); err != nil {
+func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, taskSupport TaskSupport) (*RaiseTaskRunner, error) {
+	if err := resolveErrorDefinition(task, taskSupport.GetWorkflowDef()); err != nil {
 		return nil, err
 	}
+
 	if task.Raise.Error.Definition == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("no raise configuration provided for RaiseTask %s", taskName), taskName)
 	}
 	return &RaiseTaskRunner{
-		Task:     task,
-		TaskName: taskName,
+		Task:        task,
+		TaskName:    taskName,
+		TaskSupport: taskSupport,
 	}, nil
 }
 
@@ -97,8 +101,9 @@ func resolveErrorDefinition(t *model.RaiseTask, workflowDef *model.Workflow) err
 }
 
 type RaiseTaskRunner struct {
-	Task     *model.RaiseTask
-	TaskName string
+	Task        *model.RaiseTask
+	TaskName    string
+	TaskSupport TaskSupport
 }
 
 var raiseErrFuncMapping = map[string]func(error, string) *model.Error{
@@ -116,13 +121,13 @@ func (r *RaiseTaskRunner) Run(input interface{}) (output interface{}, err error)
 	output = input
 	// TODO: make this an external func so we can call it after getting the reference? Or we can get the reference from the workflow definition
 	var detailResult interface{}
-	detailResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName)
+	detailResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName, r.TaskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
 
 	var titleResult interface{}
-	titleResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName)
+	titleResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName, r.TaskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
@@ -159,9 +164,10 @@ func NewForTaskRunner(taskName string, task *model.ForTask, taskSupport TaskSupp
 	}
 
 	return &ForTaskRunner{
-		Task:     task,
-		TaskName: taskName,
-		DoRunner: doRunner,
+		Task:        task,
+		TaskName:    taskName,
+		DoRunner:    doRunner,
+		TaskSupport: taskSupport,
 	}, nil
 }
 
@@ -171,14 +177,15 @@ const (
 )
 
 type ForTaskRunner struct {
-	Task     *model.ForTask
-	TaskName string
-	DoRunner *DoTaskRunner
+	Task        *model.ForTask
+	TaskName    string
+	DoRunner    *DoTaskRunner
+	TaskSupport TaskSupport
 }
 
 func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
 	f.sanitizeFor()
-	in, err := expr.TraverseAndEvaluate(f.Task.For.In, input)
+	in, err := expr.TraverseAndEvaluate(f.Task.For.In, input, f.TaskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}

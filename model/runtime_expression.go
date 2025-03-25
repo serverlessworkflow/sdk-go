@@ -17,8 +17,8 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/serverlessworkflow/sdk-go/v3/expr"
+	"github.com/itchyny/gojq"
+	"strings"
 )
 
 // RuntimeExpression represents a runtime expression.
@@ -34,9 +34,34 @@ func NewExpr(runtimeExpression string) *RuntimeExpression {
 	return &RuntimeExpression{Value: runtimeExpression}
 }
 
+// IsStrictExpr returns true if the string is enclosed in `${ }`
+func IsStrictExpr(expression string) bool {
+	return strings.HasPrefix(expression, "${") && strings.HasSuffix(expression, "}")
+}
+
+// SanitizeExpr processes the expression to ensure it's ready for evaluation
+// It removes `${}` if present and replaces single quotes with double quotes
+func SanitizeExpr(expression string) string {
+	// Remove `${}` enclosure if present
+	if IsStrictExpr(expression) {
+		expression = strings.TrimSpace(expression[2 : len(expression)-1])
+	}
+
+	// Replace single quotes with double quotes
+	expression = strings.ReplaceAll(expression, "'", "\"")
+
+	return expression
+}
+
+func IsValidExpr(expression string) bool {
+	expression = SanitizeExpr(expression)
+	_, err := gojq.Parse(expression)
+	return err == nil
+}
+
 // IsValid checks if the RuntimeExpression value is valid, handling both with and without `${}`.
 func (r *RuntimeExpression) IsValid() bool {
-	return expr.IsValid(r.Value)
+	return IsValidExpr(r.Value)
 }
 
 // UnmarshalJSON implements custom unmarshalling for RuntimeExpression.

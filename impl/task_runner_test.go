@@ -15,6 +15,8 @@
 package impl
 
 import (
+	"context"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,6 +25,42 @@ import (
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
 )
+
+type taskSupportOpts func(*workflowRunnerImpl)
+
+// newTaskSupport returns an instance of TaskSupport for test purposes
+func newTaskSupport(opts ...taskSupportOpts) TaskSupport {
+	ts := &workflowRunnerImpl{
+		Workflow:  nil,
+		Context:   context.TODO(),
+		RunnerCtx: nil,
+	}
+
+	// Apply each functional option to ts
+	for _, opt := range opts {
+		opt(ts)
+	}
+
+	return ts
+}
+
+func withWorkflow(wf *model.Workflow) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.Workflow = wf
+	}
+}
+
+func withContext(ctx context.Context) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.Context = ctx
+	}
+}
+
+func withRunnerCtx(workflowContext ctx.WorkflowContext) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.RunnerCtx = workflowContext
+	}
+}
 
 // runWorkflowTest is a reusable test function for workflows
 func runWorkflowTest(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) {
@@ -50,7 +88,8 @@ func runWorkflow(t *testing.T, workflowPath string, input, expectedOutput map[st
 	assert.NoError(t, err, "Failed to parse workflow YAML")
 
 	// Initialize the workflow runner
-	runner := NewDefaultRunner(workflow)
+	runner, err := NewDefaultRunner(workflow)
+	assert.NoError(t, err)
 
 	// Run the workflow
 	output, err = runner.Run(input)
@@ -151,7 +190,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid input")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")
@@ -178,7 +218,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid task input")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")
@@ -205,7 +246,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid task output")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")

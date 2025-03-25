@@ -73,6 +73,12 @@ type ObjectOrRuntimeExpr struct {
 	Value interface{} `json:"-" validate:"object_or_runtime_expr"` // Custom validation tag.
 }
 
+func NewObjectOrRuntimeExpr(value interface{}) *ObjectOrRuntimeExpr {
+	return &ObjectOrRuntimeExpr{
+		Value: value,
+	}
+}
+
 func (o *ObjectOrRuntimeExpr) String() string {
 	return fmt.Sprintf("%v", o.Value)
 }

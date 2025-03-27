@@ -49,12 +49,14 @@ func newTaskSupport(opts ...taskSupportOpts) TaskSupport {
 	return ts
 }
 
+//nolint:unused
 func withWorkflow(wf *model.Workflow) taskSupportOpts {
 	return func(ts *workflowRunnerImpl) {
 		ts.Workflow = wf
 	}
 }
 
+//nolint:unused
 func withContext(ctx context.Context) taskSupportOpts {
 	return func(ts *workflowRunnerImpl) {
 		ts.Context = ctx

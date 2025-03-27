@@ -16,24 +16,29 @@ package impl
 
 import (
 	"context"
+	"fmt"
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
-	"os"
-	"path/filepath"
-	"testing"
-
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 type taskSupportOpts func(*workflowRunnerImpl)
 
 // newTaskSupport returns an instance of TaskSupport for test purposes
 func newTaskSupport(opts ...taskSupportOpts) TaskSupport {
+	wfCtx, err := ctx.NewWorkflowContext(&model.Workflow{})
+	if err != nil {
+		panic(fmt.Errorf("failed to create workflow context within the test environment: %v", err))
+	}
+
 	ts := &workflowRunnerImpl{
 		Workflow:  nil,
 		Context:   context.TODO(),
-		RunnerCtx: nil,
+		RunnerCtx: wfCtx,
 	}
 
 	// Apply each functional option to ts
@@ -308,9 +313,12 @@ func TestWorkflowRunner_Run_YAML_ControlFlow(t *testing.T) {
 
 func TestWorkflowRunner_Run_YAML_RaiseTasks(t *testing.T) {
 	// TODO: add $workflow context to the expr processing
-	//t.Run("Raise Inline Error", func(t *testing.T) {
-	//	runWorkflowTest(t, "./testdata/raise_inline.yaml", nil, nil)
-	//})
+	t.Run("Raise Inline Error", func(t *testing.T) {
+		runWorkflowWithErr(t, "./testdata/raise_inline.yaml", nil, nil, func(err error) {
+			assert.Equal(t, model.ErrorTypeValidation, model.AsError(err).Type.String())
+			assert.Equal(t, "Invalid input provided to workflow raise-inline", model.AsError(err).Detail.String())
+		})
+	})
 
 	t.Run("Raise Referenced Error", func(t *testing.T) {
 		runWorkflowWithErr(t, "./testdata/raise_reusable.yaml", nil, nil,
@@ -354,7 +362,6 @@ func TestWorkflowRunner_Run_YAML_RaiseTasks_ControlFlow(t *testing.T) {
 }
 
 func TestForTaskRunner_Run(t *testing.T) {
-	t.Skip("Skipping until the For task is implemented - missing JQ variables implementation")
 	t.Run("Simple For with Colors", func(t *testing.T) {
 		workflowPath := "./testdata/for_colors.yaml"
 		input := map[string]interface{}{
@@ -362,8 +369,36 @@ func TestForTaskRunner_Run(t *testing.T) {
 		}
 		expectedOutput := map[string]interface{}{
 			"processed": map[string]interface{}{
-				"colors":  []string{"red", "green", "blue"},
-				"indexed": []float64{0, 1, 2},
+				"colors":  []interface{}{"red", "green", "blue"},
+				"indexes": []interface{}{0, 1, 2},
+			},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("SUM Numbers", func(t *testing.T) {
+		workflowPath := "./testdata/for_sum_numbers.yaml"
+		input := map[string]interface{}{
+			"numbers": []int32{2, 3, 4},
+		}
+		expectedOutput := map[string]interface{}{
+			"result": interface{}(9),
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("For Nested Loops", func(t *testing.T) {
+		workflowPath := "./testdata/for_nested_loops.yaml"
+		input := map[string]interface{}{
+			"fruits": []interface{}{"apple", "banana"},
+			"colors": []interface{}{"red", "green"},
+		}
+		expectedOutput := map[string]interface{}{
+			"matrix": []interface{}{
+				[]interface{}{"apple", "red"},
+				[]interface{}{"apple", "green"},
+				[]interface{}{"banana", "red"},
+				[]interface{}{"banana", "green"},
 			},
 		}
 		runWorkflowTest(t, workflowPath, input, expectedOutput)

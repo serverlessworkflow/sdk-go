@@ -19,18 +19,13 @@ import (
 	"fmt"
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"time"
 )
 
 var _ WorkflowRunner = &workflowRunnerImpl{}
 var _ TaskSupport = &workflowRunnerImpl{}
 
-type TaskSupport interface {
-	SetTaskStatus(task string, status ctx.StatusPhase)
-	GetWorkflowDef() *model.Workflow
-	SetWorkflowInstanceCtx(value interface{})
-	GetContext() context.Context
-}
-
+// WorkflowRunner is the public API to run Workflows
 type WorkflowRunner interface {
 	GetWorkflowDef() *model.Workflow
 	Run(input interface{}) (output interface{}, err error)
@@ -55,6 +50,51 @@ type workflowRunnerImpl struct {
 	Workflow  *model.Workflow
 	Context   context.Context
 	RunnerCtx ctx.WorkflowContext
+}
+
+func (wr *workflowRunnerImpl) RemoveLocalExprVars(keys ...string) {
+	wr.RunnerCtx.RemoveLocalExprVars(keys...)
+}
+
+func (wr *workflowRunnerImpl) AddLocalExprVars(vars map[string]interface{}) {
+	wr.RunnerCtx.AddLocalExprVars(vars)
+}
+
+func (wr *workflowRunnerImpl) SetLocalExprVars(vars map[string]interface{}) {
+	wr.RunnerCtx.SetLocalExprVars(vars)
+}
+
+func (wr *workflowRunnerImpl) SetTaskReferenceFromName(taskName string) error {
+	ref, err := GenerateJSONPointer(wr.Workflow, taskName)
+	if err != nil {
+		return err
+	}
+	wr.RunnerCtx.SetTaskReference(ref)
+	return nil
+}
+
+func (wr *workflowRunnerImpl) GetTaskReference() string {
+	return wr.RunnerCtx.GetTaskReference()
+}
+
+func (wr *workflowRunnerImpl) SetTaskRawInput(input interface{}) {
+	wr.RunnerCtx.SetTaskRawInput(input)
+}
+
+func (wr *workflowRunnerImpl) SetTaskRawOutput(output interface{}) {
+	wr.RunnerCtx.SetTaskRawOutput(output)
+}
+
+func (wr *workflowRunnerImpl) SetTaskDef(task model.Task) error {
+	return wr.RunnerCtx.SetTaskDef(task)
+}
+
+func (wr *workflowRunnerImpl) SetTaskStartedAt(startedAt time.Time) {
+	wr.RunnerCtx.SetTaskStartedAt(startedAt)
+}
+
+func (wr *workflowRunnerImpl) SetTaskName(name string) {
+	wr.RunnerCtx.SetTaskName(name)
 }
 
 func (wr *workflowRunnerImpl) GetContext() context.Context {
@@ -82,9 +122,11 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	defer func() {
 		if err != nil {
 			wr.RunnerCtx.SetStatus(ctx.FaultedStatus)
-			err = wr.wrapWorkflowError(err, "/")
+			err = wr.wrapWorkflowError(err)
 		}
 	}()
+
+	wr.RunnerCtx.SetRawInput(input)
 
 	// Process input
 	if input, err = wr.processInput(input); err != nil {
@@ -98,10 +140,13 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	if err != nil {
 		return nil, err
 	}
+	wr.RunnerCtx.SetStartedAt(time.Now())
 	output, err = doRunner.Run(wr.RunnerCtx.GetInput())
 	if err != nil {
 		return nil, err
 	}
+
+	wr.RunnerCtx.ClearTaskContext()
 
 	// Process output
 	if output, err = wr.processOutput(output); err != nil {
@@ -114,11 +159,15 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 }
 
 // wrapWorkflowError ensures workflow errors have a proper instance reference.
-func (wr *workflowRunnerImpl) wrapWorkflowError(err error, taskName string) error {
-	if knownErr := model.AsError(err); knownErr != nil {
-		return knownErr.WithInstanceRef(wr.Workflow, taskName)
+func (wr *workflowRunnerImpl) wrapWorkflowError(err error) error {
+	taskReference := wr.RunnerCtx.GetTaskReference()
+	if len(taskReference) == 0 {
+		taskReference = "/"
 	}
-	return model.NewErrRuntime(fmt.Errorf("workflow '%s', task '%s': %w", wr.Workflow.Document.Name, taskName, err), taskName)
+	if knownErr := model.AsError(err); knownErr != nil {
+		return knownErr.WithInstanceRef(wr.Workflow, taskReference)
+	}
+	return model.NewErrRuntime(fmt.Errorf("workflow '%s', task '%s': %w", wr.Workflow.Document.Name, taskReference, err), taskReference)
 }
 
 // processInput validates and transforms input if needed.

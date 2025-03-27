@@ -74,46 +74,43 @@ func traverseAndEvaluate(node interface{}, input interface{}, variables map[stri
 
 // evaluateJQExpression evaluates a jq expression against a given JSON input
 func evaluateJQExpression(expression string, input interface{}, variables map[string]interface{}) (interface{}, error) {
-	// Parse the sanitized jq expression
 	query, err := gojq.Parse(expression)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse jq expression: %s, error: %w", expression, err)
 	}
 
-	code, err := gojq.Compile(query, gojq.WithVariables(getVariablesName(variables)))
+	// Get the variable names & values in a single pass:
+	names, values := getVariableNamesAndValues(variables)
+
+	code, err := gojq.Compile(query, gojq.WithVariables(names))
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile jq expression: %s, error: %w", expression, err)
 	}
 
-	// Compile and evaluate the expression
-	iter := code.Run(input, getVariablesValue(variables)...)
+	iter := code.Run(input, values...)
 	result, ok := iter.Next()
 	if !ok {
 		return nil, errors.New("no result from jq evaluation")
 	}
 
-	// Check if an error occurred during evaluation
-	if err, isErr := result.(error); isErr {
-		return nil, fmt.Errorf("jq evaluation error: %w", err)
+	// If there's an error from the jq engine, report it
+	if errVal, isErr := result.(error); isErr {
+		return nil, fmt.Errorf("jq evaluation error: %w", errVal)
 	}
 
 	return result, nil
 }
 
-func getVariablesName(variables map[string]interface{}) []string {
-	result := make([]string, 0, len(variables))
-	for variable := range variables {
-		result = append(result, variable)
-	}
-	return result
-}
+// getVariableNamesAndValues constructs two slices, where 'names[i]' matches 'values[i]'.
+func getVariableNamesAndValues(vars map[string]interface{}) ([]string, []interface{}) {
+	names := make([]string, 0, len(vars))
+	values := make([]interface{}, 0, len(vars))
 
-func getVariablesValue(variables map[string]interface{}) []interface{} {
-	result := make([]interface{}, 0, len(variables))
-	for _, variable := range variables {
-		result = append(result, variable)
+	for k, v := range vars {
+		names = append(names, k)
+		values = append(values, v)
 	}
-	return result
+	return names, values
 }
 
 func mergeContextInVars(nodeCtx context.Context, variables map[string]interface{}) error {
@@ -128,7 +125,7 @@ func mergeContextInVars(nodeCtx context.Context, variables map[string]interface{
 		return err
 	}
 	// merge
-	for k, val := range wfCtx.AsJQVars() {
+	for k, val := range wfCtx.GetVars() {
 		variables[k] = val
 	}
 

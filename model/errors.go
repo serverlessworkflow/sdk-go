@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -77,10 +76,10 @@ func (e *Error) WithInstanceRef(workflow *Workflow, taskName string) *Error {
 	}
 
 	// Generate a JSON pointer reference for the task within the workflow
-	instance, pointerErr := GenerateJSONPointer(workflow, taskName)
-	if pointerErr == nil {
-		e.Instance = &JsonPointerOrRuntimeExpression{Value: instance}
-	}
+	//instance, pointerErr := GenerateJSONPointer(workflow, taskName)
+	//if pointerErr == nil {
+	//	e.Instance = &JsonPointerOrRuntimeExpression{Value: instance}
+	//}
 	// TODO: log the pointer error
 
 	return e
@@ -268,57 +267,3 @@ func ErrorFromJSON(jsonStr string) (*Error, error) {
 }
 
 // JsonPointer functions
-
-func findJsonPointer(data interface{}, target string, path string) (string, bool) {
-	switch node := data.(type) {
-	case map[string]interface{}:
-		for key, value := range node {
-			newPath := fmt.Sprintf("%s/%s", path, key)
-			if key == target {
-				return newPath, true
-			}
-			if result, found := findJsonPointer(value, target, newPath); found {
-				return result, true
-			}
-		}
-	case []interface{}:
-		for i, item := range node {
-			newPath := fmt.Sprintf("%s/%d", path, i)
-			if result, found := findJsonPointer(item, target, newPath); found {
-				return result, true
-			}
-		}
-	}
-	return "", false
-}
-
-// GenerateJSONPointer Function to generate JSON Pointer from a Workflow reference
-func GenerateJSONPointer(workflow *Workflow, targetNode interface{}) (string, error) {
-	// Convert struct to JSON
-	jsonData, err := json.Marshal(workflow)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling to JSON: %w", err)
-	}
-
-	// Convert JSON to a generic map for traversal
-	var jsonMap map[string]interface{}
-	if err := json.Unmarshal(jsonData, &jsonMap); err != nil {
-		return "", fmt.Errorf("error unmarshalling JSON: %w", err)
-	}
-
-	transformedNode := ""
-	switch node := targetNode.(type) {
-	case string:
-		transformedNode = node
-	default:
-		transformedNode = strings.ToLower(reflect.TypeOf(targetNode).Name())
-	}
-
-	// Search for the target node
-	jsonPointer, found := findJsonPointer(jsonMap, transformedNode, "")
-	if !found {
-		return "", fmt.Errorf("node '%s' not found", targetNode)
-	}
-
-	return jsonPointer, nil
-}

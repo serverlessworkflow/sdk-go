@@ -16,9 +16,13 @@ package ctx
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/google/uuid"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"sync"
+	"time"
 )
 
 var ErrWorkflowContextNotFound = errors.New("workflow context not found")
@@ -29,15 +33,23 @@ type ctxKey string
 
 const (
 	runnerCtxKey ctxKey = "wfRunnerContext"
-	varsContext         = "$context"
-	varsInput           = "$input"
-	varsOutput          = "$output"
-	varsWorkflow        = "$workflow"
+
+	varsContext  = "$context"
+	varsInput    = "$input"
+	varsOutput   = "$output"
+	varsWorkflow = "$workflow"
+	varsRuntime  = "$runtime"
+	varsTask     = "$task"
+
+	// TODO: script during the release to update this value programmatically
+	runtimeVersion = "v3.1.0"
+	runtimeName    = "CNCF Serverless Workflow Specification Go SDK"
 )
 
 type WorkflowContext interface {
+	SetStartedAt(t time.Time)
 	SetStatus(status StatusPhase)
-	SetTaskStatus(task string, status StatusPhase)
+	SetRawInput(input interface{})
 	SetInstanceCtx(value interface{})
 	GetInstanceCtx() interface{}
 	SetInput(input interface{})
@@ -45,18 +57,32 @@ type WorkflowContext interface {
 	SetOutput(output interface{})
 	GetOutput() interface{}
 	GetOutputAsMap() map[string]interface{}
-	AsJQVars() map[string]interface{}
+	GetVars() map[string]interface{}
+	SetTaskStatus(task string, status StatusPhase)
+	SetTaskRawInput(input interface{})
+	SetTaskRawOutput(output interface{})
+	SetTaskDef(task model.Task) error
+	SetTaskStartedAt(startedAt time.Time)
+	SetTaskName(name string)
+	SetTaskReference(ref string)
+	GetTaskReference() string
+	ClearTaskContext()
+	SetLocalExprVars(vars map[string]interface{})
+	AddLocalExprVars(vars map[string]interface{})
+	RemoveLocalExprVars(keys ...string)
 }
 
 // workflowContext holds the necessary data for the workflow execution within the instance.
 type workflowContext struct {
-	mu               sync.Mutex
-	input            interface{}            // $input can hold any type
-	output           interface{}            // $output can hold any type
-	context          map[string]interface{} // Holds `$context` as the key
-	definition       map[string]interface{} // $workflow representation in the context
-	StatusPhase      []StatusPhaseLog
-	TasksStatusPhase map[string][]StatusPhaseLog
+	mu                 sync.Mutex
+	input              interface{}            // $input can hold any type
+	output             interface{}            // $output can hold any type
+	context            map[string]interface{} // Holds `$context` as the key
+	workflowDescriptor map[string]interface{} // $workflow representation in the context
+	taskDescriptor     map[string]interface{} // $task representation in the context
+	localExprVars      map[string]interface{} // Local expression variables defined in a given task or private context. E.g. a For task $item.
+	StatusPhase        []StatusPhaseLog
+	TasksStatusPhase   map[string][]StatusPhaseLog
 }
 
 func NewWorkflowContext(workflow *model.Workflow) (WorkflowContext, error) {
@@ -65,19 +91,110 @@ func NewWorkflowContext(workflow *model.Workflow) (WorkflowContext, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	workflowCtx.definition = workflowDef
+	workflowCtx.taskDescriptor = map[string]interface{}{}
+	workflowCtx.workflowDescriptor = map[string]interface{}{
+		varsWorkflow: map[string]interface{}{
+			"id":         uuid.NewString(),
+			"definition": workflowDef,
+		},
+	}
 	workflowCtx.SetStatus(PendingStatus)
 
 	return workflowCtx, nil
 }
 
-func (ctx *workflowContext) AsJQVars() map[string]interface{} {
+// WithWorkflowContext adds the workflowContext to a parent context
+func WithWorkflowContext(parent context.Context, wfCtx WorkflowContext) context.Context {
+	return context.WithValue(parent, runnerCtxKey, wfCtx)
+}
+
+// GetWorkflowContext retrieves the workflowContext from a context
+func GetWorkflowContext(ctx context.Context) (WorkflowContext, error) {
+	wfCtx, ok := ctx.Value(runnerCtxKey).(*workflowContext)
+	if !ok {
+		return nil, ErrWorkflowContextNotFound
+	}
+	return wfCtx, nil
+}
+
+func (ctx *workflowContext) SetStartedAt(t time.Time) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	wf, ok := ctx.workflowDescriptor[varsWorkflow].(map[string]interface{})
+	if !ok {
+		wf = make(map[string]interface{})
+		ctx.workflowDescriptor[varsWorkflow] = wf
+	}
+
+	startedAt, ok := wf["startedAt"].(map[string]interface{})
+	if !ok {
+		startedAt = make(map[string]interface{})
+		wf["startedAt"] = startedAt
+	}
+
+	startedAt["iso8601"] = t.UTC().Format(time.RFC3339)
+}
+
+func (ctx *workflowContext) SetRawInput(input interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	// Ensure the outer "workflow" map
+	wf, ok := ctx.workflowDescriptor[varsWorkflow].(map[string]interface{})
+	if !ok {
+		wf = make(map[string]interface{})
+		ctx.workflowDescriptor[varsWorkflow] = wf
+	}
+
+	// Store the input
+	wf["input"] = input
+}
+
+func (ctx *workflowContext) AddLocalExprVars(vars map[string]interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.localExprVars == nil {
+		ctx.localExprVars = map[string]interface{}{}
+	}
+	for k, v := range vars {
+		ctx.localExprVars[k] = v
+	}
+}
+
+func (ctx *workflowContext) RemoveLocalExprVars(keys ...string) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	if ctx.localExprVars == nil {
+		return
+	}
+
+	for _, k := range keys {
+		delete(ctx.localExprVars, k)
+	}
+}
+
+func (ctx *workflowContext) SetLocalExprVars(vars map[string]interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	ctx.localExprVars = vars
+}
+
+func (ctx *workflowContext) GetVars() map[string]interface{} {
 	vars := make(map[string]interface{})
 	vars[varsInput] = ctx.GetInput()
 	vars[varsOutput] = ctx.GetOutput()
 	vars[varsContext] = ctx.GetInstanceCtx()
-	vars[varsOutput] = ctx.definition
+	vars[varsTask] = ctx.taskDescriptor[varsTask]
+	vars[varsWorkflow] = ctx.workflowDescriptor[varsWorkflow]
+	vars[varsRuntime] = map[string]interface{}{
+		"name":    runtimeName,
+		"version": runtimeVersion,
+	}
+	for varName, varValue := range ctx.localExprVars {
+		vars[varName] = varValue
+	}
 	return vars
 }
 
@@ -88,15 +205,6 @@ func (ctx *workflowContext) SetStatus(status StatusPhase) {
 		ctx.StatusPhase = []StatusPhaseLog{}
 	}
 	ctx.StatusPhase = append(ctx.StatusPhase, NewStatusPhaseLog(status))
-}
-
-func (ctx *workflowContext) SetTaskStatus(task string, status StatusPhase) {
-	ctx.mu.Lock()
-	defer ctx.mu.Unlock()
-	if ctx.TasksStatusPhase == nil {
-		ctx.TasksStatusPhase = map[string][]StatusPhaseLog{}
-	}
-	ctx.TasksStatusPhase[task] = append(ctx.TasksStatusPhase[task], NewStatusPhaseLog(status))
 }
 
 // SetInstanceCtx safely sets the `$context` value
@@ -179,16 +287,121 @@ func (ctx *workflowContext) GetOutputAsMap() map[string]interface{} {
 	}
 }
 
-// WithWorkflowContext adds the workflowContext to a parent context
-func WithWorkflowContext(parent context.Context, wfCtx WorkflowContext) context.Context {
-	return context.WithValue(parent, runnerCtxKey, wfCtx)
+func (ctx *workflowContext) SetTaskStatus(task string, status StatusPhase) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	if ctx.TasksStatusPhase == nil {
+		ctx.TasksStatusPhase = map[string][]StatusPhaseLog{}
+	}
+	ctx.TasksStatusPhase[task] = append(ctx.TasksStatusPhase[task], NewStatusPhaseLog(status))
 }
 
-// GetWorkflowContext retrieves the workflowContext from a context
-func GetWorkflowContext(ctx context.Context) (WorkflowContext, error) {
-	wfCtx, ok := ctx.Value(runnerCtxKey).(*workflowContext)
+func (ctx *workflowContext) SetTaskRawInput(input interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
 	if !ok {
-		return nil, ErrWorkflowContextNotFound
+		task = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = task
 	}
-	return wfCtx, nil
+
+	task["input"] = input
+}
+
+func (ctx *workflowContext) SetTaskRawOutput(output interface{}) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		task = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = task
+	}
+
+	task["output"] = output
+}
+
+func (ctx *workflowContext) SetTaskDef(task model.Task) error {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	if task == nil {
+		return errors.New("SetTaskDef called with nil model.Task")
+	}
+
+	defBytes, err := json.Marshal(task)
+	if err != nil {
+		return fmt.Errorf("failed to marshal task: %w", err)
+	}
+
+	var defMap map[string]interface{}
+	if err := json.Unmarshal(defBytes, &defMap); err != nil {
+		return fmt.Errorf("failed to unmarshal task into map: %w", err)
+	}
+
+	taskMap, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		taskMap = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = taskMap
+	}
+
+	taskMap["definition"] = defMap
+
+	return nil
+}
+
+func (ctx *workflowContext) SetTaskStartedAt(startedAt time.Time) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		task = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = task
+	}
+
+	task["startedAt"] = startedAt.UTC().Format(time.RFC3339)
+}
+
+func (ctx *workflowContext) SetTaskName(name string) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		task = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = task
+	}
+
+	task["name"] = name
+}
+
+func (ctx *workflowContext) SetTaskReference(ref string) {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		task = make(map[string]interface{})
+		ctx.taskDescriptor[varsTask] = task
+	}
+
+	task["reference"] = ref
+}
+
+func (ctx *workflowContext) GetTaskReference() string {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	task, ok := ctx.taskDescriptor[varsTask].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	return task["reference"].(string)
+}
+
+func (ctx *workflowContext) ClearTaskContext() {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+	ctx.taskDescriptor[varsTask] = make(map[string]interface{})
 }

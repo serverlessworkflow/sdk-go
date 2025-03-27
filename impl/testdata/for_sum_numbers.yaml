@@ -1,0 +1,16 @@
+document:
+  dsl: '1.0.0'
+  namespace: for-tests
+  name: sum-numbers
+  version: '1.0.0'
+do:
+  - sumLoop:
+      for:
+        in: ${ .numbers }
+      do:
+        - addNumber:
+            set:
+              total: ${ .total + $item }
+  - finalize:
+      set:
+        result: ${ .total }

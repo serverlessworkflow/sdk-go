@@ -62,3 +62,17 @@ func traverseAndEvaluate(runtimeExpr *model.ObjectOrRuntimeExpr, input interface
 	}
 	return output, nil
 }
+
+func traverseAndEvaluateBool(runtimeExpr string, input interface{}, wfCtx context.Context) (bool, error) {
+	if len(runtimeExpr) == 0 {
+		return false, nil
+	}
+	output, err := expr.TraverseAndEvaluate(runtimeExpr, input, wfCtx)
+	if err != nil {
+		return false, nil
+	}
+	if result, ok := output.(bool); ok {
+		return result, nil
+	}
+	return false, nil
+}

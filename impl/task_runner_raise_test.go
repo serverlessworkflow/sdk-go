@@ -17,6 +17,7 @@ package impl
 import (
 	"encoding/json"
 	"errors"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"testing"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -39,7 +40,11 @@ func TestRaiseTaskRunner_WithDefinedError(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask, newTaskSupport())
+	wfCtx, err := ctx.NewWorkflowContext(&model.Workflow{})
+	assert.NoError(t, err)
+	wfCtx.SetTaskReference("task_raise_defined")
+
+	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask, newTaskSupport(withRunnerCtx(wfCtx)))
 	assert.NoError(t, err)
 
 	output, err := runner.Run(input)
@@ -93,7 +98,11 @@ func TestRaiseTaskRunner_TimeoutErrorWithExpression(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask, newTaskSupport())
+	wfCtx, err := ctx.NewWorkflowContext(&model.Workflow{})
+	assert.NoError(t, err)
+	wfCtx.SetTaskReference("task_raise_timeout_expr")
+
+	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask, newTaskSupport(withRunnerCtx(wfCtx)))
 	assert.NoError(t, err)
 
 	output, err := runner.Run(input)

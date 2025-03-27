@@ -1,0 +1,21 @@
+document:
+  dsl: '1.0.0'
+  namespace: for-tests
+  name: nested-loops
+  version: '1.0.0'
+do:
+  - outerLoop:
+      for:
+        in: ${ .fruits }
+        each: fruit
+        at: fruitIdx
+      do:
+        - innerLoop:
+            for:
+              in: ${ $input.colors }
+              each: color
+              at: colorIdx
+            do:
+              - combinePair:
+                  set:
+                    matrix: ${ .matrix + [[$fruit, $color]] }

@@ -17,14 +17,9 @@ package impl
 import (
 	"fmt"
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
-
-	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"time"
 )
-
-var _ TaskRunner = &DoTaskRunner{}
-
-// TODO: refactor to receive a resolver handler instead of the workflow runner
 
 // NewTaskRunner creates a TaskRunner instance based on the task type.
 func NewTaskRunner(taskName string, task model.Task, taskSupport TaskSupport) (TaskRunner, error) {
@@ -58,15 +53,15 @@ func (d *DoTaskRunner) Run(input interface{}) (output interface{}, err error) {
 	if d.TaskList == nil {
 		return input, nil
 	}
-	return d.executeTasks(input, d.TaskList)
+	return d.runTasks(input, d.TaskList)
 }
 
 func (d *DoTaskRunner) GetTaskName() string {
 	return ""
 }
 
-// executeTasks runs all defined tasks sequentially.
-func (d *DoTaskRunner) executeTasks(input interface{}, tasks *model.TaskList) (output interface{}, err error) {
+// runTasks runs all defined tasks sequentially.
+func (d *DoTaskRunner) runTasks(input interface{}, tasks *model.TaskList) (output interface{}, err error) {
 	output = input
 	if tasks == nil {
 		return output, nil
@@ -76,6 +71,13 @@ func (d *DoTaskRunner) executeTasks(input interface{}, tasks *model.TaskList) (o
 	currentTask := (*tasks)[idx]
 
 	for currentTask != nil {
+		if err = d.TaskSupport.SetTaskDef(currentTask); err != nil {
+			return nil, err
+		}
+		if err = d.TaskSupport.SetTaskReferenceFromName(currentTask.Key); err != nil {
+			return nil, err
+		}
+
 		if shouldRun, err := d.shouldRunTask(input, currentTask); err != nil {
 			return output, err
 		} else if !shouldRun {
@@ -105,13 +107,11 @@ func (d *DoTaskRunner) executeTasks(input interface{}, tasks *model.TaskList) (o
 
 func (d *DoTaskRunner) shouldRunTask(input interface{}, task *model.TaskItem) (bool, error) {
 	if task.GetBase().If != nil {
-		output, err := expr.TraverseAndEvaluate(task.GetBase().If.String(), input, d.TaskSupport.GetContext())
+		output, err := traverseAndEvaluateBool(task.GetBase().If.String(), input, d.TaskSupport.GetContext())
 		if err != nil {
 			return false, model.NewErrExpression(err, task.Key)
 		}
-		if result, ok := output.(bool); ok && !result {
-			return false, nil
-		}
+		return output, nil
 	}
 	return true, nil
 }
@@ -119,6 +119,10 @@ func (d *DoTaskRunner) shouldRunTask(input interface{}, task *model.TaskItem) (b
 // runTask executes an individual task.
 func (d *DoTaskRunner) runTask(input interface{}, runner TaskRunner, task *model.TaskBase) (output interface{}, err error) {
 	taskName := runner.GetTaskName()
+
+	d.TaskSupport.SetTaskStartedAt(time.Now())
+	d.TaskSupport.SetTaskRawInput(input)
+	d.TaskSupport.SetTaskName(taskName)
 
 	if task.Input != nil {
 		if input, err = d.processTaskInput(task, input, taskName); err != nil {
@@ -130,6 +134,8 @@ func (d *DoTaskRunner) runTask(input interface{}, runner TaskRunner, task *model
 	if err != nil {
 		return nil, err
 	}
+
+	d.TaskSupport.SetTaskRawOutput(output)
 
 	if output, err = d.processTaskOutput(task, output, taskName); err != nil {
 		return nil, err

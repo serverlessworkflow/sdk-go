@@ -24,4 +24,4 @@ do:
           type: https://serverlessworkflow.io/spec/1.0.0/errors/validation
           status: 400
           title: Validation Error
-          detail: ${ "Invalid input provided to workflow '\( $workflow.definition.document.name )'" }
+          detail: ${ "Invalid input provided to workflow \($workflow.definition.document.name)" }

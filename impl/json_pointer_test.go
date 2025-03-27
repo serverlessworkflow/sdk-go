@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package impl
 
 import (
-	"testing"
-
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // TestGenerateJSONPointer_SimpleTask tests a simple workflow task.
 func TestGenerateJSONPointer_SimpleTask(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "simple-workflow"},
-		Do: &TaskList{
-			&TaskItem{Key: "task1", Task: &SetTask{Set: map[string]interface{}{"value": 10}}},
-			&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "simple-workflow"},
+		Do: &model.TaskList{
+			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: map[string]interface{}{"value": 10}}},
+			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
 		},
 	}
 
@@ -37,11 +37,11 @@ func TestGenerateJSONPointer_SimpleTask(t *testing.T) {
 
 // TestGenerateJSONPointer_SimpleTask tests a simple workflow task.
 func TestGenerateJSONPointer_Document(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "simple-workflow"},
-		Do: &TaskList{
-			&TaskItem{Key: "task1", Task: &SetTask{Set: map[string]interface{}{"value": 10}}},
-			&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "simple-workflow"},
+		Do: &model.TaskList{
+			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: map[string]interface{}{"value": 10}}},
+			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
 		},
 	}
 
@@ -51,17 +51,17 @@ func TestGenerateJSONPointer_Document(t *testing.T) {
 }
 
 func TestGenerateJSONPointer_ForkTask(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "fork-example"},
-		Do: &TaskList{
-			&TaskItem{
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "fork-example"},
+		Do: &model.TaskList{
+			&model.TaskItem{
 				Key: "raiseAlarm",
-				Task: &ForkTask{
-					Fork: ForkTaskConfiguration{
+				Task: &model.ForkTask{
+					Fork: model.ForkTaskConfiguration{
 						Compete: true,
-						Branches: &TaskList{
-							{Key: "callNurse", Task: &CallHTTP{Call: "http", With: HTTPArguments{Method: "put", Endpoint: NewEndpoint("https://hospital.com/api/alert/nurses")}}},
-							{Key: "callDoctor", Task: &CallHTTP{Call: "http", With: HTTPArguments{Method: "put", Endpoint: NewEndpoint("https://hospital.com/api/alert/doctor")}}},
+						Branches: &model.TaskList{
+							{Key: "callNurse", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/nurses")}}},
+							{Key: "callDoctor", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/doctor")}}},
 						},
 					},
 				},
@@ -76,23 +76,23 @@ func TestGenerateJSONPointer_ForkTask(t *testing.T) {
 
 // TestGenerateJSONPointer_DeepNestedTask tests multiple nested task levels.
 func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "deep-nested"},
-		Do: &TaskList{
-			&TaskItem{
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "deep-nested"},
+		Do: &model.TaskList{
+			&model.TaskItem{
 				Key: "step1",
-				Task: &ForkTask{
-					Fork: ForkTaskConfiguration{
+				Task: &model.ForkTask{
+					Fork: model.ForkTaskConfiguration{
 						Compete: false,
-						Branches: &TaskList{
+						Branches: &model.TaskList{
 							{
 								Key: "branchA",
-								Task: &ForkTask{
-									Fork: ForkTaskConfiguration{
-										Branches: &TaskList{
+								Task: &model.ForkTask{
+									Fork: model.ForkTaskConfiguration{
+										Branches: &model.TaskList{
 											{
 												Key:  "deepTask",
-												Task: &SetTask{Set: map[string]interface{}{"result": "done"}},
+												Task: &model.SetTask{Set: map[string]interface{}{"result": "done"}},
 											},
 										},
 									},
@@ -112,10 +112,10 @@ func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
 
 // TestGenerateJSONPointer_NonExistentTask checks for a task that doesn't exist.
 func TestGenerateJSONPointer_NonExistentTask(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "nonexistent-test"},
-		Do: &TaskList{
-			&TaskItem{Key: "taskA", Task: &SetTask{Set: map[string]interface{}{"value": 5}}},
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "nonexistent-test"},
+		Do: &model.TaskList{
+			&model.TaskItem{Key: "taskA", Task: &model.SetTask{Set: map[string]interface{}{"value": 5}}},
 		},
 	}
 
@@ -125,11 +125,11 @@ func TestGenerateJSONPointer_NonExistentTask(t *testing.T) {
 
 // TestGenerateJSONPointer_MixedTaskTypes verifies a workflow with different task types.
 func TestGenerateJSONPointer_MixedTaskTypes(t *testing.T) {
-	workflow := &Workflow{
-		Document: Document{Name: "mixed-tasks"},
-		Do: &TaskList{
-			&TaskItem{Key: "compute", Task: &SetTask{Set: map[string]interface{}{"result": 42}}},
-			&TaskItem{Key: "notify", Task: &CallHTTP{Call: "http", With: HTTPArguments{Method: "post", Endpoint: NewEndpoint("https://api.notify.com")}}},
+	workflow := &model.Workflow{
+		Document: model.Document{Name: "mixed-tasks"},
+		Do: &model.TaskList{
+			&model.TaskItem{Key: "compute", Task: &model.SetTask{Set: map[string]interface{}{"result": 42}}},
+			&model.TaskItem{Key: "notify", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "post", Endpoint: model.NewEndpoint("https://api.notify.com")}}},
 		},
 	}
 

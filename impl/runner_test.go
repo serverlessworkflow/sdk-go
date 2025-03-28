@@ -15,14 +15,59 @@
 package impl
 
 import (
-	"os"
-	"path/filepath"
-	"testing"
-
+	"context"
+	"fmt"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
+
+type taskSupportOpts func(*workflowRunnerImpl)
+
+// newTaskSupport returns an instance of TaskSupport for test purposes
+func newTaskSupport(opts ...taskSupportOpts) TaskSupport {
+	wfCtx, err := ctx.NewWorkflowContext(&model.Workflow{})
+	if err != nil {
+		panic(fmt.Errorf("failed to create workflow context within the test environment: %v", err))
+	}
+
+	ts := &workflowRunnerImpl{
+		Workflow:  nil,
+		Context:   context.TODO(),
+		RunnerCtx: wfCtx,
+	}
+
+	// Apply each functional option to ts
+	for _, opt := range opts {
+		opt(ts)
+	}
+
+	return ts
+}
+
+//nolint:unused
+func withWorkflow(wf *model.Workflow) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.Workflow = wf
+	}
+}
+
+//nolint:unused
+func withContext(ctx context.Context) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.Context = ctx
+	}
+}
+
+func withRunnerCtx(workflowContext ctx.WorkflowContext) taskSupportOpts {
+	return func(ts *workflowRunnerImpl) {
+		ts.RunnerCtx = workflowContext
+	}
+}
 
 // runWorkflowTest is a reusable test function for workflows
 func runWorkflowTest(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) {
@@ -50,7 +95,8 @@ func runWorkflow(t *testing.T, workflowPath string, input, expectedOutput map[st
 	assert.NoError(t, err, "Failed to parse workflow YAML")
 
 	// Initialize the workflow runner
-	runner := NewDefaultRunner(workflow)
+	runner, err := NewDefaultRunner(workflow)
+	assert.NoError(t, err)
 
 	// Run the workflow
 	output, err = runner.Run(input)
@@ -151,7 +197,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid input")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")
@@ -178,7 +225,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid task input")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")
@@ -205,7 +253,8 @@ func TestWorkflowRunner_Run_YAML_WithSchemaValidation(t *testing.T) {
 		assert.NoError(t, err, "Failed to read workflow YAML file")
 		workflow, err := parser.FromYAMLSource(yamlBytes)
 		assert.NoError(t, err, "Failed to parse workflow YAML")
-		runner := NewDefaultRunner(workflow)
+		runner, err := NewDefaultRunner(workflow)
+		assert.NoError(t, err)
 		_, err = runner.Run(input)
 		assert.Error(t, err, "Expected validation error for invalid task output")
 		assert.Contains(t, err.Error(), "JSON schema validation failed")
@@ -266,9 +315,12 @@ func TestWorkflowRunner_Run_YAML_ControlFlow(t *testing.T) {
 
 func TestWorkflowRunner_Run_YAML_RaiseTasks(t *testing.T) {
 	// TODO: add $workflow context to the expr processing
-	//t.Run("Raise Inline Error", func(t *testing.T) {
-	//	runWorkflowTest(t, "./testdata/raise_inline.yaml", nil, nil)
-	//})
+	t.Run("Raise Inline Error", func(t *testing.T) {
+		runWorkflowWithErr(t, "./testdata/raise_inline.yaml", nil, nil, func(err error) {
+			assert.Equal(t, model.ErrorTypeValidation, model.AsError(err).Type.String())
+			assert.Equal(t, "Invalid input provided to workflow raise-inline", model.AsError(err).Detail.String())
+		})
+	})
 
 	t.Run("Raise Referenced Error", func(t *testing.T) {
 		runWorkflowWithErr(t, "./testdata/raise_reusable.yaml", nil, nil,
@@ -312,7 +364,6 @@ func TestWorkflowRunner_Run_YAML_RaiseTasks_ControlFlow(t *testing.T) {
 }
 
 func TestForTaskRunner_Run(t *testing.T) {
-	t.Skip("Skipping until the For task is implemented - missing JQ variables implementation")
 	t.Run("Simple For with Colors", func(t *testing.T) {
 		workflowPath := "./testdata/for_colors.yaml"
 		input := map[string]interface{}{
@@ -320,8 +371,36 @@ func TestForTaskRunner_Run(t *testing.T) {
 		}
 		expectedOutput := map[string]interface{}{
 			"processed": map[string]interface{}{
-				"colors":  []string{"red", "green", "blue"},
-				"indexed": []float64{0, 1, 2},
+				"colors":  []interface{}{"red", "green", "blue"},
+				"indexes": []interface{}{0, 1, 2},
+			},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("SUM Numbers", func(t *testing.T) {
+		workflowPath := "./testdata/for_sum_numbers.yaml"
+		input := map[string]interface{}{
+			"numbers": []int32{2, 3, 4},
+		}
+		expectedOutput := map[string]interface{}{
+			"result": interface{}(9),
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("For Nested Loops", func(t *testing.T) {
+		workflowPath := "./testdata/for_nested_loops.yaml"
+		input := map[string]interface{}{
+			"fruits": []interface{}{"apple", "banana"},
+			"colors": []interface{}{"red", "green"},
+		}
+		expectedOutput := map[string]interface{}{
+			"matrix": []interface{}{
+				[]interface{}{"apple", "red"},
+				[]interface{}{"apple", "green"},
+				[]interface{}{"banana", "red"},
+				[]interface{}{"banana", "green"},
 			},
 		}
 		runWorkflowTest(t, workflowPath, input, expectedOutput)

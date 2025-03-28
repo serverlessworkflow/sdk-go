@@ -15,7 +15,8 @@
 package impl
 
 import (
-	"github.com/serverlessworkflow/sdk-go/v3/expr"
+	"context"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -51,31 +52,27 @@ func validateSchema(data interface{}, schema *model.Schema, taskName string) err
 	return nil
 }
 
-func traverseAndEvaluate(runtimeExpr *model.ObjectOrRuntimeExpr, input interface{}, taskName string) (output interface{}, err error) {
+func traverseAndEvaluate(runtimeExpr *model.ObjectOrRuntimeExpr, input interface{}, taskName string, wfCtx context.Context) (output interface{}, err error) {
 	if runtimeExpr == nil {
 		return input, nil
 	}
-	output, err = expr.TraverseAndEvaluate(runtimeExpr.AsStringOrMap(), input)
+	output, err = expr.TraverseAndEvaluate(runtimeExpr.AsStringOrMap(), input, wfCtx)
 	if err != nil {
 		return nil, model.NewErrExpression(err, taskName)
 	}
 	return output, nil
 }
 
-func processIO(data interface{}, schema *model.Schema, transformation *model.ObjectOrRuntimeExpr, taskName string) (interface{}, error) {
-	if schema != nil {
-		if err := validateSchema(data, schema, taskName); err != nil {
-			return nil, err
-		}
+func traverseAndEvaluateBool(runtimeExpr string, input interface{}, wfCtx context.Context) (bool, error) {
+	if len(runtimeExpr) == 0 {
+		return false, nil
 	}
-
-	if transformation != nil {
-		transformed, err := traverseAndEvaluate(transformation, data, taskName)
-		if err != nil {
-			return nil, err
-		}
-		return transformed, nil
+	output, err := expr.TraverseAndEvaluate(runtimeExpr, input, wfCtx)
+	if err != nil {
+		return false, nil
 	}
-
-	return data, nil
+	if result, ok := output.(bool); ok {
+		return result, nil
+	}
+	return false, nil
 }

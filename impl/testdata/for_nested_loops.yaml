@@ -13,15 +13,23 @@
 # limitations under the License.
 
 document:
-  dsl: '1.0.0-alpha5'
-  namespace: test
-  name: raise-inline
+  dsl: '1.0.0'
+  namespace: for-tests
+  name: nested-loops
   version: '1.0.0'
 do:
-  - inlineError:
-      raise:
-        error:
-          type: https://serverlessworkflow.io/spec/1.0.0/errors/validation
-          status: 400
-          title: Validation Error
-          detail: ${ "Invalid input provided to workflow \($workflow.definition.document.name)" }
+  - outerLoop:
+      for:
+        in: ${ .fruits }
+        each: fruit
+        at: fruitIdx
+      do:
+        - innerLoop:
+            for:
+              in: ${ $input.colors }
+              each: color
+              at: colorIdx
+            do:
+              - combinePair:
+                  set:
+                    matrix: ${ .matrix + [[$fruit, $color]] }

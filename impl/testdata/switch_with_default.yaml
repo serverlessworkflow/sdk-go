@@ -1,0 +1,29 @@
+document:
+  dsl: '1.0.0'
+  namespace: default
+  name: switch-with-default
+  version: '1.0.0'
+
+do:
+  - switchColor:
+      switch:
+        - red:
+            when: '.color == "red"'
+            then: setRed
+        - green:
+            when: '.color == "green"'
+            then: setGreen
+        - fallback:
+            then: setDefault
+  - setRed:
+      set:
+        colors: '${ .colors + [ "red" ] }'
+      then: end
+  - setGreen:
+      set:
+        colors: '${ .colors + [ "green" ] }'
+      then: end
+  - setDefault:
+      set:
+        colors: '${ .colors + [ "default" ] }'
+      then: end

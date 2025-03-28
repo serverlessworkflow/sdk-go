@@ -1,0 +1,29 @@
+document:
+  dsl: '1.0.0'
+  namespace: default
+  name: switch-match
+  version: '1.0.0'
+do:
+  - switchColor:
+      switch:
+        - red:
+            when: '.color == "red"'
+            then: setRed
+        - green:
+            when: '.color == "green"'
+            then: setGreen
+        - blue:
+            when: '.color == "blue"'
+            then: setBlue
+  - setRed:
+      set:
+        colors: '${ .colors + [ "red" ] }'
+      then: end
+  - setGreen:
+      set:
+        colors: '${ .colors + [ "green" ] }'
+      then: end
+  - setBlue:
+      set:
+        colors: '${ .colors + [ "blue" ] }'
+      then: end

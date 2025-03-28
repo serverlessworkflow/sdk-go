@@ -132,7 +132,7 @@ The table below lists the current state of this implementation. This table is a 
 | Task Raise | ✅ |
 | Task Run | ❌ |
 | Task Set | ✅ | 
-| Task Switch | ❌ | 
+| Task Switch | ✅ | 
 | Task Try | ❌ | 
 | Task Wait | ❌ |
 | Lifecycle Events | 🟡 |
@@ -157,7 +157,7 @@ The table below lists the current state of this implementation. This table is a 
 | AsyncAPI Server | ❌ |
 | AsyncAPI Outbound Message | ❌ |
 | AsyncAPI Subscription | ❌ |
-| Workflow Definition Reference | ❌ |
+| Workflow Definition Reference | ✅ |
 | Subscription Iterator | ❌ |
 
 We love contributions! Our aim is to have a complete implementation to serve as a reference or to become a project on its own to favor the CNCF Ecosystem.

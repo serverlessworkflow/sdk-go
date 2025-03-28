@@ -16,9 +16,10 @@ package impl
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"time"
 )
 
 // NewTaskRunner creates a TaskRunner instance based on the task type.
@@ -86,6 +87,24 @@ func (d *DoTaskRunner) runTasks(input interface{}, tasks *model.TaskList) (outpu
 		}
 
 		d.TaskSupport.SetTaskStatus(currentTask.Key, ctx.PendingStatus)
+
+		// Check if this task is a SwitchTask and handle it
+		if switchTask, ok := currentTask.Task.(*model.SwitchTask); ok {
+			flowDirective, err := d.evaluateSwitchTask(input, currentTask.Key, switchTask)
+			if err != nil {
+				d.TaskSupport.SetTaskStatus(currentTask.Key, ctx.FaultedStatus)
+				return output, err
+			}
+			d.TaskSupport.SetTaskStatus(currentTask.Key, ctx.CompletedStatus)
+
+			// Process FlowDirective: update idx/currentTask accordingly
+			idx, currentTask = tasks.KeyAndIndex(flowDirective.Value)
+			if currentTask == nil {
+				return nil, fmt.Errorf("flow directive target '%s' not found", flowDirective.Value)
+			}
+			continue
+		}
+
 		runner, err := NewTaskRunner(currentTask.Key, currentTask.Task, d.TaskSupport)
 		if err != nil {
 			return output, err
@@ -114,6 +133,32 @@ func (d *DoTaskRunner) shouldRunTask(input interface{}, task *model.TaskItem) (b
 		return output, nil
 	}
 	return true, nil
+}
+
+func (d *DoTaskRunner) evaluateSwitchTask(input interface{}, taskKey string, switchTask *model.SwitchTask) (*model.FlowDirective, error) {
+	var defaultThen *model.FlowDirective
+	for _, switchItem := range switchTask.Switch {
+		for _, switchCase := range switchItem {
+			if switchCase.When == nil {
+				defaultThen = switchCase.Then
+				continue
+			}
+			result, err := traverseAndEvaluateBool(model.NormalizeExpr(switchCase.When.String()), input, d.TaskSupport.GetContext())
+			if err != nil {
+				return nil, model.NewErrExpression(err, taskKey)
+			}
+			if result {
+				if switchCase.Then == nil {
+					return nil, model.NewErrExpression(fmt.Errorf("missing 'then' directive in matched switch case"), taskKey)
+				}
+				return switchCase.Then, nil
+			}
+		}
+	}
+	if defaultThen != nil {
+		return defaultThen, nil
+	}
+	return nil, model.NewErrExpression(fmt.Errorf("no matching switch case"), taskKey)
 }
 
 // runTask executes an individual task.

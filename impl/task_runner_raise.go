@@ -16,6 +16,7 @@ package impl
 
 import (
 	"fmt"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 

@@ -19,10 +19,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
 var ErrWorkflowContextNotFound = errors.New("workflow context not found")

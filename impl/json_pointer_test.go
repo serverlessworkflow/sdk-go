@@ -15,9 +15,10 @@
 package impl
 
 import (
+	"testing"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 // TestGenerateJSONPointer_SimpleTask tests a simple workflow task.
@@ -60,8 +61,8 @@ func TestGenerateJSONPointer_ForkTask(t *testing.T) {
 					Fork: model.ForkTaskConfiguration{
 						Compete: true,
 						Branches: &model.TaskList{
-							{Key: "callNurse", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/nurses")}}},
-							{Key: "callDoctor", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/doctor")}}},
+							&model.TaskItem{Key: "callNurse", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/nurses")}}},
+							&model.TaskItem{Key: "callDoctor", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/doctor")}}},
 						},
 					},
 				},
@@ -85,12 +86,12 @@ func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
 					Fork: model.ForkTaskConfiguration{
 						Compete: false,
 						Branches: &model.TaskList{
-							{
+							&model.TaskItem{
 								Key: "branchA",
 								Task: &model.ForkTask{
 									Fork: model.ForkTaskConfiguration{
 										Branches: &model.TaskList{
-											{
+											&model.TaskItem{
 												Key:  "deepTask",
 												Task: &model.SetTask{Set: map[string]interface{}{"result": "done"}},
 											},

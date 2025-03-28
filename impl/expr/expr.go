@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/itchyny/gojq"
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"

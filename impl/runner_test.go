@@ -17,13 +17,14 @@ package impl
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 type taskSupportOpts func(*workflowRunnerImpl)

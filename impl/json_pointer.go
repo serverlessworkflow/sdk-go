@@ -17,9 +17,10 @@ package impl
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"reflect"
 	"strings"
+
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
 func findJsonPointer(data interface{}, target string, path string) (string, bool) {

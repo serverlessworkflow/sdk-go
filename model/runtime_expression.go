@@ -17,8 +17,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/itchyny/gojq"
 	"strings"
+
+	"github.com/itchyny/gojq"
 )
 
 // RuntimeExpression represents a runtime expression.

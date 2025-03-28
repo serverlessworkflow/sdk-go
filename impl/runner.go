@@ -17,9 +17,10 @@ package impl
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
-	"time"
 )
 
 var _ WorkflowRunner = &workflowRunnerImpl{}

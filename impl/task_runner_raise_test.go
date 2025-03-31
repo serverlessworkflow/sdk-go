@@ -17,8 +17,9 @@ package impl
 import (
 	"encoding/json"
 	"errors"
-	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"testing"
+
+	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"

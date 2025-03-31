@@ -17,13 +17,14 @@ package impl
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/serverlessworkflow/sdk-go/v3/parser"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 type taskSupportOpts func(*workflowRunnerImpl)
@@ -406,4 +407,52 @@ func TestForTaskRunner_Run(t *testing.T) {
 		runWorkflowTest(t, workflowPath, input, expectedOutput)
 	})
 
+}
+
+func TestSwitchTaskRunner_Run(t *testing.T) {
+	t.Run("Color is red", func(t *testing.T) {
+		workflowPath := "./testdata/switch_match.yaml"
+		input := map[string]interface{}{
+			"color": "red",
+		}
+		expectedOutput := map[string]interface{}{
+			"colors": []interface{}{"red"},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("Color is green", func(t *testing.T) {
+		workflowPath := "./testdata/switch_match.yaml"
+		input := map[string]interface{}{
+			"color": "green",
+		}
+		expectedOutput := map[string]interface{}{
+			"colors": []interface{}{"green"},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+
+	t.Run("Color is blue", func(t *testing.T) {
+		workflowPath := "./testdata/switch_match.yaml"
+		input := map[string]interface{}{
+			"color": "blue",
+		}
+		expectedOutput := map[string]interface{}{
+			"colors": []interface{}{"blue"},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+}
+
+func TestSwitchTaskRunner_DefaultCase(t *testing.T) {
+	t.Run("Color is unknown, should match default", func(t *testing.T) {
+		workflowPath := "./testdata/switch_with_default.yaml"
+		input := map[string]interface{}{
+			"color": "yellow",
+		}
+		expectedOutput := map[string]interface{}{
+			"colors": []interface{}{"default"},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
 }

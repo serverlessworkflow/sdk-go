@@ -17,8 +17,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/itchyny/gojq"
 	"strings"
+
+	"github.com/itchyny/gojq"
 )
 
 // RuntimeExpression represents a runtime expression.
@@ -57,6 +58,14 @@ func IsValidExpr(expression string) bool {
 	expression = SanitizeExpr(expression)
 	_, err := gojq.Parse(expression)
 	return err == nil
+}
+
+// NormalizeExpr adds ${} to the given string
+func NormalizeExpr(expr string) string {
+	if strings.HasPrefix(expr, "${") {
+		return expr
+	}
+	return fmt.Sprintf("${%s}", expr)
 }
 
 // IsValid checks if the RuntimeExpression value is valid, handling both with and without `${}`.

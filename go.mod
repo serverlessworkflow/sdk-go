@@ -1,4 +1,4 @@
-module github.com/serverlessworkflow/sdk-go/v2
+module github.com/hneale-jc/serverlessworkflow-sdk-go/v2
 
 go 1.22.0
 

@@ -37,6 +37,8 @@ const (
 	// FunctionTypeCustom property defines a list of function types that are set by the specification. Some runtime
 	// implementations might support additional function types that extend the ones defined in the specification
 	FunctionTypeCustom FunctionType = "custom"
+
+	FunctionTypeHttp FunctionType = "http"
 )
 
 // FunctionType ...
@@ -51,12 +53,15 @@ func (i FunctionType) KindValues() []string {
 		string(FunctionTypeAsyncAPI),
 		string(FunctionTypeOData),
 		string(FunctionTypeCustom),
+		string(FunctionTypeHttp),
 	}
 }
 
 func (i FunctionType) String() string {
 	return string(i)
 }
+
+type FunctionOperation any
 
 // Function ...
 // +builder-gen:new-call=ApplyDefault
@@ -70,7 +75,7 @@ type Function struct {
 	// If type is `expression`, defines the workflow expression. If the type is `custom`,
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Required
-	Operation string `json:"operation" validate:"required"`
+	Operation FunctionOperation `json:"operation" validate:"required"`
 	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `odata` or `asyncapi`.
 	// Default is `rest`.
 	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;odata;asyncapi;custom

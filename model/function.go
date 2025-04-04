@@ -37,6 +37,8 @@ const (
 	// FunctionTypeCustom property defines a list of function types that are set by the specification. Some runtime
 	// implementations might support additional function types that extend the ones defined in the specification
 	FunctionTypeCustom FunctionType = "custom"
+	// FunctionTypeHttp defines a https://datatracker.ietf.org/doc/html/rfc2616#page-36 as the operation input
+	FunctionTypeHttp FunctionType = "http"
 )
 
 // FunctionType ...
@@ -51,12 +53,15 @@ func (i FunctionType) KindValues() []string {
 		string(FunctionTypeAsyncAPI),
 		string(FunctionTypeOData),
 		string(FunctionTypeCustom),
+		string(FunctionTypeHttp),
 	}
 }
 
 func (i FunctionType) String() string {
 	return string(i)
 }
+
+type FunctionOperation any
 
 // Function ...
 // +builder-gen:new-call=ApplyDefault
@@ -70,8 +75,16 @@ type Function struct {
 	// If type is `expression`, defines the workflow expression. If the type is `custom`,
 	// <path_to_custom_script>#<custom_service_method>.
 	// +kubebuilder:validation:Required
-	Operation string `json:"operation" validate:"required"`
-	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `odata` or `asyncapi`.
+	// If type is `http`, provide the http requst object. https://datatracker.ietf.org/doc/html/rfc2616#page-36
+	// {
+	//   "method": "POST",
+	//   "uri": "https://petstore.swagger.io/v2/pet/",
+	//   "headers": {
+	//     "Content-Type": "application/json"
+	//    }
+	//  }
+	Operation FunctionOperation `json:"operation" validate:"required"`
+	// Defines the function type. Is either `custom`, `rest`, `rpc`, `expression`, `graphql`, `odata` or `asyncapi` or `http`.
 	// Default is `rest`.
 	// +kubebuilder:validation:Enum=rest;rpc;expression;graphql;odata;asyncapi;custom
 	// +kubebuilder:default=rest

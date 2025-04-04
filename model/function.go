@@ -77,9 +77,9 @@ type Function struct {
 	// +kubebuilder:validation:Required
 	// If type is `http`, provide the http requst object. https://datatracker.ietf.org/doc/html/rfc2616#page-36
 	// {
-	//   "method": "GET",
-	//	 "uri": "https://petstore.swagger.io/v2/pet/",
-	//	 "headers": {
+	//   "method": "POST",
+	//   "uri": "https://petstore.swagger.io/v2/pet/",
+	//   "headers": {
 	//     "Content-Type": "application/json"
 	//    }
 	//  }

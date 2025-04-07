@@ -28,38 +28,36 @@ const (
 	forTaskDefaultAt   = "$index"
 )
 
-func NewForTaskRunner(taskName string, task *model.ForTask, taskSupport TaskSupport) (*ForTaskRunner, error) {
+func NewForTaskRunner(taskName string, task *model.ForTask, workflowDef *model.Workflow) (*ForTaskRunner, error) {
 	if task == nil || task.Do == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("invalid For task %s", taskName), taskName)
 	}
 
-	doRunner, err := NewDoTaskRunner(task.Do, taskSupport)
+	doRunner, err := NewDoTaskRunner(task.Do, workflowDef)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ForTaskRunner{
-		Task:        task,
-		TaskName:    taskName,
-		DoRunner:    doRunner,
-		TaskSupport: taskSupport,
+		Task:     task,
+		TaskName: taskName,
+		DoRunner: doRunner,
 	}, nil
 }
 
 type ForTaskRunner struct {
-	Task        *model.ForTask
-	TaskName    string
-	DoRunner    *DoTaskRunner
-	TaskSupport TaskSupport
+	Task     *model.ForTask
+	TaskName string
+	DoRunner *DoTaskRunner
 }
 
-func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
+func (f *ForTaskRunner) Run(input interface{}, taskSupport TaskSupport) (interface{}, error) {
 	defer func() {
 		// clear local variables
-		f.TaskSupport.RemoveLocalExprVars(f.Task.For.Each, f.Task.For.At)
+		taskSupport.RemoveLocalExprVars(f.Task.For.Each, f.Task.For.At)
 	}()
 	f.sanitizeFor()
-	in, err := expr.TraverseAndEvaluate(f.Task.For.In, input, f.TaskSupport.GetContext())
+	in, err := expr.TraverseAndEvaluate(f.Task.For.In, input, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
@@ -71,11 +69,11 @@ func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
 		for i := 0; i < rv.Len(); i++ {
 			item := rv.Index(i).Interface()
 
-			if forOutput, err = f.processForItem(i, item, forOutput); err != nil {
+			if forOutput, err = f.processForItem(i, item, taskSupport, forOutput); err != nil {
 				return nil, err
 			}
 			if f.Task.While != "" {
-				whileIsTrue, err := traverseAndEvaluateBool(f.Task.While, forOutput, f.TaskSupport.GetContext())
+				whileIsTrue, err := traverseAndEvaluateBool(f.Task.While, forOutput, taskSupport.GetContext())
 				if err != nil {
 					return nil, err
 				}
@@ -87,7 +85,7 @@ func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
 	case reflect.Invalid:
 		return input, nil
 	default:
-		if forOutput, err = f.processForItem(0, in, forOutput); err != nil {
+		if forOutput, err = f.processForItem(0, in, taskSupport, forOutput); err != nil {
 			return nil, err
 		}
 	}
@@ -95,16 +93,16 @@ func (f *ForTaskRunner) Run(input interface{}) (interface{}, error) {
 	return forOutput, nil
 }
 
-func (f *ForTaskRunner) processForItem(idx int, item interface{}, forOutput interface{}) (interface{}, error) {
+func (f *ForTaskRunner) processForItem(idx int, item interface{}, taskSupport TaskSupport, forOutput interface{}) (interface{}, error) {
 	forVars := map[string]interface{}{
 		f.Task.For.At:   idx,
 		f.Task.For.Each: item,
 	}
 	// Instead of Set, we Add since other tasks in this very same context might be adding variables to the context
-	f.TaskSupport.AddLocalExprVars(forVars)
+	taskSupport.AddLocalExprVars(forVars)
 	// output from previous iterations are merged together
 	var err error
-	forOutput, err = f.DoRunner.Run(forOutput)
+	forOutput, err = f.DoRunner.Run(forOutput, taskSupport)
 	if err != nil {
 		return nil, err
 	}

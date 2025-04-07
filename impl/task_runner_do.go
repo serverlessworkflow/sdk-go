@@ -30,9 +30,9 @@ func NewTaskRunner(taskName string, task model.Task, workflowDef *model.Workflow
 	case *model.RaiseTask:
 		return NewRaiseTaskRunner(taskName, t, workflowDef)
 	case *model.DoTask:
-		return NewDoTaskRunner(t.Do, workflowDef)
+		return NewDoTaskRunner(t.Do)
 	case *model.ForTask:
-		return NewForTaskRunner(taskName, t, workflowDef)
+		return NewForTaskRunner(taskName, t)
 	case *model.CallHTTP:
 		return NewCallHttpRunner(taskName, t)
 	default:
@@ -40,16 +40,14 @@ func NewTaskRunner(taskName string, task model.Task, workflowDef *model.Workflow
 	}
 }
 
-func NewDoTaskRunner(taskList *model.TaskList, workflowDef *model.Workflow) (*DoTaskRunner, error) {
+func NewDoTaskRunner(taskList *model.TaskList) (*DoTaskRunner, error) {
 	return &DoTaskRunner{
-		TaskList:    taskList,
-		WorkflowDef: workflowDef,
+		TaskList: taskList,
 	}, nil
 }
 
 type DoTaskRunner struct {
-	TaskList    *model.TaskList
-	WorkflowDef *model.Workflow
+	TaskList *model.TaskList
 }
 
 func (d *DoTaskRunner) Run(input interface{}, taskSupport TaskSupport) (output interface{}, err error) {

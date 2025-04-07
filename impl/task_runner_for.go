@@ -28,12 +28,12 @@ const (
 	forTaskDefaultAt   = "$index"
 )
 
-func NewForTaskRunner(taskName string, task *model.ForTask, workflowDef *model.Workflow) (*ForTaskRunner, error) {
+func NewForTaskRunner(taskName string, task *model.ForTask) (*ForTaskRunner, error) {
 	if task == nil || task.Do == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("invalid For task %s", taskName), taskName)
 	}
 
-	doRunner, err := NewDoTaskRunner(task.Do, workflowDef)
+	doRunner, err := NewDoTaskRunner(task.Do)
 	if err != nil {
 		return nil, err
 	}

@@ -137,7 +137,7 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	wr.RunnerCtx.SetInput(input)
 	// Run tasks sequentially
 	wr.RunnerCtx.SetStatus(ctx.RunningStatus)
-	doRunner, err := NewDoTaskRunner(wr.Workflow.Do, wr.GetWorkflowDef())
+	doRunner, err := NewDoTaskRunner(wr.Workflow.Do)
 	if err != nil {
 		return nil, err
 	}

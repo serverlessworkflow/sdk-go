@@ -20,8 +20,8 @@ import (
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
-func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, taskSupport TaskSupport) (*RaiseTaskRunner, error) {
-	if err := resolveErrorDefinition(task, taskSupport.GetWorkflowDef()); err != nil {
+func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, workflowDef *model.Workflow) (*RaiseTaskRunner, error) {
+	if err := resolveErrorDefinition(task, workflowDef); err != nil {
 		return nil, err
 	}
 
@@ -29,9 +29,8 @@ func NewRaiseTaskRunner(taskName string, task *model.RaiseTask, taskSupport Task
 		return nil, model.NewErrValidation(fmt.Errorf("no raise configuration provided for RaiseTask %s", taskName), taskName)
 	}
 	return &RaiseTaskRunner{
-		Task:        task,
-		TaskName:    taskName,
-		TaskSupport: taskSupport,
+		Task:     task,
+		TaskName: taskName,
 	}, nil
 }
 
@@ -53,9 +52,8 @@ func resolveErrorDefinition(t *model.RaiseTask, workflowDef *model.Workflow) err
 }
 
 type RaiseTaskRunner struct {
-	Task        *model.RaiseTask
-	TaskName    string
-	TaskSupport TaskSupport
+	Task     *model.RaiseTask
+	TaskName string
 }
 
 var raiseErrFuncMapping = map[string]func(error, string) *model.Error{
@@ -69,22 +67,22 @@ var raiseErrFuncMapping = map[string]func(error, string) *model.Error{
 	model.ErrorTypeTimeout:        model.NewErrTimeout,
 }
 
-func (r *RaiseTaskRunner) Run(input interface{}) (output interface{}, err error) {
+func (r *RaiseTaskRunner) Run(input interface{}, taskSupport TaskSupport) (output interface{}, err error) {
 	output = input
 	// TODO: make this an external func so we can call it after getting the reference? Or we can get the reference from the workflow definition
 	var detailResult interface{}
-	detailResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName, r.TaskSupport.GetContext())
+	detailResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
 
 	var titleResult interface{}
-	titleResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName, r.TaskSupport.GetContext())
+	titleResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
 
-	instance := r.TaskSupport.GetTaskReference()
+	instance := taskSupport.GetTaskReference()
 
 	var raiseErr *model.Error
 	if raiseErrF, ok := raiseErrFuncMapping[r.Task.Raise.Error.Definition.Type.String()]; ok {

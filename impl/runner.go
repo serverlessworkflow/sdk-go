@@ -137,12 +137,12 @@ func (wr *workflowRunnerImpl) Run(input interface{}) (output interface{}, err er
 	wr.RunnerCtx.SetInput(input)
 	// Run tasks sequentially
 	wr.RunnerCtx.SetStatus(ctx.RunningStatus)
-	doRunner, err := NewDoTaskRunner(wr.Workflow.Do, wr)
+	doRunner, err := NewDoTaskRunner(wr.Workflow.Do)
 	if err != nil {
 		return nil, err
 	}
 	wr.RunnerCtx.SetStartedAt(time.Now())
-	output, err = doRunner.Run(wr.RunnerCtx.GetInput())
+	output, err = doRunner.Run(wr.RunnerCtx.GetInput(), wr)
 	if err != nil {
 		return nil, err
 	}

@@ -20,30 +20,28 @@ import (
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
-func NewSetTaskRunner(taskName string, task *model.SetTask, taskSupport TaskSupport) (*SetTaskRunner, error) {
+func NewSetTaskRunner(taskName string, task *model.SetTask) (*SetTaskRunner, error) {
 	if task == nil || task.Set == nil {
 		return nil, model.NewErrValidation(fmt.Errorf("no set configuration provided for SetTask %s", taskName), taskName)
 	}
 	return &SetTaskRunner{
-		Task:        task,
-		TaskName:    taskName,
-		TaskSupport: taskSupport,
+		Task:     task,
+		TaskName: taskName,
 	}, nil
 }
 
 type SetTaskRunner struct {
-	Task        *model.SetTask
-	TaskName    string
-	TaskSupport TaskSupport
+	Task     *model.SetTask
+	TaskName string
 }
 
 func (s *SetTaskRunner) GetTaskName() string {
 	return s.TaskName
 }
 
-func (s *SetTaskRunner) Run(input interface{}) (output interface{}, err error) {
+func (s *SetTaskRunner) Run(input interface{}, taskSupport TaskSupport) (output interface{}, err error) {
 	setObject := deepClone(s.Task.Set)
-	result, err := traverseAndEvaluate(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, s.TaskSupport.GetContext())
+	result, err := traverseAndEvaluate(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}

@@ -28,7 +28,7 @@ var _ TaskRunner = &ForTaskRunner{}
 var _ TaskRunner = &DoTaskRunner{}
 
 type TaskRunner interface {
-	Run(input interface{}) (interface{}, error)
+	Run(input interface{}, taskSupport TaskSupport) (interface{}, error)
 	GetTaskName() string
 }
 

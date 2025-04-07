@@ -45,10 +45,11 @@ func TestRaiseTaskRunner_WithDefinedError(t *testing.T) {
 	assert.NoError(t, err)
 	wfCtx.SetTaskReference("task_raise_defined")
 
-	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask, newTaskSupport(withRunnerCtx(wfCtx)))
+	taskSupport := newTaskSupport(withRunnerCtx(wfCtx))
+	runner, err := NewRaiseTaskRunner("task_raise_defined", raiseTask, taskSupport.GetWorkflowDef())
 	assert.NoError(t, err)
 
-	output, err := runner.Run(input)
+	output, err := runner.Run(input, taskSupport)
 	assert.Equal(t, output, input)
 	assert.Error(t, err)
 
@@ -76,7 +77,7 @@ func TestRaiseTaskRunner_WithReferencedError(t *testing.T) {
 		},
 	}
 
-	runner, err := NewRaiseTaskRunner("task_raise_ref", raiseTask, newTaskSupport())
+	runner, err := NewRaiseTaskRunner("task_raise_ref", raiseTask, &model.Workflow{})
 	assert.Error(t, err)
 	assert.Nil(t, runner)
 }
@@ -103,10 +104,11 @@ func TestRaiseTaskRunner_TimeoutErrorWithExpression(t *testing.T) {
 	assert.NoError(t, err)
 	wfCtx.SetTaskReference("task_raise_timeout_expr")
 
-	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask, newTaskSupport(withRunnerCtx(wfCtx)))
+	taskSupport := newTaskSupport(withRunnerCtx(wfCtx))
+	runner, err := NewRaiseTaskRunner("task_raise_timeout_expr", raiseTask, taskSupport.GetWorkflowDef())
 	assert.NoError(t, err)
 
-	output, err := runner.Run(input)
+	output, err := runner.Run(input, taskSupport)
 	assert.Equal(t, input, output)
 	assert.Error(t, err)
 

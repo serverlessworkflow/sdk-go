@@ -17,8 +17,9 @@ package impl
 import (
 	"context"
 	"fmt"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"sync"
+
+	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
 func NewForkTaskRunner(taskName string, task *model.ForkTask, workflowDef *model.Workflow) (*ForkTaskRunner, error) {

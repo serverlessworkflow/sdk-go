@@ -19,9 +19,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"sync"
 	"time"
+
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 
 	"github.com/google/uuid"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -134,7 +135,7 @@ func (ctx *workflowContext) Clone() WorkflowContext {
 	newLocalExprVars := utils.DeepClone(ctx.localExprVars)
 
 	newStatusPhase := append([]StatusPhaseLog(nil), ctx.StatusPhase...)
-	
+
 	newTasksStatusPhase := make(map[string][]StatusPhaseLog, len(ctx.TasksStatusPhase))
 	for taskName, logs := range ctx.TasksStatusPhase {
 		newTasksStatusPhase[taskName] = append([]StatusPhaseLog(nil), logs...)

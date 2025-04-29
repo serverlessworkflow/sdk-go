@@ -96,8 +96,8 @@ type EventRef struct {
 	// +kubebuilder:validation:Required
 	TriggerEventRef string `json:"triggerEventRef" validate:"required"`
 	// Reference to the unique name of a 'consumed' event definition
-	// +kubebuilder:validation:Required
-	ResultEventRef string `json:"resultEventRef" validate:"required"`
+	// +optional
+	ResultEventRef string `json:"resultEventRef"`
 	// Maximum amount of time (ISO 8601 format) to wait for the result event. If not defined it be set to the
 	// actionExecutionTimeout
 	// +optional

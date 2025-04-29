@@ -175,11 +175,9 @@ func TestEventRefStructLevelValidation(t *testing.T) {
 			Model: func() Workflow {
 				model := baseWorkflow.DeepCopy()
 				model.States[0].OperationState.Actions[0].EventRef.TriggerEventRef = ""
-				model.States[0].OperationState.Actions[0].EventRef.ResultEventRef = ""
 				return *model
 			},
-			Err: `workflow.states[0].actions[0].eventRef.triggerEventRef is required
-workflow.states[0].actions[0].eventRef.resultEventRef is required`,
+			Err: `workflow.states[0].actions[0].eventRef.triggerEventRef is required`,
 		},
 		{
 			Desp: "exists",

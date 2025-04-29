@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"documentation :notebook:":
-  - changed-files:
-      - any-glob-to-any-file: ['contrib/*', '**/*.md']
+documentation :notebook:
+  - 'contrib/**'
+  - '**/*.md'
 kubernetes:
-  - changed-files:
-      - any-glob-to-any-file: ['kubernetes/*', 'hack/builder-gen.sh', 'hack/deepcopy-gen.sh', 'Makefile']
+  - 'kubernetes/**'
+  - 'hack/builder-gen.sh'
+  - 'hack/deepcopy-gen.sh'
+  - 'Makefile'

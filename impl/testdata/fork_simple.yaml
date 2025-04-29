@@ -1,0 +1,19 @@
+document:
+  dsl: '1.0.0'
+  namespace: test
+  name: fork-example
+  version: '0.1.0'
+do:
+  - branchColors:
+      fork:
+        compete: false
+        branches:
+          - setRed:
+              set:
+                color1: red
+          - setBlue:
+              set:
+                color2: blue
+  - joinResult:
+      set:
+        colors: "${ [.[] | .[]] }"

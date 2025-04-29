@@ -16,7 +16,7 @@ package impl
 
 import (
 	"fmt"
-
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -71,13 +71,13 @@ func (r *RaiseTaskRunner) Run(input interface{}, taskSupport TaskSupport) (outpu
 	output = input
 	// TODO: make this an external func so we can call it after getting the reference? Or we can get the reference from the workflow definition
 	var detailResult interface{}
-	detailResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
+	detailResult, err = expr.TraverseAndEvaluateObj(r.Task.Raise.Error.Definition.Detail.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}
 
 	var titleResult interface{}
-	titleResult, err = traverseAndEvaluate(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
+	titleResult, err = expr.TraverseAndEvaluateObj(r.Task.Raise.Error.Definition.Title.AsObjectOrRuntimeExpr(), input, r.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}

@@ -132,3 +132,28 @@ func mergeContextInVars(nodeCtx context.Context, variables map[string]interface{
 
 	return nil
 }
+
+func TraverseAndEvaluateObj(runtimeExpr *model.ObjectOrRuntimeExpr, input interface{}, taskName string, wfCtx context.Context) (output interface{}, err error) {
+	if runtimeExpr == nil {
+		return input, nil
+	}
+	output, err = TraverseAndEvaluate(runtimeExpr.AsStringOrMap(), input, wfCtx)
+	if err != nil {
+		return nil, model.NewErrExpression(err, taskName)
+	}
+	return output, nil
+}
+
+func TraverseAndEvaluateBool(runtimeExpr string, input interface{}, wfCtx context.Context) (bool, error) {
+	if len(runtimeExpr) == 0 {
+		return false, nil
+	}
+	output, err := TraverseAndEvaluate(runtimeExpr, input, wfCtx)
+	if err != nil {
+		return false, nil
+	}
+	if result, ok := output.(bool); ok {
+		return result, nil
+	}
+	return false, nil
+}

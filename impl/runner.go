@@ -17,6 +17,8 @@ package impl
 import (
 	"context"
 	"fmt"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"time"
 
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
@@ -51,6 +53,18 @@ type workflowRunnerImpl struct {
 	Workflow  *model.Workflow
 	Context   context.Context
 	RunnerCtx ctx.WorkflowContext
+}
+
+func (wr *workflowRunnerImpl) CloneWithContext(newCtx context.Context) TaskSupport {
+	clonedWfCtx := wr.RunnerCtx.Clone()
+
+	ctxWithWf := ctx.WithWorkflowContext(newCtx, clonedWfCtx)
+
+	return &workflowRunnerImpl{
+		Workflow:  wr.Workflow,
+		Context:   ctxWithWf,
+		RunnerCtx: clonedWfCtx,
+	}
 }
 
 func (wr *workflowRunnerImpl) RemoveLocalExprVars(keys ...string) {
@@ -175,13 +189,13 @@ func (wr *workflowRunnerImpl) wrapWorkflowError(err error) error {
 func (wr *workflowRunnerImpl) processInput(input interface{}) (output interface{}, err error) {
 	if wr.Workflow.Input != nil {
 		if wr.Workflow.Input.Schema != nil {
-			if err = validateSchema(input, wr.Workflow.Input.Schema, "/"); err != nil {
+			if err = utils.ValidateSchema(input, wr.Workflow.Input.Schema, "/"); err != nil {
 				return nil, err
 			}
 		}
 
 		if wr.Workflow.Input.From != nil {
-			output, err = traverseAndEvaluate(wr.Workflow.Input.From, input, "/", wr.Context)
+			output, err = expr.TraverseAndEvaluateObj(wr.Workflow.Input.From, input, "/", wr.Context)
 			if err != nil {
 				return nil, err
 			}
@@ -196,13 +210,13 @@ func (wr *workflowRunnerImpl) processOutput(output interface{}) (interface{}, er
 	if wr.Workflow.Output != nil {
 		if wr.Workflow.Output.As != nil {
 			var err error
-			output, err = traverseAndEvaluate(wr.Workflow.Output.As, output, "/", wr.Context)
+			output, err = expr.TraverseAndEvaluateObj(wr.Workflow.Output.As, output, "/", wr.Context)
 			if err != nil {
 				return nil, err
 			}
 		}
 		if wr.Workflow.Output.Schema != nil {
-			if err := validateSchema(output, wr.Workflow.Output.Schema, "/"); err != nil {
+			if err := utils.ValidateSchema(output, wr.Workflow.Output.Schema, "/"); err != nil {
 				return nil, err
 			}
 		}

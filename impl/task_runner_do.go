@@ -16,6 +16,8 @@ package impl
 
 import (
 	"fmt"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
 	"time"
 
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
@@ -35,6 +37,8 @@ func NewTaskRunner(taskName string, task model.Task, workflowDef *model.Workflow
 		return NewForTaskRunner(taskName, t)
 	case *model.CallHTTP:
 		return NewCallHttpRunner(taskName, t)
+	case *model.ForkTask:
+		return NewForkTaskRunner(taskName, t, workflowDef)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}
@@ -117,7 +121,7 @@ func (d *DoTaskRunner) runTasks(input interface{}, taskSupport TaskSupport) (out
 		}
 
 		taskSupport.SetTaskStatus(currentTask.Key, ctx.CompletedStatus)
-		input = deepCloneValue(output)
+		input = utils.DeepCloneValue(output)
 		idx, currentTask = d.TaskList.Next(idx)
 	}
 
@@ -126,7 +130,7 @@ func (d *DoTaskRunner) runTasks(input interface{}, taskSupport TaskSupport) (out
 
 func (d *DoTaskRunner) shouldRunTask(input interface{}, taskSupport TaskSupport, task *model.TaskItem) (bool, error) {
 	if task.GetBase().If != nil {
-		output, err := traverseAndEvaluateBool(task.GetBase().If.String(), input, taskSupport.GetContext())
+		output, err := expr.TraverseAndEvaluateBool(task.GetBase().If.String(), input, taskSupport.GetContext())
 		if err != nil {
 			return false, model.NewErrExpression(err, task.Key)
 		}
@@ -143,7 +147,7 @@ func (d *DoTaskRunner) evaluateSwitchTask(input interface{}, taskSupport TaskSup
 				defaultThen = switchCase.Then
 				continue
 			}
-			result, err := traverseAndEvaluateBool(model.NormalizeExpr(switchCase.When.String()), input, taskSupport.GetContext())
+			result, err := expr.TraverseAndEvaluateBool(model.NormalizeExpr(switchCase.When.String()), input, taskSupport.GetContext())
 			if err != nil {
 				return nil, model.NewErrExpression(err, taskKey)
 			}
@@ -199,11 +203,11 @@ func (d *DoTaskRunner) processTaskInput(task *model.TaskBase, taskInput interfac
 		return taskInput, nil
 	}
 
-	if err = validateSchema(taskInput, task.Input.Schema, taskName); err != nil {
+	if err = utils.ValidateSchema(taskInput, task.Input.Schema, taskName); err != nil {
 		return nil, err
 	}
 
-	if output, err = traverseAndEvaluate(task.Input.From, taskInput, taskName, taskSupport.GetContext()); err != nil {
+	if output, err = expr.TraverseAndEvaluateObj(task.Input.From, taskInput, taskName, taskSupport.GetContext()); err != nil {
 		return nil, err
 	}
 
@@ -216,11 +220,11 @@ func (d *DoTaskRunner) processTaskOutput(task *model.TaskBase, taskOutput interf
 		return taskOutput, nil
 	}
 
-	if output, err = traverseAndEvaluate(task.Output.As, taskOutput, taskName, taskSupport.GetContext()); err != nil {
+	if output, err = expr.TraverseAndEvaluateObj(task.Output.As, taskOutput, taskName, taskSupport.GetContext()); err != nil {
 		return nil, err
 	}
 
-	if err = validateSchema(output, task.Output.Schema, taskName); err != nil {
+	if err = utils.ValidateSchema(output, task.Output.Schema, taskName); err != nil {
 		return nil, err
 	}
 
@@ -232,12 +236,12 @@ func (d *DoTaskRunner) processTaskExport(task *model.TaskBase, taskOutput interf
 		return nil
 	}
 
-	output, err := traverseAndEvaluate(task.Export.As, taskOutput, taskName, taskSupport.GetContext())
+	output, err := expr.TraverseAndEvaluateObj(task.Export.As, taskOutput, taskName, taskSupport.GetContext())
 	if err != nil {
 		return err
 	}
 
-	if err = validateSchema(output, task.Export.Schema, taskName); err != nil {
+	if err = utils.ValidateSchema(output, task.Export.Schema, taskName); err != nil {
 		return nil
 	}
 

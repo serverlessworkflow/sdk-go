@@ -17,6 +17,9 @@ package impl
 import (
 	"fmt"
 
+	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
+
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -40,8 +43,8 @@ func (s *SetTaskRunner) GetTaskName() string {
 }
 
 func (s *SetTaskRunner) Run(input interface{}, taskSupport TaskSupport) (output interface{}, err error) {
-	setObject := deepClone(s.Task.Set)
-	result, err := traverseAndEvaluate(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, taskSupport.GetContext())
+	setObject := utils.DeepClone(s.Task.Set)
+	result, err := expr.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}

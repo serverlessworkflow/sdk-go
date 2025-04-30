@@ -73,7 +73,7 @@ func (f *ForTaskRunner) Run(input interface{}, taskSupport TaskSupport) (interfa
 				return nil, err
 			}
 			if f.Task.While != "" {
-				whileIsTrue, err := traverseAndEvaluateBool(f.Task.While, forOutput, taskSupport.GetContext())
+				whileIsTrue, err := expr.TraverseAndEvaluateBool(f.Task.While, forOutput, taskSupport.GetContext())
 				if err != nil {
 					return nil, err
 				}

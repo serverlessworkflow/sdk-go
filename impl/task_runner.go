@@ -53,4 +53,7 @@ type TaskSupport interface {
 	AddLocalExprVars(vars map[string]interface{})
 	// RemoveLocalExprVars removes local variables added in AddLocalExprVars or SetLocalExprVars
 	RemoveLocalExprVars(keys ...string)
+	// CloneWithContext returns a full clone of this TaskSupport, but using
+	// the provided context.Context (so deadlines/cancellations propagate).
+	CloneWithContext(ctx context.Context) TaskSupport
 }

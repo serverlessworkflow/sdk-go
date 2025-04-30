@@ -11,12 +11,14 @@ goimports:
 	@goimports -w .
 
 lint:
-	@echo "🚀 Running lint..."
-	@command -v golangci-lint > /dev/null || (echo "🚀 Installing golangci-lint..."; curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin")
+	@echo "🚀 Installing/updating golangci-lint…"
+	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+	@echo "🚀 Running lint…"
 	@make addheaders
 	@make goimports
 	@make fmt
-	@./hack/go-lint.sh ${params}
+	@$(GOPATH)/bin/golangci-lint run ./... ${params}
 	@echo "✅  Linting completed!"
 
 .PHONY: test

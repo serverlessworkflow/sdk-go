@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package impl
+package utils
 
 import (
 	"encoding/json"
@@ -23,8 +23,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// ValidateJSONSchema validates the provided data against a model.Schema.
-func ValidateJSONSchema(data interface{}, schema *model.Schema) error {
+// validateJSONSchema validates the provided data against a model.Schema.
+func validateJSONSchema(data interface{}, schema *model.Schema) error {
 	if schema == nil {
 		return nil
 	}
@@ -66,5 +66,14 @@ func ValidateJSONSchema(data interface{}, schema *model.Schema) error {
 		return fmt.Errorf("JSON schema validation failed:\n%s", validationErrors)
 	}
 
+	return nil
+}
+
+func ValidateSchema(data interface{}, schema *model.Schema, taskName string) error {
+	if schema != nil {
+		if err := validateJSONSchema(data, schema); err != nil {
+			return model.NewErrValidation(err, taskName)
+		}
+	}
 	return nil
 }

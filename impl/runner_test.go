@@ -456,3 +456,14 @@ func TestSwitchTaskRunner_DefaultCase(t *testing.T) {
 		runWorkflowTest(t, workflowPath, input, expectedOutput)
 	})
 }
+
+func TestForkSimple_NoCompete(t *testing.T) {
+	t.Run("Create a color array", func(t *testing.T) {
+		workflowPath := "./testdata/fork_simple.yaml"
+		input := map[string]interface{}{}
+		expectedOutput := map[string]interface{}{
+			"colors": []interface{}{"red", "blue"},
+		}
+		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+}

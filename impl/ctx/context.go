@@ -22,6 +22,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
+
 	"github.com/google/uuid"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
@@ -71,6 +73,7 @@ type WorkflowContext interface {
 	SetLocalExprVars(vars map[string]interface{})
 	AddLocalExprVars(vars map[string]interface{})
 	RemoveLocalExprVars(keys ...string)
+	Clone() WorkflowContext
 }
 
 // workflowContext holds the necessary data for the workflow execution within the instance.
@@ -116,6 +119,38 @@ func GetWorkflowContext(ctx context.Context) (WorkflowContext, error) {
 		return nil, ErrWorkflowContextNotFound
 	}
 	return wfCtx, nil
+}
+
+func (ctx *workflowContext) Clone() WorkflowContext {
+	ctx.mu.Lock()
+	defer ctx.mu.Unlock()
+
+	newInput := utils.DeepCloneValue(ctx.input)
+	newOutput := utils.DeepCloneValue(ctx.output)
+
+	// deep clone each of the maps
+	newContextMap := utils.DeepClone(ctx.context)
+	newWorkflowDesc := utils.DeepClone(ctx.workflowDescriptor)
+	newTaskDesc := utils.DeepClone(ctx.taskDescriptor)
+	newLocalExprVars := utils.DeepClone(ctx.localExprVars)
+
+	newStatusPhase := append([]StatusPhaseLog(nil), ctx.StatusPhase...)
+
+	newTasksStatusPhase := make(map[string][]StatusPhaseLog, len(ctx.TasksStatusPhase))
+	for taskName, logs := range ctx.TasksStatusPhase {
+		newTasksStatusPhase[taskName] = append([]StatusPhaseLog(nil), logs...)
+	}
+
+	return &workflowContext{
+		input:              newInput,
+		output:             newOutput,
+		context:            newContextMap,
+		workflowDescriptor: newWorkflowDesc,
+		taskDescriptor:     newTaskDesc,
+		localExprVars:      newLocalExprVars,
+		StatusPhase:        newStatusPhase,
+		TasksStatusPhase:   newTasksStatusPhase,
+	}
 }
 
 func (ctx *workflowContext) SetStartedAt(t time.Time) {

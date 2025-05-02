@@ -95,8 +95,9 @@ func (u *LiteralUri) GetValue() interface{} {
 }
 
 type EndpointConfiguration struct {
-	URI            URITemplate                        `json:"uri" validate:"required"`
-	Authentication *ReferenceableAuthenticationPolicy `json:"authentication,omitempty"`
+	RuntimeExpression *RuntimeExpression                 `json:"-"`
+	URI               URITemplate                        `json:"uri" validate:"required"`
+	Authentication    *ReferenceableAuthenticationPolicy `json:"authentication,omitempty"`
 }
 
 // UnmarshalJSON implements custom unmarshalling for EndpointConfiguration.
@@ -116,12 +117,35 @@ func (e *EndpointConfiguration) UnmarshalJSON(data []byte) error {
 
 	// Unmarshal the URI field into the appropriate URITemplate implementation
 	uri, err := UnmarshalURITemplate(temp.URI)
-	if err != nil {
-		return fmt.Errorf("invalid URI in EndpointConfiguration: %w", err)
+	if err == nil {
+		e.URI = uri
+		return nil
 	}
-	e.URI = uri
 
-	return nil
+	var runtimeExpr RuntimeExpression
+	if err := json.Unmarshal(temp.URI, &runtimeExpr); err == nil && runtimeExpr.IsValid() {
+		e.RuntimeExpression = &runtimeExpr
+		return nil
+	}
+
+	return errors.New("failed to unmarshal EndpointConfiguration: data does not match any known schema")
+}
+
+// MarshalJSON implements custom marshalling for Endpoint.
+func (e *EndpointConfiguration) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	if e.Authentication != nil {
+		m["authentication"] = e.Authentication
+	}
+
+	if e.RuntimeExpression != nil {
+		m["uri"] = e.RuntimeExpression
+	} else if e.URI != nil {
+		m["uri"] = e.URI
+	}
+
+	// Return an empty JSON object when no fields are set
+	return json.Marshal(m)
 }
 
 type Endpoint struct {

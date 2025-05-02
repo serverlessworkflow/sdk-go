@@ -71,6 +71,48 @@ func TestEndpoint_UnmarshalJSON(t *testing.T) {
 		assert.Equal(t, "admin", endpoint.EndpointConfig.Authentication.AuthenticationPolicy.Basic.Password, "Authentication Password should match")
 	})
 
+	t.Run("Valid EndpointConfiguration with reference", func(t *testing.T) {
+		input := `{
+			"uri": "http://example.com/{id}",
+			"authentication": {
+				"oauth2": { "use": "secret" }
+			}
+		}`
+
+		var endpoint Endpoint
+		err := json.Unmarshal([]byte(input), &endpoint)
+
+		assert.NoError(t, err, "Unmarshal should not return an error")
+		assert.NotNil(t, endpoint.EndpointConfig, "EndpointConfig should be set")
+		assert.NotNil(t, endpoint.EndpointConfig.URI, "EndpointConfig URI should be set")
+		assert.Nil(t, endpoint.EndpointConfig.RuntimeExpression, "EndpointConfig Expression should not be set")
+		assert.Equal(t, "secret", endpoint.EndpointConfig.Authentication.AuthenticationPolicy.OAuth2.Use, "Authentication secret should match")
+		b, err := json.Marshal(&endpoint)
+		assert.NoError(t, err, "Marshal should not return an error")
+		assert.JSONEq(t, input, string(b), "Output JSON should match")
+	})
+
+	t.Run("Valid EndpointConfiguration with reference and expression", func(t *testing.T) {
+		input := `{
+			"uri": "${example}",
+			"authentication": {
+				"oauth2": { "use": "secret" }
+			}
+		}`
+
+		var endpoint Endpoint
+		err := json.Unmarshal([]byte(input), &endpoint)
+
+		assert.NoError(t, err, "Unmarshal should not return an error")
+		assert.NotNil(t, endpoint.EndpointConfig, "EndpointConfig should be set")
+		assert.Nil(t, endpoint.EndpointConfig.URI, "EndpointConfig URI should not be set")
+		assert.NotNil(t, endpoint.EndpointConfig.RuntimeExpression, "EndpointConfig Expression should be set")
+		assert.Equal(t, "secret", endpoint.EndpointConfig.Authentication.AuthenticationPolicy.OAuth2.Use, "Authentication secret should match")
+		b, err := json.Marshal(&endpoint)
+		assert.NoError(t, err, "Marshal should not return an error")
+		assert.JSONEq(t, input, string(b), "Output JSON should match")
+	})
+
 	t.Run("Invalid JSON Structure", func(t *testing.T) {
 		input := `{"invalid": "data"}`
 		var endpoint Endpoint

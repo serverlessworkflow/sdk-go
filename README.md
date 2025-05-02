@@ -127,7 +127,7 @@ The table below lists the current state of this implementation. This table is a 
 | Task Do | ✅ |
 | Task Emit | ❌ | 
 | Task For | ✅ |
-| Task Fork | ❌ | 
+| Task Fork | ✅ | 
 | Task Listen | ❌ | 
 | Task Raise | ✅ |
 | Task Run | ❌ |

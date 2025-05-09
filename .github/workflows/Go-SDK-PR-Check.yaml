@@ -22,6 +22,7 @@ on:
       - "Makefile"
     branches:
       - main
+      - 2.*
 
 permissions:
   contents: read

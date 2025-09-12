@@ -21,7 +21,7 @@ package model
 import (
 	json "encoding/json"
 
-	floatstr "github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
+	floatstr "github.com/finbox-in/sdk-go/util/floatstr"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 

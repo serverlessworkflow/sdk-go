@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	val "github.com/finbox-in/sdk-go/validator"
 )
 
 func TestContinueAsStructLevelValidation(t *testing.T) {

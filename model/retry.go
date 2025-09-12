@@ -20,8 +20,8 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/serverlessworkflow/sdk-go/v2/util/floatstr"
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	"github.com/finbox-in/sdk-go/util/floatstr"
+	val "github.com/finbox-in/sdk-go/validator"
 )
 
 func init() {

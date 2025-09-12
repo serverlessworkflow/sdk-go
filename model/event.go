@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-	val "github.com/serverlessworkflow/sdk-go/v2/validator"
+	val "github.com/finbox-in/sdk-go/validator"
 
 	validator "github.com/go-playground/validator/v10"
 )

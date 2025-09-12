@@ -15,11 +15,23 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
+)
+
+type Type int8
+
+const (
+	Null Type = iota
+	String
+	Int
+	Float
+	Map
+	Slice
+	Bool
 )
 
 // Object is used to allow integration with DeepCopy tool by replacing 'interface' generic type.
@@ -28,130 +40,171 @@ import (
 //
 // It can marshal and unmarshal any type.
 // This object type can be three types:
-//   - String	- holds string values
-//   - Integer	- holds int32 values, JSON marshal any number to float64 by default, during the marshaling process it is
+//   - String   - holds string values
+//   - Integer  - holds int32 values, JSON marshal any number to float64 by default, during the marshaling process it is
 //     parsed to int32
-//   - raw		- holds any not typed value, replaces the interface{} behavior.
+//
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:validation:Schemaless
 type Object struct {
-	IObject `json:",inline"`
+	Type        Type              `json:"type,inline"`
+	StringValue string            `json:"strVal,inline"`
+	IntValue    int32             `json:"intVal,inline"`
+	FloatValue  float64           `json:"floatVal,inline"`
+	MapValue    map[string]Object `json:"mapVal,inline"`
+	SliceValue  []Object          `json:"sliceVal,inline"`
+	BoolValue   bool              `json:"boolValue,inline"`
 }
 
-// IObject interface that can converted into one of the three subtypes
-type IObject interface {
-	DeepCopyIObject() IObject
-}
+// UnmarshalJSON implements json.Unmarshaler
+func (obj *Object) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
 
-// raw generic subtype
-type raw struct {
-	IObject interface{}
-}
+	if data[0] == '"' {
+		obj.Type = String
+		return json.Unmarshal(data, &obj.StringValue)
+	} else if data[0] == 't' || data[0] == 'f' {
+		obj.Type = Bool
+		return json.Unmarshal(data, &obj.BoolValue)
+	} else if data[0] == 'n' {
+		obj.Type = Null
+		return nil
+	} else if data[0] == '{' {
+		obj.Type = Map
+		return json.Unmarshal(data, &obj.MapValue)
+	} else if data[0] == '[' {
+		obj.Type = Slice
+		return json.Unmarshal(data, &obj.SliceValue)
+	}
 
-func (o raw) DeepCopyIObject() IObject {
-	return o
-}
+	number := string(data)
+	intValue, err := strconv.ParseInt(number, 10, 32)
+	if err == nil {
+		obj.Type = Int
+		obj.IntValue = int32(intValue)
+		return nil
+	}
 
-// Integer int32 type
-type Integer int
+	floatValue, err := strconv.ParseFloat(number, 64)
+	if err == nil {
+		obj.Type = Float
+		obj.FloatValue = floatValue
+		return nil
+	}
 
-func (m Integer) DeepCopyIObject() IObject {
-	return m
-}
-
-// String string type
-type String string
-
-func (m String) DeepCopyIObject() IObject {
-	return m
+	return fmt.Errorf("json invalid number %q", number)
 }
 
 // MarshalJSON marshal the given json object into the respective Object subtype.
 func (obj Object) MarshalJSON() ([]byte, error) {
-	switch val := obj.IObject.(type) {
+	switch obj.Type {
 	case String:
-		return []byte(fmt.Sprintf(`%q`, val)), nil
-	case Integer:
-		return []byte(fmt.Sprintf(`%d`, val)), nil
-	case raw:
-		custom, err := json.Marshal(&struct {
-			raw
-		}{
-			val,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		// remove the field name and the last '}' for marshalling purposes
-		st := strings.Replace(string(custom), "{\"IObject\":", "", 1)
-		st = strings.TrimSuffix(st, "}")
-		return []byte(st), nil
+		return []byte(fmt.Sprintf(`%q`, obj.StringValue)), nil
+	case Int:
+		return []byte(fmt.Sprintf(`%d`, obj.IntValue)), nil
+	case Float:
+		return []byte(fmt.Sprintf(`%f`, obj.FloatValue)), nil
+	case Map:
+		return json.Marshal(obj.MapValue)
+	case Slice:
+		return json.Marshal(obj.SliceValue)
+	case Bool:
+		return []byte(fmt.Sprintf(`%t`, obj.BoolValue)), nil
+	case Null:
+		return []byte("null"), nil
 	default:
-		return []byte(fmt.Sprintf("%+v", obj.IObject)), nil
+		panic("object invalid type")
 	}
 }
 
-// UnmarshalJSON ...
-func (obj *Object) UnmarshalJSON(data []byte) error {
-	var test interface{}
-	if err := json.Unmarshal(data, &test); err != nil {
-		return err
-	}
-	switch val := test.(type) {
-	case string:
-		var strVal String
-		if err := json.Unmarshal(data, &strVal); err != nil {
-			return err
-		}
-		obj.IObject = strVal
-		return nil
-
-	case map[string]interface{}:
-		var cstVal raw
-		if err := json.Unmarshal(data, &cstVal.IObject); err != nil {
-			return err
-		}
-		obj.IObject = cstVal
-		return nil
-
-	default:
-		// json parses all not typed numbers as float64, let's enforce to int32
-		if valInt, parseErr := strconv.Atoi(fmt.Sprint(val)); parseErr != nil {
-			return fmt.Errorf("falied to parse %d to int32: %w", valInt, parseErr)
-		} else {
-			var intVal Integer
-			if err := json.Unmarshal(data, &intVal); err != nil {
-				return err
-			}
-			obj.IObject = intVal
-			return nil
-		}
-	}
+func FromString(val string) Object {
+	return Object{Type: String, StringValue: val}
 }
 
-// FromInt creates an Object with an int32 value.
 func FromInt(val int) Object {
 	if val > math.MaxInt32 || val < math.MinInt32 {
-		panic(fmt.Errorf("value: %d overflows int32", val))
+		fmt.Println(fmt.Errorf("value: %d overflows int32", val))
 	}
-	return Object{Integer(int32(val))}
+	return Object{Type: Int, IntValue: int32(val)}
 }
 
-// FromString creates an Object with a string value.
-func FromString(val string) Object {
-	return Object{String(val)}
+func FromFloat(val float64) Object {
+	if val > math.MaxFloat64 || val < -math.MaxFloat64 {
+		fmt.Println(fmt.Errorf("value: %f overflows float64", val))
+	}
+	return Object{Type: Float, FloatValue: float64(val)}
 }
 
-// FromRaw creates an Object with untyped values.
-func FromRaw(val interface{}) Object {
-	var rawVal Object
-	data, err := json.Marshal(val)
-	if err != nil {
-		panic(err)
+func FromMap(mapValue map[string]any) Object {
+	mapValueObject := make(map[string]Object, len(mapValue))
+	for key, value := range mapValue {
+		mapValueObject[key] = FromInterface(value)
 	}
-	var cstVal raw
-	if err := json.Unmarshal(data, &cstVal.IObject); err != nil {
-		panic(err)
+	return Object{Type: Map, MapValue: mapValueObject}
+}
+
+func FromSlice(sliceValue []any) Object {
+	sliceValueObject := make([]Object, len(sliceValue))
+	for key, value := range sliceValue {
+		sliceValueObject[key] = FromInterface(value)
 	}
-	rawVal.IObject = cstVal
-	return rawVal
+	return Object{Type: Slice, SliceValue: sliceValueObject}
+}
+
+func FromBool(val bool) Object {
+	return Object{Type: Bool, BoolValue: val}
+}
+
+func FromNull() Object {
+	return Object{Type: Null}
+}
+
+func FromInterface(value any) Object {
+	switch v := value.(type) {
+	case string:
+		return FromString(v)
+	case int:
+		return FromInt(v)
+	case int32:
+		return FromInt(int(v))
+	case float64:
+		return FromFloat(v)
+	case map[string]any:
+		return FromMap(v)
+	case []any:
+		return FromSlice(v)
+	case bool:
+		return FromBool(v)
+	case nil:
+		return FromNull()
+	}
+	panic("invalid type")
+}
+
+func ToInterface(object Object) any {
+	switch object.Type {
+	case String:
+		return object.StringValue
+	case Int:
+		return object.IntValue
+	case Float:
+		return object.FloatValue
+	case Map:
+		mapInterface := make(map[string]any, len(object.MapValue))
+		for key, value := range object.MapValue {
+			mapInterface[key] = ToInterface(value)
+		}
+		return mapInterface
+	case Slice:
+		sliceInterface := make([]any, len(object.SliceValue))
+		for key, value := range object.SliceValue {
+			sliceInterface[key] = ToInterface(value)
+		}
+		return sliceInterface
+	case Bool:
+		return object.BoolValue
+	case Null:
+		return nil
+	}
+	panic("invalid type")
 }

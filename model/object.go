@@ -32,7 +32,6 @@ const (
 	Map
 	Slice
 	Bool
-	Raw
 )
 
 // Object is used to allow integration with DeepCopy tool by replacing 'interface' generic type.
@@ -55,7 +54,6 @@ type Object struct {
 	MapValue    map[string]Object `json:"mapVal,inline"`
 	SliceValue  []Object          `json:"sliceVal,inline"`
 	BoolValue   bool              `json:"boolValue,inline"`
-	RawValue    any               `json:"rawValue,inline"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler
@@ -172,7 +170,14 @@ func FromRaw(val any) Object {
 	if err := json.Unmarshal(data, &rawValueObject); err != nil {
 		panic(err)
 	}
-	return Object{Type: Raw, RawValue: rawValueObject}
+
+	switch v := rawValueObject.(type) {
+	case map[string]any:
+		return FromMap(v)
+	case []any:
+		return FromSlice(v)
+	}
+	panic("invalid type")
 }
 
 func FromInterface(value any) Object {

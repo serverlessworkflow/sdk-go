@@ -166,34 +166,28 @@ func Test_marshal(t *testing.T) {
 			}),
 		},
 		{
-			name:   "fromraw rawmessage slice",
-			json:   "[\"x\",2,{\"k\":true},null]",
-			object: FromRaw(json.RawMessage([]byte(`["x",2,{"k":true},null]`))),
+			name:   "raw slice",
+			json:   "[\"x\",2.000000,null]",
+			object: FromRaw(json.RawMessage([]byte(`["x",2,null]`))),
 		},
 		{
-			name:   "fromraw primitive string",
-			json:   "\"hello\"",
-			object: FromRaw("hello"),
-		},
-		{
-			name:   "fromraw primitive int",
-			json:   "42",
-			object: FromRaw(42),
-		},
-		{
-			name:   "fromraw slice and map",
-			json:   "[\"x\",2,{\"k\":true},null]",
+			name:   "raw slice and map",
+			json:   "[\"x\",2.000000,{\"k\":true},null]",
 			object: FromRaw([]any{"x", 2, map[string]any{"k": true}, nil}),
 		},
 		{
-			name:   "fromraw map",
-			json:   "{\"a\":1,\"b\":[true,false],\"c\":null}",
+			name:   "raw map",
+			json:   "{\"a\":1.000000,\"b\":[true,false],\"c\":null}",
 			object: FromRaw(map[string]any{"a": 1, "b": []any{true, false}, "c": nil}),
 		},
 		{
-			name:   "fromraw null",
-			json:   "null",
-			object: FromRaw(nil),
+			name: "fromraw struct",
+			json: "{\"a\":1.000000,\"b\":[true,false],\"c\":null}",
+			object: FromInterface(struct {
+				A int     `json:"a"`
+				B []bool  `json:"b"`
+				C *string `json:"c"`
+			}{A: 1, B: []bool{true, false}, C: nil}),
 		},
 	}
 

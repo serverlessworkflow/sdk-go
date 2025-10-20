@@ -45,7 +45,8 @@ func TestCallHTTP_MarshalJSON(t *testing.T) {
 			Query: map[string]interface{}{
 				"q": "search",
 			},
-			Output: "content",
+			Output:   "content",
+			Redirect: true,
 		},
 	}
 
@@ -64,7 +65,8 @@ func TestCallHTTP_MarshalJSON(t *testing.T) {
 				"endpoint": "http://example.com",
 				"headers": {"Authorization": "Bearer token"},
 				"query": {"q": "search"},
-				"output": "content"
+				"output": "content",
+				"redirect": true
 			}
 		}`, string(data))
 }
@@ -83,7 +85,8 @@ func TestCallHTTP_UnmarshalJSON(t *testing.T) {
 				"endpoint": "http://example.com",
 				"headers": {"Authorization": "Bearer token"},
 				"query": {"q": "search"},
-				"output": "content"
+				"output": "content",
+				"redirect": true
 			}
 		}`
 
@@ -102,6 +105,7 @@ func TestCallHTTP_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, map[string]string{"Authorization": "Bearer token"}, callHTTP.With.Headers)
 	assert.Equal(t, map[string]interface{}{"q": "search"}, callHTTP.With.Query)
 	assert.Equal(t, "content", callHTTP.With.Output)
+	assert.Equal(t, true, callHTTP.With.Redirect)
 }
 
 func TestCallOpenAPI_MarshalJSON(t *testing.T) {
@@ -133,7 +137,8 @@ func TestCallOpenAPI_MarshalJSON(t *testing.T) {
 			Authentication: &ReferenceableAuthenticationPolicy{
 				Use: &authPolicy,
 			},
-			Output: "content",
+			Output:   "content",
+			Redirect: true,
 		},
 	}
 
@@ -160,7 +165,8 @@ func TestCallOpenAPI_MarshalJSON(t *testing.T) {
 			"authentication": {
 				"use": "my-auth"
 			},
-			"output": "content"
+			"output": "content",
+			"redirect": true
 		}
 	}`, string(data))
 }
@@ -187,7 +193,8 @@ func TestCallOpenAPI_UnmarshalJSON(t *testing.T) {
 			"authentication": {
 				"use": "my-auth"
 			},
-			"output": "content"
+			"output": "content",
+			"redirect": true
 		}
 	}`
 
@@ -207,6 +214,7 @@ func TestCallOpenAPI_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{"param1": "value1", "param2": "value2"}, callOpenAPI.With.Parameters)
 	assert.Equal(t, "my-auth", *callOpenAPI.With.Authentication.Use)
 	assert.Equal(t, "content", callOpenAPI.With.Output)
+	assert.Equal(t, true, callOpenAPI.With.Redirect)
 }
 
 func TestCallGRPC_MarshalJSON(t *testing.T) {

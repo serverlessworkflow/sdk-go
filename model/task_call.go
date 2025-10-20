@@ -33,6 +33,7 @@ type HTTPArguments struct {
 	Body     json.RawMessage        `json:"body,omitempty"`
 	Query    map[string]interface{} `json:"query,omitempty"`
 	Output   string                 `json:"output,omitempty" validate:"omitempty,oneof=raw content response"`
+	Redirect bool                   `json:"redirect,omitempty"`
 }
 
 type CallOpenAPI struct {
@@ -51,6 +52,7 @@ type OpenAPIArguments struct {
 	Parameters     map[string]interface{}             `json:"parameters,omitempty"`
 	Authentication *ReferenceableAuthenticationPolicy `json:"authentication,omitempty"`
 	Output         string                             `json:"output,omitempty" validate:"omitempty,oneof=raw content response"`
+	Redirect       bool                               `json:"redirect,omitempty"`
 }
 
 type CallGRPC struct {

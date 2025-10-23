@@ -40,6 +40,11 @@ func IsStrictExpr(expression string) bool {
 	return strings.HasPrefix(expression, "${") && strings.HasSuffix(expression, "}")
 }
 
+// ContainsExpr returns true if the string contains `${` and `}`
+func ContainsExpr(expression string) bool {
+	return strings.Contains(expression, "${") && strings.Contains(expression, "}")
+}
+
 // SanitizeExpr processes the expression to ensure it's ready for evaluation
 // It removes `${}` if present and replaces single quotes with double quotes
 func SanitizeExpr(expression string) string {

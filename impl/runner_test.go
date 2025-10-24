@@ -104,6 +104,24 @@ func runWorkflow(t *testing.T, workflowPath string, input, expectedOutput map[st
 	return output, err
 }
 
+func runWorkflowExpectString(t *testing.T, workflowPath string, input interface{}) (output interface{}, err error) {
+	// Read the workflow YAML from the testdata directory
+	yamlBytes, err := os.ReadFile(filepath.Clean(workflowPath))
+	assert.NoError(t, err, "Failed to read workflow YAML file")
+
+	// Parse the YAML workflow
+	workflow, err := parser.FromYAMLSource(yamlBytes)
+	assert.NoError(t, err, "Failed to parse workflow YAML")
+
+	// Initialize the workflow runner
+	runner, err := NewDefaultRunner(workflow)
+	assert.NoError(t, err)
+
+	// Run the workflow
+	output, err = runner.Run(input)
+	return output, err
+}
+
 func assertWorkflowRun(t *testing.T, expectedOutput map[string]interface{}, output interface{}) {
 	if expectedOutput == nil {
 		assert.Nil(t, output, "Expected nil Workflow run output")

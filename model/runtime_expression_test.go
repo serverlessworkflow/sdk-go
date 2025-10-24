@@ -110,6 +110,11 @@ func TestIsStrictExpr(t *testing.T) {
 			expression: "${}",
 			want:       true, // Technically matches prefix+suffix
 		},
+		{
+			name:       "With single quote",
+			expression: "echo 'hello, I love ${ .project }",
+			want:       false,
+		},
 	}
 
 	for _, tc := range tests {

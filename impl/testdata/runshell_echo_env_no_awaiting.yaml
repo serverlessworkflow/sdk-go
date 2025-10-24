@@ -1,0 +1,13 @@
+document:
+  dsl: '1.0.1'
+  namespace: test
+  name: run-shell-example
+  version: '0.1.0'
+do:
+  - runShell:
+      run:
+        shell:
+          command: echo "hello world not awaiting ($FULL_NAME)" > /tmp/hello.txt && cat /tmp/hello.txt
+          environment:
+            FULL_NAME: ${.full_name}
+        await: false

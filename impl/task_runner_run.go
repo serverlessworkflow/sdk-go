@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -89,7 +90,7 @@ func NewRunTaskShell() *RunTaskShell {
 }
 
 func (shellTask *RunTaskShell) RunTask(r *RunTaskRunner, input interface{}, taskSupport TaskSupport) (interface{}, error) {
-
+	await := r.Task.Run.Await
 	shell := r.Task.Run.Shell
 	var cmdStr string
 
@@ -98,17 +99,40 @@ func (shellTask *RunTaskShell) RunTask(r *RunTaskRunner, input interface{}, task
 	}
 
 	if cmdStr == "" {
-		return nil, model.NewErrValidation(fmt.Errorf("no command provided for RunTask %shellTask", r.TaskName), r.TaskName)
+		return nil, model.NewErrValidation(fmt.Errorf("no command provided for RunTask shell: %s ", r.TaskName), r.TaskName)
+	}
+
+	if shell.Environment != nil {
+		for key, value := range shell.Environment {
+			evaluated, ok := expr.TraverseAndEvaluate(value, input, taskSupport.GetContext())
+			if ok != nil {
+				return nil, model.NewErrRuntime(fmt.Errorf("error evaluating environment variable value for RunTask shell: %s", r.TaskName), r.TaskName)
+			}
+
+			err := os.Setenv(key, evaluated.(string))
+			if err != nil {
+				return nil, model.NewErrRuntime(fmt.Errorf("error setting environment variable for RunTask shell: %s", r.TaskName), r.TaskName)
+			}
+		}
 	}
 
 	evaluated, err := expr.TraverseAndEvaluate(cmdStr, input, taskSupport.GetContext())
 	if err != nil {
-		return nil, err
+		return nil, model.NewErrRuntime(fmt.Errorf("error evaluating command for RunTask shell: %s", r.TaskName), r.TaskName)
 	}
 
 	cmdEvaluated, ok := evaluated.(string)
 	if !ok {
-		return nil, model.NewErrRuntime(fmt.Errorf("expected evaluated command to be a string, but got a different type. Got: %v", evaluated), r.TaskName)
+		return nil, model.NewErrRuntime(fmt.Errorf("expected evaluated command to be a string, but got a different type"), r.TaskName)
+	}
+
+	if await != nil && !*await {
+		go func() {
+			cmd := exec.Command("sh", "-c", cmdEvaluated)
+			_ = cmd.Start()
+			cmd.Wait()
+		}()
+		return input, nil
 	}
 
 	cmd := exec.Command("sh", "-c", cmdEvaluated)
@@ -137,6 +161,8 @@ func (shellTask *RunTaskShell) RunTask(r *RunTaskRunner, input interface{}, task
 		return stdoutStr, nil
 	case "code":
 		return exitCode, nil
+	case "none":
+		return nil, nil
 	default:
 		return stdoutStr, nil
 	}

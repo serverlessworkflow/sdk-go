@@ -16,6 +16,7 @@ package impl
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -99,6 +100,44 @@ func TestWithTestData(t *testing.T) {
 		output, err := runWorkflowExpectString(t, workflowPath, input)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedOutput, output.(int))
+	})
+
+	t.Run("JQ expression in command with 'all' return", func(t *testing.T) {
+		workflowPath := "./testdata/runshell_echo_jq.yaml"
+		input := map[string]interface{}{
+			"user": map[string]interface{}{
+				"name": "Matheus Cruz",
+			},
+		}
+		output, err := runWorkflowExpectString(t, workflowPath, input)
+
+		processResult := output.(*ProcessResult)
+		assert.NoError(t, err)
+		assert.Equal(t, "", processResult.Stderr)
+		assert.Equal(t, "Hello, Matheus Cruz", processResult.Stdout)
+		assert.Equal(t, 0, processResult.Code)
+	})
+
+	t.Run("Simple echo with 'none' return", func(t *testing.T) {
+		workflowPath := "./testdata/runshell_echo_none.yaml"
+		input := map[string]interface{}{}
+		output, err := runWorkflowExpectString(t, workflowPath, input)
+
+		assert.NoError(t, err)
+		assert.Nil(t, output)
+	})
+
+	t.Run("Simple echo with env and await as 'false'", func(t *testing.T) {
+		workflowPath := "./testdata/runshell_echo_env_no_awaiting.yaml"
+		input := map[string]interface{}{
+			"full_name": "John Doe",
+		}
+		output, err := runWorkflowExpectString(t, workflowPath, input)
+
+		assert.NoError(t, err)
+		assert.Equal(t, output, input)
+		file, err := os.ReadFile("/tmp/hello.txt")
+		assert.Equal(t, "hello world not awaiting (John Doe)", strings.TrimSpace(string(file)))
 	})
 }
 

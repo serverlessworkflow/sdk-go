@@ -470,7 +470,7 @@ func BenchmarkTaskRegistry_RegisterTask(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		taskType := fmt.Sprintf("benchmark_task_%d", i)
-		registry.RegisterTask(taskType, constructor)
+		_ = registry.RegisterTask(taskType, constructor)
 	}
 }
 
@@ -481,7 +481,7 @@ func BenchmarkTaskRegistry_GetConstructor(b *testing.B) {
 	// Pre-register some tasks
 	for i := range 1000 {
 		taskType := fmt.Sprintf("benchmark_task_%d", i)
-		registry.RegisterTask(taskType, constructor)
+		_ = registry.RegisterTask(taskType, constructor)
 	}
 
 	b.ResetTimer()
@@ -498,7 +498,7 @@ func BenchmarkTaskRegistry_ConcurrentAccess(b *testing.B) {
 	// Pre-register some tasks
 	for i := range 100 {
 		taskType := fmt.Sprintf("concurrent_benchmark_task_%d", i)
-		registry.RegisterTask(taskType, constructor)
+		_ = registry.RegisterTask(taskType, constructor)
 	}
 
 	b.ResetTimer()

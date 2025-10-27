@@ -126,16 +126,46 @@ func (shellTask *RunTaskShell) RunTask(r *RunTaskRunner, input interface{}, task
 		return nil, model.NewErrRuntime(fmt.Errorf("expected evaluated command to be a string, but got a different type"), r.TaskName)
 	}
 
+	var args []string
+
+	args = append(args, "-c", cmdEvaluated)
+
+	if shell.Arguments != nil {
+		for key, value := range shell.Arguments {
+			keyEval, ok := expr.TraverseAndEvaluate(key, input, taskSupport.GetContext())
+			if ok != nil {
+				return nil, model.NewErrRuntime(fmt.Errorf("error evaluating argument value for RunTask shell: %s", r.TaskName), r.TaskName)
+			}
+
+			if value != nil {
+				valueEval, ok := expr.TraverseAndEvaluate(value, input, taskSupport.GetContext())
+				if ok != nil {
+					return nil, model.NewErrRuntime(fmt.Errorf("error evaluating argument value for RunTask shell: %s", r.TaskName), r.TaskName)
+				}
+				args = append(args, fmt.Sprintf("%s=%s", keyEval, valueEval))
+			} else {
+				args = append(args, fmt.Sprintf("%s", keyEval))
+			}
+		}
+	}
+
+	var fullCmd strings.Builder
+	fullCmd.WriteString(cmdEvaluated)
+	for i := 2; i < len(args); i++ {
+		fullCmd.WriteString(" ")
+		fullCmd.WriteString(args[i])
+	}
+
 	if await != nil && !*await {
 		go func() {
-			cmd := exec.Command("sh", "-c", cmdEvaluated)
+			cmd := exec.Command("sh", "-c", fullCmd.String())
 			_ = cmd.Start()
 			cmd.Wait()
 		}()
 		return input, nil
 	}
 
-	cmd := exec.Command("sh", "-c", cmdEvaluated)
+	cmd := exec.Command("sh", "-c", fullCmd.String())
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -158,7 +188,7 @@ func (shellTask *RunTaskShell) RunTask(r *RunTaskRunner, input interface{}, task
 	case "all":
 		return NewProcessResult(stdoutStr, stderrStr, exitCode), nil
 	case "stderr":
-		return stdoutStr, nil
+		return stderrStr, nil
 	case "code":
 		return exitCode, nil
 	case "none":

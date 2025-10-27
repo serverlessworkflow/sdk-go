@@ -73,20 +73,20 @@ func withRunnerCtx(workflowContext ctx.WorkflowContext) taskSupportOpts {
 // runWorkflowTest is a reusable test function for workflows
 func runWorkflowTest(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) {
 	// Run the workflow
-	output, err := runWorkflow(t, workflowPath, input, expectedOutput)
+	output, err := runWorkflow(t, workflowPath, input)
 	assert.NoError(t, err)
 
 	assertWorkflowRun(t, expectedOutput, output)
 }
 
 func runWorkflowWithErr(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}, assertErr func(error)) {
-	output, err := runWorkflow(t, workflowPath, input, expectedOutput)
+	output, err := runWorkflow(t, workflowPath, input)
 	assert.Error(t, err)
 	assertErr(err)
 	assertWorkflowRun(t, expectedOutput, output)
 }
 
-func runWorkflow(t *testing.T, workflowPath string, input, expectedOutput map[string]interface{}) (output interface{}, err error) {
+func runWorkflow(t *testing.T, workflowPath string, input map[string]interface{}) (output interface{}, err error) {
 	// Read the workflow YAML from the testdata directory
 	yamlBytes, err := os.ReadFile(filepath.Clean(workflowPath))
 	assert.NoError(t, err, "Failed to read workflow YAML file")

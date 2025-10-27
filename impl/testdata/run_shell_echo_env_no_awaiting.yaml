@@ -21,7 +21,7 @@ do:
   - runShell:
       run:
         shell:
-          command: echo "hello world not awaiting ($FULL_NAME)" > /tmp/hello.txt && cat /tmp/hello.txt
+          command: echo "hello world not awaiting ($FULL_NAME)" > /tmp/hello-world.txt && cat /tmp/hello-world.txt
           environment:
             FULL_NAME: ${.full_name}
         await: false

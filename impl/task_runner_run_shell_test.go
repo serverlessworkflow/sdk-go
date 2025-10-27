@@ -15,73 +15,14 @@
 package impl
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func testingRunShell(t *testing.T, task model.RunTask, expected interface{}, input map[string]interface{}) {
-
-	wfCtx, err := ctx.NewWorkflowContext(&model.Workflow{
-		Input: &model.Input{
-			From: &model.ObjectOrRuntimeExpr{Value: input},
-		},
-	})
-	assert.NoError(t, err)
-	wfCtx.SetTaskReference("task_run_defined")
-	wfCtx.SetInput(input)
-
-	runner, err := NewRunTaskRunner("runShell", &task)
-	assert.NoError(t, err)
-
-	taskSupport := newTaskSupport(withRunnerCtx(wfCtx))
-
-	if input == nil {
-		input = map[string]interface{}{}
-	}
-
-	output, err := runner.Run(input, taskSupport)
-
-	assert.NoError(t, err)
-
-	switch exp := expected.(type) {
-
-	case int:
-		// expected an exit code
-		codeOut, ok := output.(int)
-		assert.True(t, ok, "output should be int (exit code), got %T", output)
-		assert.Equal(t, exp, codeOut)
-	case string:
-		var outStr string
-		switch v := output.(type) {
-		case string:
-			outStr = v
-		case []byte:
-			outStr = string(v)
-		case int:
-			outStr = fmt.Sprintf("%d", v)
-		default:
-			t.Fatalf("unexpected output type %T", output)
-		}
-		outStr = strings.TrimSpace(outStr)
-		assert.Equal(t, exp, outStr)
-	case ProcessResult:
-		resultOut, ok := output.(*ProcessResult)
-		assert.True(t, ok, "output should be ProcessResult, got %T", output)
-		assert.Equal(t, exp.Stdout, strings.TrimSpace(resultOut.Stdout))
-		assert.Equal(t, exp.Stderr, strings.TrimSpace(resultOut.Stderr))
-		assert.Equal(t, exp.Code, resultOut.Code)
-	default:
-		t.Fatalf("unsupported expected type %T", expected)
-	}
-}
-
-func TestWithTestData(t *testing.T) {
+func TestRunShellWithTestData(t *testing.T) {
 
 	t.Run("Simple with echo", func(t *testing.T) {
 		workflowPath := "./testdata/run_shell_echo.yaml"
@@ -141,11 +82,11 @@ func TestWithTestData(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, output, input)
-		file, err := os.ReadFile("/tmp/hello.txt")
+		file, err := os.ReadFile("/tmp/hello-world.txt")
 		assert.Equal(t, "hello world not awaiting (John Doe)", strings.TrimSpace(string(file)))
 	})
 
-	t.Run("Simple echo not awaiting, function returns immediately", func(t *testing.T) {
+	t.Run("Simple echo not awaiting, function should returns immediately", func(t *testing.T) {
 		workflowPath := "./testdata/run_shell_echo_not_awaiting.yaml"
 		input := map[string]interface{}{
 			"full_name": "John Doe",
@@ -156,7 +97,7 @@ func TestWithTestData(t *testing.T) {
 		assert.Equal(t, output, input)
 	})
 
-	t.Run("Simple ls getting output as stderr", func(t *testing.T) {
+	t.Run("Simple 'ls' command getting output as stderr", func(t *testing.T) {
 		workflowPath := "./testdata/run_shell_ls_stderr.yaml"
 		input := map[string]interface{}{}
 
@@ -191,6 +132,9 @@ func TestWithTestData(t *testing.T) {
 		output, err := runWorkflow(t, workflowPath, input)
 
 		processResult := output.(*ProcessResult)
+
+		// Go does not keep the order of map iteration
+		// TODO: improve the UnMarshal of args to keep the order
 
 		assert.NoError(t, err)
 		assert.True(t, strings.Contains(processResult.Stdout, "--user=john"))
@@ -249,60 +193,4 @@ func TestWithTestData(t *testing.T) {
 		assert.Equal(t, 0, processResult.Code)
 		assert.Equal(t, "", processResult.Stderr)
 	})
-}
-
-func TestRunTaskRunner(t *testing.T) {
-	tests := []struct {
-		name     string
-		cmd      string
-		ret      string
-		expected interface{}
-		input    map[string]interface{}
-	}{
-		{
-			name:     "echoLookCode",
-			cmd:      "echo 'hello world'",
-			ret:      "code",
-			expected: 0,
-		},
-		{
-			name:     "echoLookStdout",
-			cmd:      "echo 'hello world'",
-			ret:      "stdout",
-			expected: "hello world",
-		},
-		{
-			name: "echoLookAll",
-			cmd:  "echo 'hello world'",
-			ret:  "all",
-			expected: *NewProcessResult(
-				"hello world",
-				"",
-				0,
-			),
-		},
-		{
-			name:     "echoJqExpression",
-			cmd:      `${ "echo Hello, I love \(.project)" }`,
-			ret:      "stdout",
-			expected: "Hello, I love ServerlessWorkflow",
-			input: map[string]interface{}{
-				"project": "ServerlessWorkflow",
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			task := model.RunTask{
-				Run: model.RunTaskConfiguration{
-					Shell: &model.Shell{
-						Command: tc.cmd,
-					},
-					Return: tc.ret,
-				},
-			}
-			testingRunShell(t, task, tc.expected, tc.input)
-		})
-	}
 }

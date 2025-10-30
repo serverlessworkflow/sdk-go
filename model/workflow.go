@@ -22,7 +22,7 @@ import (
 
 	validator "github.com/go-playground/validator/v10"
 
-	val "github.com/finbox-in/sdk-go/validator"
+	val "github.com/finbox-in/serverlessworkflow/sdk-go/validator"
 )
 
 // InvokeKind defines how the target is invoked.

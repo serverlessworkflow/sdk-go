@@ -18,7 +18,7 @@ import (
 	"context"
 	"reflect"
 
-	val "github.com/finbox-in/sdk-go/validator"
+	val "github.com/finbox-in/serverlessworkflow/sdk-go/validator"
 
 	validator "github.com/go-playground/validator/v10"
 )

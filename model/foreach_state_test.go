@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	val "github.com/finbox-in/sdk-go/validator"
+	val "github.com/finbox-in/serverlessworkflow/sdk-go/validator"
 )
 
 func TestForEachStateUnmarshalJSON(t *testing.T) {

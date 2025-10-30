@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	val "github.com/finbox-in/sdk-go/validator"
+	val "github.com/finbox-in/serverlessworkflow/sdk-go/validator"
 )
 
 func TestWorkflowRefUnmarshalJSON(t *testing.T) {

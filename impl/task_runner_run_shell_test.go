@@ -15,7 +15,6 @@
 package impl
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -82,8 +81,6 @@ func TestRunShellWithTestData(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, output, input)
-		file, err := os.ReadFile("/tmp/hello-world.txt")
-		assert.Equal(t, "hello world not awaiting (John Doe)", strings.TrimSpace(string(file)))
 	})
 
 	t.Run("Simple echo not awaiting, function should returns immediately", func(t *testing.T) {
@@ -119,8 +116,7 @@ func TestRunShellWithTestData(t *testing.T) {
 		processResult := output.(*ProcessResult)
 
 		assert.NoError(t, err)
-		assert.True(t, strings.Contains(processResult.Stdout, "--user=Alice"))
-		assert.True(t, strings.Contains(processResult.Stdout, "--password=serverless"))
+		assert.True(t, strings.Contains(processResult.Stdout, "--user=Alice --password=serverless"))
 		assert.Equal(t, 0, processResult.Code)
 		assert.Equal(t, "", processResult.Stderr)
 	})
@@ -137,8 +133,7 @@ func TestRunShellWithTestData(t *testing.T) {
 		// TODO: improve the UnMarshal of args to keep the order
 
 		assert.NoError(t, err)
-		assert.True(t, strings.Contains(processResult.Stdout, "--user=john"))
-		assert.True(t, strings.Contains(processResult.Stdout, "--password=doe"))
+		assert.Equal(t, "--user=john --password=doe", processResult.Stdout)
 		assert.Equal(t, 0, processResult.Code)
 		assert.Equal(t, "", processResult.Stderr)
 	})

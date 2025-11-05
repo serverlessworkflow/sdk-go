@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/finbox-in/serverlessworkflow/sdk-go/model"
-	"github.com/finbox-in/serverlessworkflow/sdk-go/test"
+	"github.com/finbox-in/serverlessworkflow-sdk-go/model"
+	"github.com/finbox-in/serverlessworkflow-sdk-go/test"
 )
 
 func TestBasicValidation(t *testing.T) {

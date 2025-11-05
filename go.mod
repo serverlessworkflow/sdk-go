@@ -1,4 +1,4 @@
-module github.com/finbox-in/serverlessworkflow/sdk-go
+module github.com/finbox-in/serverlessworkflow-sdk-go
 
 go 1.19
 

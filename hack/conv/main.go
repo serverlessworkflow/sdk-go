@@ -25,7 +25,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/finbox-in/serverlessworkflow/sdk-go/test"
+	"github.com/finbox-in/serverlessworkflow-sdk-go/test"
 )
 
 func convert(i interface{}) interface{} {

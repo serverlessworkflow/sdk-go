@@ -21,9 +21,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/finbox-in/serverlessworkflow/sdk-go/validator"
+	"github.com/finbox-in/serverlessworkflow-sdk-go/validator"
 
-	"github.com/finbox-in/serverlessworkflow/sdk-go/model"
+	"github.com/finbox-in/serverlessworkflow-sdk-go/model"
 	"sigs.k8s.io/yaml"
 )
 

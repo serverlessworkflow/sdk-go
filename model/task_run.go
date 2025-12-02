@@ -39,24 +39,34 @@ type RunTaskConfiguration struct {
 
 type Container struct {
 	Image       string                 `json:"image" validate:"required"`
+	Name        string                 `json:"name,omitempty"`
 	Command     string                 `json:"command,omitempty"`
 	Ports       map[string]interface{} `json:"ports,omitempty"`
 	Volumes     map[string]interface{} `json:"volumes,omitempty"`
 	Environment map[string]string      `json:"environment,omitempty"`
+	Input       string                 `json:"stdin,omitempty"`
+	Arguments   []string               `json:"arguments,omitempty"`
+	Lifetime    *ContainerLifetime     `json:"lifetime,omitempty"`
+}
+
+type ContainerLifetime struct {
+	Cleanup string    `json:"cleanup" validate:"required,oneof=always never eventually"`
+	After   *Duration `json:"after" validate:"required_if=Cleanup eventually"`
 }
 
 type Script struct {
-	Language    string                 `json:"language" validate:"required"`
-	Arguments   map[string]interface{} `json:"arguments,omitempty"`
-	Environment map[string]string      `json:"environment,omitempty"`
-	InlineCode  *string                `json:"code,omitempty"`
-	External    *ExternalResource      `json:"source,omitempty"`
+	Language    string            `json:"language" validate:"required,oneof=javascript js python"` // "js" exists for legacy reasons, use "javascript" instead
+	Arguments   *RunArguments     `json:"arguments,omitempty"`
+	Environment map[string]string `json:"environment,omitempty"`
+	InlineCode  *string           `json:"code,omitempty"`
+	External    *ExternalResource `json:"source,omitempty"`
+	Input       string            `json:"stdin,omitempty"`
 }
 
 type Shell struct {
-	Command     string                 `json:"command" validate:"required"`
-	Arguments   map[string]interface{} `json:"arguments,omitempty"`
-	Environment map[string]string      `json:"environment,omitempty"`
+	Command     string            `json:"command" validate:"required"`
+	Arguments   *RunArguments     `json:"arguments,omitempty"`
+	Environment map[string]string `json:"environment,omitempty"`
 }
 
 type RunWorkflow struct {
@@ -125,4 +135,47 @@ func (rtc *RunTaskConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(temp)
+}
+
+type RunArguments struct {
+	Value any `json:"-"`
+}
+
+func (a *RunArguments) MarshalJSON() ([]byte, error) {
+	switch v := a.Value.(type) {
+	case map[string]interface{}, []string:
+		return json.Marshal(v)
+	default:
+		return nil, errors.New("unknown RunArguments type")
+	}
+}
+
+func (a *RunArguments) UnmarshalJSON(data []byte) error {
+	var m map[string]interface{}
+	if err := json.Unmarshal(data, &m); err == nil {
+		a.Value = m
+		return nil
+	}
+
+	var s []string
+	if err := json.Unmarshal(data, &s); err == nil {
+		a.Value = s
+		return nil
+	}
+
+	return errors.New("data must be a valid array of strings or object map")
+}
+
+func (a *RunArguments) AsMap() map[string]interface{} {
+	if v, ok := a.Value.(map[string]interface{}); ok {
+		return v
+	}
+	return nil
+}
+
+func (a *RunArguments) AsSlice() []string {
+	if v, ok := a.Value.([]string); ok {
+		return v
+	}
+	return nil
 }

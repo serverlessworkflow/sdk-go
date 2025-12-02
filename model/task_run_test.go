@@ -151,8 +151,10 @@ func TestRunTaskScriptArgsMap_MarshalJSON(t *testing.T) {
 			Await: boolPtr(true),
 			Script: &Script{
 				Language: "python",
-				Arguments: map[string]interface{}{
-					"arg1": "value1",
+				Arguments: &RunArguments{
+					Value: map[string]interface{}{
+						"arg1": "value1",
+					},
 				},
 				Environment: map[string]string{
 					"ENV_VAR": "value",
@@ -216,10 +218,99 @@ func TestRunTaskScriptArgsMap_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, runTask.Metadata)
 	assert.Equal(t, true, *runTask.Run.Await)
 	assert.Equal(t, "python", runTask.Run.Script.Language)
-	assert.Equal(t, map[string]interface{}{"arg1": "value1"}, runTask.Run.Script.Arguments)
+	assert.Equal(t, map[string]interface{}{"arg1": "value1"}, runTask.Run.Script.Arguments.AsMap())
 	assert.Equal(t, map[string]string{"ENV_VAR": "value"}, runTask.Run.Script.Environment)
 	assert.Equal(t, "print('Hello, World!')", *runTask.Run.Script.InlineCode)
-	assert.Equal(t, "example-input", *&runTask.Run.Script.Input)
+	assert.Equal(t, "example-input", runTask.Run.Script.Input)
+}
+
+func TestRunTaskScriptArgArray_MarshalJSON(t *testing.T) {
+	runTask := RunTask{
+		TaskBase: TaskBase{
+			If:      &RuntimeExpression{Value: "${condition}"},
+			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
+			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Then:    &FlowDirective{Value: "continue"},
+			Metadata: map[string]interface{}{
+				"meta": "data",
+			},
+		},
+		Run: RunTaskConfiguration{
+			Await: boolPtr(true),
+			Script: &Script{
+				Language: "python",
+				Arguments: &RunArguments{
+					Value: []string{
+						"arg1=value1",
+					},
+				},
+				Environment: map[string]string{
+					"ENV_VAR": "value",
+				},
+				InlineCode: stringPtr("print('Hello, World!')"),
+				Input:      "example-input",
+			},
+		},
+	}
+
+	data, err := json.Marshal(runTask)
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{
+		"if": "${condition}",
+		"input": { "from": {"key": "value"} },
+		"output": { "as": {"result": "output"} },
+		"timeout": { "after": "10s" },
+		"then": "continue",
+		"metadata": {"meta": "data"},
+		"run": {
+			"await": true,
+			"script": {
+				"language": "python",
+				"arguments": ["arg1=value1"],
+				"environment": {"ENV_VAR": "value"},
+				"code": "print('Hello, World!')",
+				"stdin": "example-input"
+			}
+		}
+	}`, string(data))
+}
+
+func TestRunTaskScriptArgsArray_UnmarshalJSON(t *testing.T) {
+	jsonData := `{
+		"if": "${condition}",
+		"input": { "from": {"key": "value"} },
+		"output": { "as": {"result": "output"} },
+		"timeout": { "after": "10s" },
+		"then": "continue",
+		"metadata": {"meta": "data"},
+		"run": {
+			"await": true,
+			"script": {
+				"language": "python",
+				"arguments": ["arg1=value1"],
+				"environment": {"ENV_VAR": "value"},
+				"code": "print('Hello, World!')",
+				"stdin": "example-input"
+			}
+		}
+	}`
+
+	var runTask RunTask
+	err := json.Unmarshal([]byte(jsonData), &runTask)
+	assert.NoError(t, err)
+	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, runTask.If)
+	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, runTask.Input)
+	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, runTask.Output)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, runTask.Timeout)
+	assert.Equal(t, &FlowDirective{Value: "continue"}, runTask.Then)
+	assert.Equal(t, map[string]interface{}{"meta": "data"}, runTask.Metadata)
+	assert.Equal(t, true, *runTask.Run.Await)
+	assert.Equal(t, "python", runTask.Run.Script.Language)
+	assert.Equal(t, []string{"arg1=value1"}, runTask.Run.Script.Arguments.AsSlice())
+	assert.Equal(t, map[string]string{"ENV_VAR": "value"}, runTask.Run.Script.Environment)
+	assert.Equal(t, "print('Hello, World!')", *runTask.Run.Script.InlineCode)
+	assert.Equal(t, "example-input", runTask.Run.Script.Input)
 }
 
 func boolPtr(b bool) *bool {

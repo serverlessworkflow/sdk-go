@@ -55,11 +55,12 @@ type ContainerLifetime struct {
 }
 
 type Script struct {
-	Language    string                 `json:"language" validate:"required"`
+	Language    string                 `json:"language" validate:"required,oneof=javascript js python"` // "js" exists for legacy reasons, use "javascript" instead
 	Arguments   map[string]interface{} `json:"arguments,omitempty"`
 	Environment map[string]string      `json:"environment,omitempty"`
 	InlineCode  *string                `json:"code,omitempty"`
 	External    *ExternalResource      `json:"source,omitempty"`
+	Input       string                 `json:"stdin,omitempty"`
 }
 
 type Shell struct {

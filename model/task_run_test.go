@@ -135,7 +135,7 @@ func TestRunTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &DurationInline{Seconds: 20}, runTask.Run.Container.Lifetime.After.AsInline())
 }
 
-func TestRunTaskScript_MarshalJSON(t *testing.T) {
+func TestRunTaskScriptArgsMap_MarshalJSON(t *testing.T) {
 	runTask := RunTask{
 		TaskBase: TaskBase{
 			If:      &RuntimeExpression{Value: "${condition}"},
@@ -158,6 +158,7 @@ func TestRunTaskScript_MarshalJSON(t *testing.T) {
 					"ENV_VAR": "value",
 				},
 				InlineCode: stringPtr("print('Hello, World!')"),
+				Input:      "example-input",
 			},
 		},
 	}
@@ -177,13 +178,14 @@ func TestRunTaskScript_MarshalJSON(t *testing.T) {
 				"language": "python",
 				"arguments": {"arg1": "value1"},
 				"environment": {"ENV_VAR": "value"},
-				"code": "print('Hello, World!')"
+				"code": "print('Hello, World!')",
+				"stdin": "example-input"
 			}
 		}
 	}`, string(data))
 }
 
-func TestRunTaskScript_UnmarshalJSON(t *testing.T) {
+func TestRunTaskScriptArgsMap_UnmarshalJSON(t *testing.T) {
 	jsonData := `{
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
@@ -197,7 +199,8 @@ func TestRunTaskScript_UnmarshalJSON(t *testing.T) {
 				"language": "python",
 				"arguments": {"arg1": "value1"},
 				"environment": {"ENV_VAR": "value"},
-				"code": "print('Hello, World!')"
+				"code": "print('Hello, World!')",
+				"stdin": "example-input"
 			}
 		}
 	}`
@@ -216,6 +219,7 @@ func TestRunTaskScript_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{"arg1": "value1"}, runTask.Run.Script.Arguments)
 	assert.Equal(t, map[string]string{"ENV_VAR": "value"}, runTask.Run.Script.Environment)
 	assert.Equal(t, "print('Hello, World!')", *runTask.Run.Script.InlineCode)
+	assert.Equal(t, "example-input", *&runTask.Run.Script.Input)
 }
 
 func boolPtr(b bool) *bool {

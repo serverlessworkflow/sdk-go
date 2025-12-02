@@ -37,12 +37,22 @@ func TestRunTask_MarshalJSON(t *testing.T) {
 			Await: boolPtr(true),
 			Container: &Container{
 				Image:   "example-image",
+				Name:    "example-name",
 				Command: "example-command",
 				Ports: map[string]interface{}{
 					"8080": "80",
 				},
 				Environment: map[string]string{
 					"ENV_VAR": "value",
+				},
+				Input: "example-input",
+				Arguments: []string{
+					"arg1",
+					"arg2",
+				},
+				Lifetime: &ContainerLifetime{
+					Cleanup: "eventually",
+					After:   NewDurationExpr("20s"),
 				},
 			},
 		},
@@ -61,9 +71,16 @@ func TestRunTask_MarshalJSON(t *testing.T) {
 			"await": true,
 			"container": {
 				"image": "example-image",
+				"name": "example-name",
 				"command": "example-command",
 				"ports": {"8080": "80"},
-				"environment": {"ENV_VAR": "value"}
+				"environment": {"ENV_VAR": "value"},
+				"stdin": "example-input",
+				"arguments": ["arg1","arg2"],
+				"lifetime": {
+					"cleanup": "eventually",
+					"after": "20s"
+				}
 			}
 		}
 	}`, string(data))
@@ -81,9 +98,18 @@ func TestRunTask_UnmarshalJSON(t *testing.T) {
 			"await": true,
 			"container": {
 				"image": "example-image",
+				"name": "example-name",
 				"command": "example-command",
 				"ports": {"8080": "80"},
-				"environment": {"ENV_VAR": "value"}
+				"environment": {"ENV_VAR": "value"},
+				"stdin": "example-input",
+				"arguments": ["arg1","arg2"],
+				"lifetime": {
+					"cleanup": "eventually",
+					"after": {
+						"seconds": 20
+					}
+				}
 			}
 		}
 	}`
@@ -102,6 +128,11 @@ func TestRunTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, "example-command", runTask.Run.Container.Command)
 	assert.Equal(t, map[string]interface{}{"8080": "80"}, runTask.Run.Container.Ports)
 	assert.Equal(t, map[string]string{"ENV_VAR": "value"}, runTask.Run.Container.Environment)
+	assert.Equal(t, "example-name", runTask.Run.Container.Name)
+	assert.Equal(t, "example-input", runTask.Run.Container.Input)
+	assert.Equal(t, []string{"arg1", "arg2"}, runTask.Run.Container.Arguments)
+	assert.Equal(t, "eventually", runTask.Run.Container.Lifetime.Cleanup)
+	assert.Equal(t, &DurationInline{Seconds: 20}, runTask.Run.Container.Lifetime.After.AsInline())
 }
 
 func TestRunTaskScript_MarshalJSON(t *testing.T) {

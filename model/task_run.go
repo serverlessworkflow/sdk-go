@@ -39,10 +39,19 @@ type RunTaskConfiguration struct {
 
 type Container struct {
 	Image       string                 `json:"image" validate:"required"`
+	Name        string                 `json:"name,omitempty"`
 	Command     string                 `json:"command,omitempty"`
 	Ports       map[string]interface{} `json:"ports,omitempty"`
 	Volumes     map[string]interface{} `json:"volumes,omitempty"`
 	Environment map[string]string      `json:"environment,omitempty"`
+	Input       string                 `json:"stdin,omitempty"`
+	Arguments   []string               `json:"arguments,omitempty"`
+	Lifetime    *ContainerLifetime     `json:"lifetime,omitempty"`
+}
+
+type ContainerLifetime struct {
+	Cleanup string    `json:"cleanup" validate:"required,oneof=always never eventually"`
+	After   *Duration `json:"after" validate:"required_if=Cleanup eventually"`
 }
 
 type Script struct {

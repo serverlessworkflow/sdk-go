@@ -15,8 +15,6 @@
 package model
 
 import (
-	"reflect"
-
 	validator "github.com/go-playground/validator/v10"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -52,12 +50,12 @@ type Retry struct {
 
 // RetryStructLevelValidation custom validator for Retry Struct
 func RetryStructLevelValidation(structLevel validator.StructLevel) {
-	retryObj := structLevel.Current().Interface().(Retry)
+	_ = structLevel.Current().Interface().(Retry)
 
-	if retryObj.Jitter.Type == floatstr.String && retryObj.Jitter.StrVal != "" {
-		err := val.ValidateISO8601TimeDuration(retryObj.Jitter.StrVal)
-		if err != nil {
-			structLevel.ReportError(reflect.ValueOf(retryObj.Jitter.StrVal), "Jitter", "jitter", "iso8601duration", "")
-		}
-	}
+	//if retryObj.Jitter.Type == floatstr.String && retryObj.Jitter.StrVal != "" {
+	//err := val.ValidateISO8601TimeDuration(retryObj.Jitter.StrVal)
+	//if err != nil {
+	//structLevel.ReportError(reflect.ValueOf(retryObj.Jitter.StrVal), "Jitter", "jitter", "iso8601duration", "")
+	//}
+	//}
 }

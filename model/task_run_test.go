@@ -50,6 +50,7 @@ func TestRunTask_MarshalJSON(t *testing.T) {
 					"arg1",
 					"arg2",
 				},
+				PullPolicy: "always",
 				Lifetime: &ContainerLifetime{
 					Cleanup: "eventually",
 					After:   NewDurationExpr("20s"),
@@ -77,6 +78,7 @@ func TestRunTask_MarshalJSON(t *testing.T) {
 				"environment": {"ENV_VAR": "value"},
 				"stdin": "example-input",
 				"arguments": ["arg1","arg2"],
+				"pullPolicy": "always",
 				"lifetime": {
 					"cleanup": "eventually",
 					"after": "20s"

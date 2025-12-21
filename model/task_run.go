@@ -46,6 +46,7 @@ type Container struct {
 	Environment map[string]string      `json:"environment,omitempty"`
 	Input       string                 `json:"stdin,omitempty"`
 	Arguments   []string               `json:"arguments,omitempty"`
+	PullPolicy  string                 `json:"pullPolicy,omitempty" validate:"oneof=ifNotPresent always never"`
 	Lifetime    *ContainerLifetime     `json:"lifetime,omitempty"`
 }
 

@@ -43,6 +43,7 @@ func init() {
 
 	registerValidator("basic_policy", validateBasicPolicy)
 	registerValidator("bearer_policy", validateBearerPolicy)
+	registerValidator("proxy_bearer_policy", validateProxyBearerPolicy)
 	registerValidator("digest_policy", validateDigestPolicy)
 	registerValidator("oauth2_policy", validateOAuth2Policy)
 	registerValidator("client_auth_type", validateOptionalOAuthClientAuthentication)
@@ -177,6 +178,18 @@ func validateBasicPolicy(fl validator.FieldLevel) bool {
 // validateBearerPolicy ensures BearerAuthenticationPolicy has mutually exclusive fields set.
 func validateBearerPolicy(fl validator.FieldLevel) bool {
 	policy, ok := fl.Parent().Interface().(BearerAuthenticationPolicy)
+	if !ok {
+		return false
+	}
+	if policy.Token != "" && policy.Use != "" {
+		return false
+	}
+	return true
+}
+
+// validateProxyBearerPolicy ensures ProxyBearerAuthenticationPolicy has mutually exclusive fields set.
+func validateProxyBearerPolicy(fl validator.FieldLevel) bool {
+	policy, ok := fl.Parent().Interface().(ProxyBearerAuthenticationPolicy)
 	if !ok {
 		return false
 	}

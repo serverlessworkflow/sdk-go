@@ -49,6 +49,16 @@ func TestAuthenticationPolicy(t *testing.T) {
 			expected:   `{"digest":{"username":"digestUser","password":"digestPass"}}`,
 			expectsErr: false,
 		},
+		{
+			name: "Valid Proxy Bearer Authentication Inline",
+			input: `{
+				"proxy_bearer": {
+					"token": "proxyToken123"
+				}
+			}`,
+			expected:   `{"proxy_bearer":{"token":"proxyToken123"}}`,
+			expectsErr: false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -63,6 +73,9 @@ func TestAuthenticationPolicy(t *testing.T) {
 				}
 				if authPolicy.Bearer != nil {
 					err = validate.Struct(authPolicy.Bearer)
+				}
+				if authPolicy.ProxyBearer != nil {
+					err = validate.Struct(authPolicy.ProxyBearer)
 				}
 				if authPolicy.Digest != nil {
 					err = validate.Struct(authPolicy.Digest)

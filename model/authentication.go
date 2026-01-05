@@ -185,9 +185,11 @@ type BearerAuthenticationPolicy struct {
 	Use   string `json:"use,omitempty" validate:"required_without=Token"`
 }
 
+// ProxyBearerAuthenticationPolicy supports either an inline token or a secret reference (use).
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Proxy-Authorization
 type ProxyBearerAuthenticationPolicy struct {
 	Token string `json:"token,omitempty" validate:"required_without=Use,proxy_bearer_policy"`
-	Use   string `json:"use,omitempty" validate:"required"`
+	Use   string `json:"use,omitempty" validate:"required_without=Token"`
 }
 
 // DigestAuthenticationPolicy supports either inline properties (username/password) or a secret reference (use).

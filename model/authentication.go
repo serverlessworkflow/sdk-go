@@ -21,22 +21,24 @@ import (
 
 // AuthenticationPolicy Defines an authentication policy.
 type AuthenticationPolicy struct {
-	Basic  *BasicAuthenticationPolicy         `json:"basic,omitempty"`
-	Bearer *BearerAuthenticationPolicy        `json:"bearer,omitempty"`
-	Digest *DigestAuthenticationPolicy        `json:"digest,omitempty"`
-	OAuth2 *OAuth2AuthenticationPolicy        `json:"oauth2,omitempty"`
-	OIDC   *OpenIdConnectAuthenticationPolicy `json:"oidc,omitempty"`
+	Basic       *BasicAuthenticationPolicy         `json:"basic,omitempty"`
+	Bearer      *BearerAuthenticationPolicy        `json:"bearer,omitempty"`
+	ProxyBearer *ProxyBearerAuthenticationPolicy   `json:"proxy_bearer,omitempty"`
+	Digest      *DigestAuthenticationPolicy        `json:"digest,omitempty"`
+	OAuth2      *OAuth2AuthenticationPolicy        `json:"oauth2,omitempty"`
+	OIDC        *OpenIdConnectAuthenticationPolicy `json:"oidc,omitempty"`
 }
 
 // UnmarshalJSON for AuthenticationPolicy to enforce "oneOf" behavior.
 func (ap *AuthenticationPolicy) UnmarshalJSON(data []byte) error {
 	// Create temporary maps to detect which field is populated
 	temp := struct {
-		Basic  json.RawMessage `json:"basic"`
-		Bearer json.RawMessage `json:"bearer"`
-		Digest json.RawMessage `json:"digest"`
-		OAuth2 json.RawMessage `json:"oauth2"`
-		OIDC   json.RawMessage `json:"oidc"`
+		Basic       json.RawMessage `json:"basic"`
+		Bearer      json.RawMessage `json:"bearer"`
+		ProxyBearer json.RawMessage `json:"proxy_bearer"`
+		Digest      json.RawMessage `json:"digest"`
+		OAuth2      json.RawMessage `json:"oauth2"`
+		OIDC        json.RawMessage `json:"oidc"`
 	}{}
 
 	if err := json.Unmarshal(data, &temp); err != nil {
@@ -56,6 +58,13 @@ func (ap *AuthenticationPolicy) UnmarshalJSON(data []byte) error {
 		count++
 		ap.Bearer = &BearerAuthenticationPolicy{}
 		if err := json.Unmarshal(temp.Bearer, ap.Bearer); err != nil {
+			return err
+		}
+	}
+	if len(temp.ProxyBearer) > 0 {
+		count++
+		ap.ProxyBearer = &ProxyBearerAuthenticationPolicy{}
+		if err := json.Unmarshal(temp.ProxyBearer, ap.ProxyBearer); err != nil {
 			return err
 		}
 	}
@@ -95,6 +104,9 @@ func (ap *AuthenticationPolicy) MarshalJSON() ([]byte, error) {
 	}
 	if ap.Bearer != nil {
 		return json.Marshal(map[string]interface{}{"bearer": ap.Bearer})
+	}
+	if ap.ProxyBearer != nil {
+		return json.Marshal(map[string]interface{}{"proxy_bearer": ap.ProxyBearer})
 	}
 	if ap.Digest != nil {
 		return json.Marshal(map[string]interface{}{"digest": ap.Digest})
@@ -171,6 +183,11 @@ type BasicAuthenticationPolicy struct {
 type BearerAuthenticationPolicy struct {
 	Token string `json:"token,omitempty" validate:"required_without=Use,bearer_policy"`
 	Use   string `json:"use,omitempty" validate:"required_without=Token"`
+}
+
+type ProxyBearerAuthenticationPolicy struct {
+	Token string `json:"token,omitempty" validate:"required_without=Use,proxy_bearer_policy"`
+	Use   string `json:"use,omitempty" validate:"required"`
 }
 
 // DigestAuthenticationPolicy supports either inline properties (username/password) or a secret reference (use).

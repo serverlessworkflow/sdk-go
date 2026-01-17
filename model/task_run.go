@@ -35,6 +35,7 @@ type RunTaskConfiguration struct {
 	Script    *Script      `json:"script,omitempty"`
 	Shell     *Shell       `json:"shell,omitempty"`
 	Workflow  *RunWorkflow `json:"workflow,omitempty"`
+	Return    string       `json:"return,omitempty"`
 }
 
 type Container struct {
@@ -85,6 +86,7 @@ func (rtc *RunTaskConfiguration) UnmarshalJSON(data []byte) error {
 		Script    *Script      `json:"script"`
 		Shell     *Shell       `json:"shell"`
 		Workflow  *RunWorkflow `json:"workflow"`
+		Return    string       `json:"return"`
 	}{}
 
 	if err := json.Unmarshal(data, &temp); err != nil {
@@ -116,6 +118,7 @@ func (rtc *RunTaskConfiguration) UnmarshalJSON(data []byte) error {
 	}
 
 	rtc.Await = temp.Await
+	rtc.Return = temp.Return
 	return nil
 }
 
@@ -127,12 +130,14 @@ func (rtc *RunTaskConfiguration) MarshalJSON() ([]byte, error) {
 		Script    *Script      `json:"script,omitempty"`
 		Shell     *Shell       `json:"shell,omitempty"`
 		Workflow  *RunWorkflow `json:"workflow,omitempty"`
+		Return    string       `json:"return,omitempty"`
 	}{
 		Await:     rtc.Await,
 		Container: rtc.Container,
 		Script:    rtc.Script,
 		Shell:     rtc.Shell,
 		Workflow:  rtc.Workflow,
+		Return:    rtc.Return,
 	}
 
 	return json.Marshal(temp)

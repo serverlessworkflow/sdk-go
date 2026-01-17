@@ -37,6 +37,7 @@ var supportedExt = []string{extYAML, extYML, extJSON}
 // FromYAMLSource parses the given Serverless Workflow YAML source into the Workflow type.
 func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
 	var jsonBytes []byte
+	err = yaml.Unmarshal(source, &jsonBytes)
 	if jsonBytes, err = yaml.YAMLToJSON(source); err != nil {
 		return nil, err
 	}

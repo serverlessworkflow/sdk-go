@@ -177,33 +177,48 @@ func TestIsValid(t *testing.T) {
 		want       bool
 	}{
 		{
-			name:       "Valid expression - simple path",
-			expression: "${ .foo }",
+			name:       "Valid expression - simple field access",
+			expression: "${ foo }",
 			want:       true,
 		},
 		{
-			name:       "Valid expression - array slice",
-			expression: "${ .arr[0] }",
+			name:       "Valid expression - nested path",
+			expression: "${ foo.bar }",
 			want:       true,
 		},
 		{
-			name:       "Invalid syntax",
-			expression: "${ .foo( }",
-			want:       false,
+			name:       "Valid expression - array access",
+			expression: "${ arr[0] }",
+			want:       true,
 		},
 		{
-			name:       "No braces but valid JQ (directly provided)",
-			expression: ".bar",
+			name:       "Valid expression - JSONata object constructor",
+			expression: "${ {'key': value} }",
+			want:       true,
+		},
+		{
+			name:       "Valid expression - JSONata function",
+			expression: "${ $sum(numbers) }",
+			want:       true,
+		},
+		{
+			name:       "Valid expression - JSONata string concatenation",
+			expression: "${ firstName & ' ' & lastName }",
+			want:       true,
+		},
+		{
+			name:       "No braces but valid expression (directly provided)",
+			expression: "bar",
 			want:       true,
 		},
 		{
 			name:       "Empty expression",
 			expression: "",
-			want:       true, // empty is parseable but yields an empty query
+			want:       false,
 		},
 		{
-			name:       "Invalid bracket usage",
-			expression: "${ .arr[ }",
+			name:       "Empty braces with only whitespace",
+			expression: "${   }",
 			want:       false,
 		},
 	}

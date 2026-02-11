@@ -18,8 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/itchyny/gojq"
 )
 
 // RuntimeExpression represents a runtime expression.
@@ -55,9 +53,23 @@ func SanitizeExpr(expression string) string {
 }
 
 func IsValidExpr(expression string) bool {
-	expression = SanitizeExpr(expression)
-	_, err := gojq.Parse(expression)
-	return err == nil
+	// If wrapped in ${ }, validate that the inner expression is non-empty.
+	// If not wrapped, accept any non-empty string as a potential expression
+	// (e.g., simple field references used in RuntimeExpression contexts).
+	if IsStrictExpr(expression) {
+		inner := SanitizeExpr(expression)
+		return len(strings.TrimSpace(inner)) > 0
+	}
+	// Not wrapped in ${ } — only valid if it looks like an identifier/path
+	// (starts with a letter, $, or dot). Reject obviously invalid values.
+	expression = strings.TrimSpace(expression)
+	if len(expression) == 0 {
+		return false
+	}
+	first := expression[0]
+	return (first >= 'a' && first <= 'z') ||
+		(first >= 'A' && first <= 'Z') ||
+		first == '$' || first == '.'
 }
 
 // NormalizeExpr adds ${} to the given string

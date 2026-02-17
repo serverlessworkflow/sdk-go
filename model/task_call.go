@@ -127,6 +127,31 @@ type CallFunction struct {
 	TaskBase `json:",inline"`       // Inline TaskBase fields
 	Call     string                 `json:"call" validate:"required"`
 	With     map[string]interface{} `json:"with,omitempty"`
+	Retry    *CallRetryPolicy       `json:"retry,omitempty"`
+}
+
+// CallRetryPolicy defines a retry policy for call tasks that maps directly
+// to Temporal's native RetryPolicy and activity timeout settings.
+//
+// Example YAML:
+//
+//	retry:
+//	  delay: PT10S           # InitialInterval
+//	  maxDelay: PT100S       # MaximumInterval
+//	  multiplier: 4          # BackoffCoefficient
+//	  maxAttempts: 4         # MaximumAttempts
+//	  timeout: PT1M          # StartToCloseTimeout
+type CallRetryPolicy struct {
+	// Delay is the initial delay between retry attempts (Temporal InitialInterval).
+	Delay *Duration `json:"delay,omitempty"`
+	// MaxDelay is the maximum delay between retry attempts (Temporal MaximumInterval).
+	MaxDelay *Duration `json:"maxDelay,omitempty"`
+	// Multiplier is the backoff coefficient applied to successive retry delays.
+	Multiplier float64 `json:"multiplier,omitempty"`
+	// MaxAttempts is the maximum number of attempts (including the initial call).
+	MaxAttempts int32 `json:"maxAttempts,omitempty"`
+	// Timeout is the maximum duration for a single activity execution (StartToCloseTimeout).
+	Timeout *Duration `json:"timeout,omitempty"`
 }
 
 func (c *CallFunction) GetBase() *TaskBase {

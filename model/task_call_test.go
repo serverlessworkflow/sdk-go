@@ -27,7 +27,7 @@ func TestCallHTTP_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: string(FlowDirectiveContinue)},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -56,7 +56,7 @@ func TestCallHTTP_MarshalJSON(t *testing.T) {
 			"if": "${condition}",
 			"input": { "from": {"key": "value"} },
 			"output": { "as": {"result": "output"} },
-			"timeout": { "after": "10s" },
+			"timeout": { "after": "PT10S" },
 			"then": "continue",
 			"metadata": {"meta": "data"},
 			"call": "http",
@@ -76,7 +76,7 @@ func TestCallHTTP_UnmarshalJSON(t *testing.T) {
 			"if": "${condition}",
 			"input": { "from": {"key": "value"} },
 			"output": { "as": {"result": "output"} },
-			"timeout": { "after": "10s" },
+			"timeout": { "after": "PT10S" },
 			"then": "continue",
 			"metadata": {"meta": "data"},
 			"call": "http",
@@ -96,7 +96,7 @@ func TestCallHTTP_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{"${condition}"}, callHTTP.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, callHTTP.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, callHTTP.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, callHTTP.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, callHTTP.Timeout)
 	assert.Equal(t, &FlowDirective{Value: string(FlowDirectiveContinue)}, callHTTP.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, callHTTP.Metadata)
 	assert.Equal(t, "http", callHTTP.Call)
@@ -115,7 +115,7 @@ func TestCallOpenAPI_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -148,7 +148,7 @@ func TestCallOpenAPI_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "openapi",
@@ -176,7 +176,7 @@ func TestCallOpenAPI_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "openapi",
@@ -204,7 +204,7 @@ func TestCallOpenAPI_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, callOpenAPI.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, callOpenAPI.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, callOpenAPI.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, callOpenAPI.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, callOpenAPI.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, callOpenAPI.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, callOpenAPI.Metadata)
 	assert.Equal(t, "openapi", callOpenAPI.Call)
@@ -223,7 +223,7 @@ func TestCallGRPC_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -253,7 +253,7 @@ func TestCallGRPC_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "grpc",
@@ -280,7 +280,7 @@ func TestCallGRPC_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "grpc",
@@ -307,7 +307,7 @@ func TestCallGRPC_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, callGRPC.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, callGRPC.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, callGRPC.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, callGRPC.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, callGRPC.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, callGRPC.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, callGRPC.Metadata)
 	assert.Equal(t, "grpc", callGRPC.Call)
@@ -326,7 +326,7 @@ func TestCallAsyncAPI_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -353,7 +353,7 @@ func TestCallAsyncAPI_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "asyncapi",
@@ -377,7 +377,7 @@ func TestCallAsyncAPI_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "asyncapi",
@@ -404,7 +404,7 @@ func TestCallAsyncAPI_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, callAsyncAPI.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, callAsyncAPI.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, callAsyncAPI.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, callAsyncAPI.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, callAsyncAPI.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, callAsyncAPI.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, callAsyncAPI.Metadata)
 	assert.Equal(t, "asyncapi", callAsyncAPI.Call)
@@ -423,7 +423,7 @@ func TestCallFunction_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -442,7 +442,7 @@ func TestCallFunction_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "myFunction",
@@ -458,7 +458,7 @@ func TestCallFunction_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"call": "myFunction",
@@ -474,7 +474,7 @@ func TestCallFunction_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, callFunction.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, callFunction.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, callFunction.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, callFunction.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, callFunction.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, callFunction.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, callFunction.Metadata)
 	assert.Equal(t, "myFunction", callFunction.Call)

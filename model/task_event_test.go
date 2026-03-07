@@ -27,7 +27,7 @@ func TestEmitTask_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -57,7 +57,7 @@ func TestEmitTask_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"emit": {
@@ -82,7 +82,7 @@ func TestEmitTask_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"emit": {
@@ -107,7 +107,7 @@ func TestEmitTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, emitTask.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, emitTask.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, emitTask.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, emitTask.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, emitTask.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, emitTask.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, emitTask.Metadata)
 	assert.Equal(t, "event-id", emitTask.Emit.Event.With.ID)
@@ -126,7 +126,7 @@ func TestListenTask_MarshalJSON_WithUntilCondition(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -155,7 +155,7 @@ func TestListenTask_MarshalJSON_WithUntilCondition(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"listen": {

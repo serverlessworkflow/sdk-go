@@ -27,7 +27,7 @@ func TestSwitchTask_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -55,7 +55,7 @@ func TestSwitchTask_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"switch": [
@@ -80,7 +80,7 @@ func TestSwitchTask_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"switch": [
@@ -105,7 +105,7 @@ func TestSwitchTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, switchTask.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, switchTask.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, switchTask.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, switchTask.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, switchTask.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, switchTask.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, switchTask.Metadata)
 	assert.Equal(t, 2, len(switchTask.Switch))

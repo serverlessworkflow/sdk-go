@@ -27,7 +27,7 @@ func TestWaitTask_MarshalJSON(t *testing.T) {
 			If:      &RuntimeExpression{Value: "${condition}"},
 			Input:   &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}},
 			Output:  &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}},
-			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}},
+			Timeout: &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}},
 			Then:    &FlowDirective{Value: "continue"},
 			Metadata: map[string]interface{}{
 				"meta": "data",
@@ -42,7 +42,7 @@ func TestWaitTask_MarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"wait": "P1DT1H"
@@ -54,7 +54,7 @@ func TestWaitTask_UnmarshalJSON(t *testing.T) {
 		"if": "${condition}",
 		"input": { "from": {"key": "value"} },
 		"output": { "as": {"result": "output"} },
-		"timeout": { "after": "10s" },
+		"timeout": { "after": "PT10S" },
 		"then": "continue",
 		"metadata": {"meta": "data"},
 		"wait": "P1DT1H"
@@ -66,7 +66,7 @@ func TestWaitTask_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, &RuntimeExpression{Value: "${condition}"}, waitTask.If)
 	assert.Equal(t, &Input{From: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"key": "value"}}}, waitTask.Input)
 	assert.Equal(t, &Output{As: &ObjectOrRuntimeExpr{Value: map[string]interface{}{"result": "output"}}}, waitTask.Output)
-	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("10s")}}, waitTask.Timeout)
+	assert.Equal(t, &TimeoutOrReference{Timeout: &Timeout{After: NewDurationExpr("PT10S")}}, waitTask.Timeout)
 	assert.Equal(t, &FlowDirective{Value: "continue"}, waitTask.Then)
 	assert.Equal(t, map[string]interface{}{"meta": "data"}, waitTask.Metadata)
 	assert.Equal(t, NewDurationExpr("P1DT1H"), waitTask.Wait)

@@ -26,6 +26,7 @@ var _ TaskRunner = &SetTaskRunner{}
 var _ TaskRunner = &RaiseTaskRunner{}
 var _ TaskRunner = &ForTaskRunner{}
 var _ TaskRunner = &DoTaskRunner{}
+var _ TaskRunner = &WaitTaskRunner{}
 
 type TaskRunner interface {
 	Run(input interface{}, taskSupport TaskSupport) (interface{}, error)

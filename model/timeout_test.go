@@ -17,6 +17,7 @@ package model
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -42,15 +43,33 @@ func TestTimeout_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name:    "Valid ISO 8601 duration",
-			jsonStr: `{"after": "P1Y2M3DT4H5M6S"}`,
+			jsonStr: `{"after": "P3DT4H5M6S250MS"}`,
 			expect: &Timeout{
-				After: NewDurationExpr("P1Y2M3DT4H5M6S"),
+				After: NewDurationExpr("P3DT4H5M6S250MS"),
 			},
 			err: false,
 		},
 		{
 			name:    "Invalid duration type",
 			jsonStr: `{"after": {"unknown": "value"}}`,
+			expect:  nil,
+			err:     true,
+		},
+		{
+			name:    "Invalid empty inline duration",
+			jsonStr: `{"after": {}}`,
+			expect:  nil,
+			err:     true,
+		},
+		{
+			name:    "Invalid non-ISO expression",
+			jsonStr: `{"after": "10s"}`,
+			expect:  nil,
+			err:     true,
+		},
+		{
+			name:    "Unsupported ISO unit",
+			jsonStr: `{"after": "P1Y"}`,
 			expect:  nil,
 			err:     true,
 		},
@@ -225,4 +244,64 @@ func TestTimeoutOrReference_MarshalJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDuration_AsTimeDuration(t *testing.T) {
+	start := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	t.Run("Inline", func(t *testing.T) {
+		d := &Duration{Value: DurationInline{Seconds: 2, Milliseconds: 500}}
+		result, err := d.AsTimeDuration(start)
+		assert.NoError(t, err)
+		assert.Equal(t, 2500*time.Millisecond, result)
+	})
+
+	t.Run("NonISOExpressionRejected", func(t *testing.T) {
+		d := NewDurationExpr("150ms")
+		_, err := d.AsTimeDuration(start)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid duration expression")
+	})
+
+	t.Run("ISO8601Expression", func(t *testing.T) {
+		d := NewDurationExpr("P1DT1H")
+		result, err := d.AsTimeDuration(start)
+		assert.NoError(t, err)
+		assert.Equal(t, 25*time.Hour, result)
+	})
+
+	t.Run("ISO8601MillisecondsExpression", func(t *testing.T) {
+		d := NewDurationExpr("PT2S500MS")
+		result, err := d.AsTimeDuration(start)
+		assert.NoError(t, err)
+		assert.Equal(t, 2500*time.Millisecond, result)
+	})
+
+	t.Run("ISO8601WeekExpressionRejected", func(t *testing.T) {
+		d := NewDurationExpr("P1W")
+		_, err := d.AsTimeDuration(start)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid duration expression")
+	})
+
+	t.Run("ISO8601FractionalDayExpressionRejected", func(t *testing.T) {
+		d := NewDurationExpr("P1.5D")
+		_, err := d.AsTimeDuration(start)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid duration expression")
+	})
+
+	t.Run("InvalidExpression", func(t *testing.T) {
+		d := NewDurationExpr("1Y")
+		_, err := d.AsTimeDuration(start)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid duration expression")
+	})
+
+	t.Run("UnsupportedMonthExpressionRejected", func(t *testing.T) {
+		d := NewDurationExpr("P1M")
+		_, err := d.AsTimeDuration(start)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid duration expression")
+	})
 }

@@ -26,16 +26,20 @@ func TestRegexValidators(t *testing.T) {
 		expected bool
 	}{
 		// ISO 8601 Duration Tests
-		{"ISO 8601 Duration Valid 1", isISO8601DurationValid, "P2Y", true},
+		{"ISO 8601 Duration Valid 1", isISO8601DurationValid, "P1D", true},
 		{"ISO 8601 Duration Valid 2", isISO8601DurationValid, "P1DT12H30M", true},
-		{"ISO 8601 Duration Valid 3", isISO8601DurationValid, "P1Y2M3D", true},
-		{"ISO 8601 Duration Valid 4", isISO8601DurationValid, "P1Y2M3D4H", false},
-		{"ISO 8601 Duration Valid 5", isISO8601DurationValid, "P1Y", true},
-		{"ISO 8601 Duration Valid 6", isISO8601DurationValid, "PT1H", true},
-		{"ISO 8601 Duration Valid 7", isISO8601DurationValid, "P1Y2M3D4H5M6S", false},
-		{"ISO 8601 Duration Invalid 1", isISO8601DurationValid, "P", false},
-		{"ISO 8601 Duration Invalid 2", isISO8601DurationValid, "P1Y2M3D4H5M6S7", false},
-		{"ISO 8601 Duration Invalid 3", isISO8601DurationValid, "1Y", false},
+		{"ISO 8601 Duration Valid 3", isISO8601DurationValid, "PT1H", true},
+		{"ISO 8601 Duration Valid 4", isISO8601DurationValid, "PT250MS", true},
+		{"ISO 8601 Duration Valid 5", isISO8601DurationValid, "P3DT4H5M6S250MS", true},
+		{"ISO 8601 Duration Invalid 1", isISO8601DurationValid, "P2Y", false},
+		{"ISO 8601 Duration Invalid 2", isISO8601DurationValid, "P1Y2M3D", false},
+		{"ISO 8601 Duration Invalid 3", isISO8601DurationValid, "P1W", false},
+		{"ISO 8601 Duration Invalid 4", isISO8601DurationValid, "P1Y2M3D4H", false},
+		{"ISO 8601 Duration Invalid 5", isISO8601DurationValid, "P1Y2M3D4H5M6S", false},
+		{"ISO 8601 Duration Invalid 6", isISO8601DurationValid, "P", false},
+		{"ISO 8601 Duration Invalid 7", isISO8601DurationValid, "P1DT", false},
+		{"ISO 8601 Duration Invalid 8", isISO8601DurationValid, "P1DT2H3M4S5MS7", false},
+		{"ISO 8601 Duration Invalid 9", isISO8601DurationValid, "1Y", false},
 
 		// Semantic Versioning Tests
 		{"Semantic Version Valid 1", isSemanticVersionValid, "1.0.0", true},

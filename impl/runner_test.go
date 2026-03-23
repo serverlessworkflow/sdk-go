@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
 	"github.com/serverlessworkflow/sdk-go/v3/model"
@@ -311,6 +312,25 @@ func TestWorkflowRunner_Run_YAML_ControlFlow(t *testing.T) {
 			"partialResult": float64(15),
 		}
 		runWorkflowTest(t, workflowPath, input, expectedOutput)
+	})
+}
+
+func TestWorkflowRunner_Run_YAML_WaitTasks(t *testing.T) {
+	t.Run("ISO 8601 wait task end-to-end", func(t *testing.T) {
+		workflowPath := "./testdata/wait_duration_iso8601.yaml"
+		expectedOutput := map[string]interface{}{
+			"phase":          "completed",
+			"previousPhase":  "started",
+			"waitExpression": "PT1S",
+		}
+
+		start := time.Now()
+		output, err := runWorkflow(t, workflowPath, nil, expectedOutput)
+		elapsed := time.Since(start)
+
+		assert.NoError(t, err)
+		assertWorkflowRun(t, expectedOutput, output)
+		assert.GreaterOrEqual(t, elapsed, 900*time.Millisecond)
 	})
 }
 

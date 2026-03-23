@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	iso8601DurationPattern = regexp.MustCompile(`^P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?$`)
+	iso8601DurationPattern = regexp.MustCompile(`^P(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?(\d+MS)?)?$`)
 	semanticVersionPattern = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 	hostnameRFC1123Pattern = regexp.MustCompile(`^(([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z]{2,63}|[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)$`)
 )
@@ -353,7 +353,35 @@ func validateISO8601Duration(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	return isISO8601DurationValid(input)
+	return ValidateDurationExpression(input) == nil
+}
+
+// ValidateDurationExpression validates a duration string against the supported
+// ISO-8601 subset used by the SDK.
+//
+// By design, this validator rejects:
+//   - Empty expressions.
+//   - Expressions outside the supported format (for example "1Y", "P1Y2M3D4H").
+//   - Unsupported ISO-8601 units (years, months, weeks).
+//   - Bare designators without units ("P", "PT").
+//   - A time designator without time components (for example "P1DT").
+func ValidateDurationExpression(expression string) error {
+	expression = strings.TrimSpace(expression)
+	if expression == "" {
+		return fmt.Errorf("duration expression is empty")
+	}
+
+	_, err := parseAndValidateISO8601Duration(expression)
+	return err
+}
+
+func parseAndValidateISO8601Duration(expression string) (parsedISO8601Duration, error) {
+	return parseISO8601DurationExpression(expression)
+}
+
+// isISO8601DurationValid validates if a string is a valid ISO 8601 duration.
+func isISO8601DurationValid(input string) bool {
+	return ValidateDurationExpression(input) == nil
 }
 
 func validateSemanticVersion(fl validator.FieldLevel) bool {
@@ -363,20 +391,6 @@ func validateSemanticVersion(fl validator.FieldLevel) bool {
 	}
 
 	return isSemanticVersionValid(input)
-}
-
-// isISO8601DurationValid validates if a string is a valid ISO 8601 duration.
-func isISO8601DurationValid(input string) bool {
-	if !iso8601DurationPattern.MatchString(input) {
-		return false
-	}
-
-	trimmed := strings.TrimPrefix(input, "P")
-	if trimmed == "" || trimmed == "T" {
-		return false
-	}
-
-	return true
 }
 
 // isSemanticVersionValid validates if a string is a valid semantic version.

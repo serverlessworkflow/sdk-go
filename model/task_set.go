@@ -18,8 +18,8 @@ import "encoding/json"
 
 // SetTask represents a task used to set data.
 type SetTask struct {
-	TaskBase `json:",inline"`       // Inline TaskBase fields
-	Set      map[string]interface{} `json:"set" validate:"required,min=1,dive"`
+	TaskBase `json:",inline"`            // Inline TaskBase fields
+	Set      *ObjectOrRuntimeExpr `json:"set" validate:"required,object_or_runtime_expr"`
 }
 
 func (st *SetTask) GetBase() *TaskBase {

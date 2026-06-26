@@ -39,12 +39,12 @@ func TestCallHTTP_MarshalJSON(t *testing.T) {
 			Endpoint: &Endpoint{
 				URITemplate: &LiteralUri{Value: "http://example.com"},
 			},
-			Headers: map[string]string{
+			Headers: NewObjectOrRuntimeExpr(map[string]interface{}{
 				"Authorization": "Bearer token",
-			},
-			Query: map[string]interface{}{
+			}),
+			Query: NewObjectOrRuntimeExpr(map[string]interface{}{
 				"q": "search",
-			},
+			}),
 			Output:   "content",
 			Redirect: true,
 		},
@@ -102,8 +102,8 @@ func TestCallHTTP_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, "http", callHTTP.Call)
 	assert.Equal(t, "GET", callHTTP.With.Method)
 	assert.Equal(t, "http://example.com", callHTTP.With.Endpoint.String())
-	assert.Equal(t, map[string]string{"Authorization": "Bearer token"}, callHTTP.With.Headers)
-	assert.Equal(t, map[string]interface{}{"q": "search"}, callHTTP.With.Query)
+	assert.Equal(t, &ObjectOrRuntimeExpr{Value: map[string]interface{}{"Authorization": "Bearer token"}}, callHTTP.With.Headers)
+	assert.Equal(t, &ObjectOrRuntimeExpr{Value: map[string]interface{}{"q": "search"}}, callHTTP.With.Query)
 	assert.Equal(t, "content", callHTTP.With.Output)
 	assert.Equal(t, true, callHTTP.With.Redirect)
 }

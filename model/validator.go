@@ -271,12 +271,26 @@ func validateObjectOrRuntimeExpr(fl validator.FieldLevel) bool {
 	// Retrieve the field value using reflection
 	value := fl.Field().Interface()
 
+	// Handle both pointer and value types of ObjectOrRuntimeExpr
+	if objOrExpr, ok := value.(*ObjectOrRuntimeExpr); ok {
+		if objOrExpr == nil {
+			return false
+		}
+		value = objOrExpr.Value
+	} else if objOrExpr, ok := value.(ObjectOrRuntimeExpr); ok {
+		value = objOrExpr.Value
+	}
+
 	// Validate based on the type
 	switch v := value.(type) {
 	case RuntimeExpression:
 		return v.IsValid() // Validate runtime expression format.
 	case map[string]interface{}:
 		return len(v) > 0 // Validate non-empty objects.
+	case string:
+		// Allow runtime expression strings
+		re := RuntimeExpression{Value: v}
+		return re.IsValid()
 	default:
 		return false // Unsupported types.
 	}

@@ -402,7 +402,7 @@ func TestForTaskRunner_Run(t *testing.T) {
 	t.Run("SUM Numbers", func(t *testing.T) {
 		workflowPath := "./testdata/for_sum_numbers.yaml"
 		input := map[string]interface{}{
-			"numbers": []int32{2, 3, 4},
+			"numbers": []int{2, 3, 4},
 		}
 		expectedOutput := map[string]interface{}{
 			"result": interface{}(9),

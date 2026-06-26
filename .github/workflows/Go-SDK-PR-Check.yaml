@@ -29,7 +29,7 @@ permissions:
   contents: read
 
 env:
-  GO_VERSION: 1.22
+  GO_VERSION: 1.26
 
 jobs:
   basic_checks:
@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Run Linter
-        uses: golangci/golangci-lint-action@ec5d18412c0aeab7936cb16880d708ba2a64e1ae # v6.1.1 - Please ALWAYS use SHA to avoid GH sec issues
+        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1 - Please ALWAYS use SHA to avoid GH sec issues
         with:
           version: latest
 

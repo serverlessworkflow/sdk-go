@@ -33,10 +33,10 @@ func TestSetTask_MarshalJSON(t *testing.T) {
 				"meta": "data",
 			},
 		},
-		Set: map[string]interface{}{
+		Set: NewObjectOrRuntimeExpr(map[string]interface{}{
 			"key1": "value1",
 			"key2": 42,
-		},
+		}),
 	}
 
 	data, err := json.Marshal(setTask)
@@ -82,23 +82,23 @@ func TestSetTask_UnmarshalJSON(t *testing.T) {
 		"key1": "value1",
 		"key2": float64(42), // Match JSON unmarshaling behavior
 	}
-	assert.Equal(t, expectedSet, setTask.Set)
+	assert.Equal(t, expectedSet, setTask.Set.Value)
 }
 
 func TestSetTask_Validation(t *testing.T) {
 	// Valid SetTask
 	setTask := SetTask{
 		TaskBase: TaskBase{},
-		Set: map[string]interface{}{
+		Set: NewObjectOrRuntimeExpr(map[string]interface{}{
 			"key": "value",
-		},
+		}),
 	}
 	assert.NoError(t, validate.Struct(setTask))
 
-	// Invalid SetTask (empty set)
+	// Invalid SetTask (nil set)
 	invalidSetTask := SetTask{
 		TaskBase: TaskBase{},
-		Set:      map[string]interface{}{},
+		Set:      nil,
 	}
 	assert.Error(t, validate.Struct(invalidSetTask))
 }

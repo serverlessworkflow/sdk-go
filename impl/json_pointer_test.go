@@ -26,8 +26,8 @@ func TestGenerateJSONPointer_SimpleTask(t *testing.T) {
 	workflow := &model.Workflow{
 		Document: model.Document{Name: "simple-workflow"},
 		Do: &model.TaskList{
-			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: map[string]interface{}{"value": 10}}},
-			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
+			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"value": 10})}},
+			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"double": "${ .value * 2 }"})}},
 		},
 	}
 
@@ -41,8 +41,8 @@ func TestGenerateJSONPointer_Document(t *testing.T) {
 	workflow := &model.Workflow{
 		Document: model.Document{Name: "simple-workflow"},
 		Do: &model.TaskList{
-			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: map[string]interface{}{"value": 10}}},
-			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: map[string]interface{}{"double": "${ .value * 2 }"}}},
+			&model.TaskItem{Key: "task1", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"value": 10})}},
+			&model.TaskItem{Key: "task2", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"double": "${ .value * 2 }"})}},
 		},
 	}
 
@@ -93,8 +93,7 @@ func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
 										Branches: &model.TaskList{
 											&model.TaskItem{
 												Key:  "deepTask",
-												Task: &model.SetTask{Set: map[string]interface{}{"result": "done"}},
-											},
+												Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"result": "done"})}},
 										},
 									},
 								},
@@ -116,7 +115,7 @@ func TestGenerateJSONPointer_NonExistentTask(t *testing.T) {
 	workflow := &model.Workflow{
 		Document: model.Document{Name: "nonexistent-test"},
 		Do: &model.TaskList{
-			&model.TaskItem{Key: "taskA", Task: &model.SetTask{Set: map[string]interface{}{"value": 5}}},
+			&model.TaskItem{Key: "taskA", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"value": 5})}},
 		},
 	}
 
@@ -129,7 +128,7 @@ func TestGenerateJSONPointer_MixedTaskTypes(t *testing.T) {
 	workflow := &model.Workflow{
 		Document: model.Document{Name: "mixed-tasks"},
 		Do: &model.TaskList{
-			&model.TaskItem{Key: "compute", Task: &model.SetTask{Set: map[string]interface{}{"result": 42}}},
+			&model.TaskItem{Key: "compute", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"result": 42})}},
 			&model.TaskItem{Key: "notify", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "post", Endpoint: model.NewEndpoint("https://api.notify.com")}}},
 		},
 	}

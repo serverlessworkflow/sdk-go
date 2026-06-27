@@ -27,13 +27,13 @@ func (c *CallHTTP) GetBase() *TaskBase {
 }
 
 type HTTPArguments struct {
-	Method   string                 `json:"method" validate:"required,oneofci=GET POST PUT DELETE PATCH"`
-	Endpoint *Endpoint              `json:"endpoint" validate:"required"`
-	Headers  map[string]string      `json:"headers,omitempty"`
-	Body     json.RawMessage        `json:"body,omitempty"`
-	Query    map[string]interface{} `json:"query,omitempty"`
-	Output   string                 `json:"output,omitempty" validate:"omitempty,oneof=raw content response"`
-	Redirect bool                   `json:"redirect,omitempty"`
+	Method   string               `json:"method" validate:"required,oneofci=GET POST PUT DELETE PATCH"`
+	Endpoint *Endpoint            `json:"endpoint" validate:"required"`
+	Headers  *ObjectOrRuntimeExpr `json:"headers,omitempty" validate:"omitempty,object_or_runtime_expr"`
+	Body     json.RawMessage      `json:"body,omitempty"`
+	Query    *ObjectOrRuntimeExpr `json:"query,omitempty" validate:"omitempty,object_or_runtime_expr"`
+	Output   string               `json:"output,omitempty" validate:"omitempty,oneof=raw content response"`
+	Redirect bool                 `json:"redirect,omitempty"`
 }
 
 type CallOpenAPI struct {

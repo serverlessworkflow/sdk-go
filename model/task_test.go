@@ -122,9 +122,9 @@ func TestTaskList_Validation(t *testing.T) {
 
 func TestTaskList_Next_Sequential(t *testing.T) {
 	tasks := TaskList{
-		&TaskItem{Key: "task1", Task: &SetTask{Set: map[string]interface{}{"key1": "value1"}}},
-		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
-		&TaskItem{Key: "task3", Task: &SetTask{Set: map[string]interface{}{"key3": "value3"}}},
+		&TaskItem{Key: "task1", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key1": "value1"})}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key2": "value2"})}},
+		&TaskItem{Key: "task3", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key3": "value3"})}},
 	}
 
 	idx, currentTask := 0, tasks[0]
@@ -143,9 +143,9 @@ func TestTaskList_Next_Sequential(t *testing.T) {
 
 func TestTaskList_Next_WithThenDirective(t *testing.T) {
 	tasks := TaskList{
-		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "task3"}}, Set: map[string]interface{}{"key1": "value1"}}},
-		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
-		&TaskItem{Key: "task3", Task: &SetTask{Set: map[string]interface{}{"key3": "value3"}}},
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "task3"}}, Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key1": "value1"})}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key2": "value2"})}},
+		&TaskItem{Key: "task3", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key3": "value3"})}},
 	}
 
 	idx, currentTask := 0, tasks[0]
@@ -161,8 +161,8 @@ func TestTaskList_Next_WithThenDirective(t *testing.T) {
 
 func TestTaskList_Next_Termination(t *testing.T) {
 	tasks := TaskList{
-		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "end"}}, Set: map[string]interface{}{"key1": "value1"}}},
-		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "end"}}, Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key1": "value1"})}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key2": "value2"})}},
 	}
 
 	idx, currentTask := 0, tasks[0]
@@ -175,8 +175,8 @@ func TestTaskList_Next_Termination(t *testing.T) {
 
 func TestTaskList_Next_InvalidThenReference(t *testing.T) {
 	tasks := TaskList{
-		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "unknown"}}, Set: map[string]interface{}{"key1": "value1"}}},
-		&TaskItem{Key: "task2", Task: &SetTask{Set: map[string]interface{}{"key2": "value2"}}},
+		&TaskItem{Key: "task1", Task: &SetTask{TaskBase: TaskBase{Then: &FlowDirective{Value: "unknown"}}, Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key1": "value1"})}},
+		&TaskItem{Key: "task2", Task: &SetTask{Set: NewObjectOrRuntimeExpr(map[string]interface{}{"key2": "value2"})}},
 	}
 
 	idx, currentTask := 0, tasks[0]

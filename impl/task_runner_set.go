@@ -19,7 +19,6 @@ import (
 
 	"github.com/serverlessworkflow/sdk-go/v3/impl/expr"
 	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
-
 	"github.com/serverlessworkflow/sdk-go/v3/model"
 )
 
@@ -43,8 +42,11 @@ func (s *SetTaskRunner) GetTaskName() string {
 }
 
 func (s *SetTaskRunner) Run(input interface{}, taskSupport TaskSupport) (output interface{}, err error) {
-	setObject := utils.DeepClone(s.Task.Set)
-	result, err := expr.TraverseAndEvaluateObj(model.NewObjectOrRuntimeExpr(setObject), input, s.TaskName, taskSupport.GetContext())
+	// Deep clone the Value to avoid mutating the original task definition during traversal
+	clonedValue := utils.DeepCloneValue(s.Task.Set.Value)
+	clonedSet := &model.ObjectOrRuntimeExpr{Value: clonedValue}
+
+	result, err := expr.TraverseAndEvaluateObj(clonedSet, input, s.TaskName, taskSupport.GetContext())
 	if err != nil {
 		return nil, err
 	}

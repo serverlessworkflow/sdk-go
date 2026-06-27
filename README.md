@@ -48,7 +48,7 @@ This table indicates the current state of implementation of various SDK features
 | [v2.0.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.0.1) |      [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x)       |
 | [v2.1.2](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.1.2) |      [v0.7](https://github.com/serverlessworkflow/specification/tree/0.7.x)       |
 | [v2.5.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.5.0) |      [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x)       |
-| [v3.1.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v3.1.0) | [v1.0.0](https://github.com/serverlessworkflow/specification/releases/tag/v1.0.0) |
+| [v3.4.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v3.4.0) | [v1.0.0](https://github.com/serverlessworkflow/specification/releases/tag/v1.0.0) |
 
 ---
 
@@ -172,7 +172,7 @@ Join our community on the CNCF Slack to collaborate, ask questions, and contribu
 
 [CNCF Slack Invite](https://communityinviter.com/apps/cloud-native/cncf)
 
-Find us in the `#serverless-workflow-sdk` channel.
+Find us in the `#open-workflow-sdk` channel.
 
 ---
 

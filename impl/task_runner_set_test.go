@@ -106,7 +106,7 @@ func TestSetTaskExecutor_RuntimeExpressions(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"fullName": "${ \"\\(.user.firstName) \\(.user.lastName)\" }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_runtime_expr", setTask)
@@ -137,8 +137,8 @@ func TestSetTaskExecutor_NestedStructures(t *testing.T) {
 			"orderDetails": map[string]interface{}{
 				"orderId":   "${ .order.id }",
 				"itemCount": "${ .order.items | length }",
-			}),
-		},
+			},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_nested_structures", setTask)
@@ -173,7 +173,7 @@ func TestSetTaskExecutor_StaticAndDynamicValues(t *testing.T) {
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"status":    "active",
 			"remaining": "${ .config.threshold - .metrics.current }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_static_dynamic", setTask)
@@ -198,7 +198,7 @@ func TestSetTaskExecutor_MissingInputData(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"value": "${ .missingField }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_missing_input", setTask)
@@ -217,7 +217,7 @@ func TestSetTaskExecutor_ExpressionsWithFunctions(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"sum": "${ .values | map(.) | add }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_expr_functions", setTask)
@@ -243,7 +243,7 @@ func TestSetTaskExecutor_ConditionalExpressions(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"weather": "${ if .temperature > 25 then 'hot' else 'cold' end }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_conditional_expr", setTask)
@@ -270,7 +270,7 @@ func TestSetTaskExecutor_ArrayDynamicIndex(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"selectedItem": "${ .items[.index] }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_array_indexing", setTask)
@@ -296,7 +296,7 @@ func TestSetTaskExecutor_NestedConditionalLogic(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"status": "${ if .age < 18 then 'minor' else if .age < 65 then 'adult' else 'senior' end end }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_nested_condition", setTask)
@@ -320,7 +320,7 @@ func TestSetTaskExecutor_DefaultValues(t *testing.T) {
 	setTask := &model.SetTask{
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"value": "${ .missingField // 'defaultValue' }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_default_values", setTask)
@@ -344,7 +344,7 @@ func TestSetTaskExecutor_ComplexNestedStructures(t *testing.T) {
 			"dimensions": map[string]interface{}{
 				"width":  10,
 				"height": 5,
-			}),
+			},
 		},
 		"meta": map[string]interface{}{
 			"color": "blue",
@@ -359,8 +359,8 @@ func TestSetTaskExecutor_ComplexNestedStructures(t *testing.T) {
 				"height": "${ .config.dimensions.height }",
 				"color":  "${ .meta.color }",
 				"area":   "${ .config.dimensions.width * .config.dimensions.height }",
-			}),
-		},
+			},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_complex_nested", setTask)
@@ -396,7 +396,7 @@ func TestSetTaskExecutor_MultipleExpressions(t *testing.T) {
 		Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{
 			"username": "${ .user.name }",
 			"contact":  "${ .user.email }",
-		},
+		}),
 	}
 
 	executor, err := NewSetTaskRunner("task_multiple_expr", setTask)

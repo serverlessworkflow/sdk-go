@@ -61,12 +61,12 @@ func TestGenerateJSONPointer_ForkTask(t *testing.T) {
 					Fork: model.ForkTaskConfiguration{
 						Compete: true,
 						Branches: &model.TaskList{
-							&model.TaskItem{Key: "callNurse", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/nurses")})}},
-							&model.TaskItem{Key: "callDoctor", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/doctor")})}},
+							&model.TaskItem{Key: "callNurse", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/nurses")}}},
+							&model.TaskItem{Key: "callDoctor", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "put", Endpoint: model.NewEndpoint("https://hospital.com/api/alert/doctor")}}},
 						},
 					},
 				},
-			}),
+			},
 		},
 	}
 
@@ -94,7 +94,6 @@ func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
 											&model.TaskItem{
 												Key:  "deepTask",
 												Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"result": "done"})}},
-											},
 										},
 									},
 								},
@@ -102,7 +101,7 @@ func TestGenerateJSONPointer_DeepNestedTask(t *testing.T) {
 						},
 					},
 				},
-			}),
+			},
 		},
 	}
 
@@ -130,7 +129,7 @@ func TestGenerateJSONPointer_MixedTaskTypes(t *testing.T) {
 		Document: model.Document{Name: "mixed-tasks"},
 		Do: &model.TaskList{
 			&model.TaskItem{Key: "compute", Task: &model.SetTask{Set: model.NewObjectOrRuntimeExpr(map[string]interface{}{"result": 42})}},
-			&model.TaskItem{Key: "notify", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "post", Endpoint: model.NewEndpoint("https://api.notify.com")})}},
+			&model.TaskItem{Key: "notify", Task: &model.CallHTTP{Call: "http", With: model.HTTPArguments{Method: "post", Endpoint: model.NewEndpoint("https://api.notify.com")}}},
 		},
 	}
 

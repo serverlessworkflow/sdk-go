@@ -287,10 +287,6 @@ func validateObjectOrRuntimeExpr(fl validator.FieldLevel) bool {
 		return v.IsValid() // Validate runtime expression format.
 	case map[string]interface{}:
 		return len(v) > 0 // Validate non-empty objects.
-	case string:
-		// Allow runtime expression strings
-		re := RuntimeExpression{Value: v}
-		return re.IsValid()
 	default:
 		return false // Unsupported types.
 	}

@@ -42,6 +42,8 @@ func NewTaskRunner(taskName string, task model.Task, workflowDef *model.Workflow
 		return NewForkTaskRunner(taskName, t, workflowDef)
 	case *model.WaitTask:
 		return NewWaitTaskRunner(taskName, t)
+	case *model.RunTask:
+		return NewRunTaskRunner(taskName, t)
 	default:
 		return nil, fmt.Errorf("unsupported task type '%T' for task '%s'", t, taskName)
 	}

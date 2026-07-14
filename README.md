@@ -1,6 +1,6 @@
-# Go SDK for Serverless Workflow
+# Go SDK for Open Workflow
 
-The Go SDK for Serverless Workflow provides strongly-typed structures for the [Serverless Workflow specification](https://github.com/serverlessworkflow/specification/blob/v1.0.0/schema/workflow.yaml). It simplifies parsing, validating, and interacting with workflows in Go. Starting from version `v3.1.0`, the SDK also includes a partial reference implementation, allowing users to execute workflows directly within their Go applications.
+The Go SDK for Open Workflow provides strongly-typed structures for the [Open Workflow specification](https://github.com/open-workflow-specification/specification/blob/v1.0.0/schema/workflow.yaml). It simplifies parsing, validating, and interacting with workflows in Go. Starting from version `v4.0.0`, the SDK also includes a partial reference implementation, allowing users to execute workflows directly within their Go applications.
 
 ---
 
@@ -44,11 +44,11 @@ This table indicates the current state of implementation of various SDK features
 
 |                              Latest Releases                               |                            Conformance to Spec Version                            |
 |:--------------------------------------------------------------------------:|:---------------------------------------------------------------------------------:|
-| [v1.0.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v1.0.0) |      [v0.5](https://github.com/serverlessworkflow/specification/tree/0.5.x)       |
-| [v2.0.1](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.0.1) |      [v0.6](https://github.com/serverlessworkflow/specification/tree/0.6.x)       |
-| [v2.1.2](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.1.2) |      [v0.7](https://github.com/serverlessworkflow/specification/tree/0.7.x)       |
-| [v2.5.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v2.5.0) |      [v0.8](https://github.com/serverlessworkflow/specification/tree/0.8.x)       |
-| [v3.4.0](https://github.com/serverlessworkflow/sdk-go/releases/tag/v3.4.0) | [v1.0.0](https://github.com/serverlessworkflow/specification/releases/tag/v1.0.0) |
+| [v1.0.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v1.0.0) |      [v0.5](https://github.com/open-workflow-specification/specification/tree/0.5.x)       |
+| [v2.0.1](https://github.com/open-workflow-specification/sdk-go/releases/tag/v2.0.1) |      [v0.6](https://github.com/open-workflow-specification/specification/tree/0.6.x)       |
+| [v2.1.2](https://github.com/open-workflow-specification/sdk-go/releases/tag/v2.1.2) |      [v0.7](https://github.com/open-workflow-specification/specification/tree/0.7.x)       |
+| [v2.5.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v2.5.0) |      [v0.8](https://github.com/open-workflow-specification/specification/tree/0.8.x)       |
+| [v3.4.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v3.4.0) | [v1.0.0](https://github.com/open-workflow-specification/specification/releases/tag/v1.0.0) |
 
 ---
 
@@ -68,7 +68,7 @@ document:
   version: "1.0.0"
 do:
   - set:
-      message: "Hello from the Serverless Workflow SDK in Go!"
+      message: "Hello from the Open Workflow SDK in Go!"
 ```
 
 You can execute this workflow using the following Go program:
@@ -83,8 +83,8 @@ import (
     "os"
     "path/filepath"
 
-    "github.com/serverlessworkflow/sdk-go/v3/impl"
-    "github.com/serverlessworkflow/sdk-go/v3/parser"
+    "github.com/open-workflow-specification/sdk-go/v4/impl"
+    "github.com/open-workflow-specification/sdk-go/v4/parser"
 )
 
 func RunWorkflow(workflowFilePath string, input map[string]interface{}) (interface{}, error) {
@@ -116,7 +116,7 @@ func main() {
 
 ### Implementation Roadmap
 
-The table below lists the current state of this implementation. This table is a roadmap for the project based on the [DSL Reference doc](https://github.com/serverlessworkflow/specification/blob/v1.0.0/dsl-reference.md).
+The table below lists the current state of this implementation. This table is a roadmap for the project based on the [DSL Reference doc](https://github.com/open-workflow-specification/specification/blob/v1.0.0/dsl-reference.md).
 
 | Feature | State |
 | ----------- | --------------- |
@@ -160,9 +160,9 @@ The table below lists the current state of this implementation. This table is a 
 | Workflow Definition Reference | ✅ |
 | Subscription Iterator | ❌ |
 
-We love contributions! Our aim is to have a complete implementation to serve as a reference or to become a project on its own to favor the CNCF Ecosystem.
+We love contributions! Our aim is to have a complete implementation to serve as a reference or to become a project on its own to favor the Open Workflow ecosystem.
 
-If you are willing to help, please [file a sub-task](https://github.com/serverlessworkflow/sdk-go/issues/221) in this EPIC describing what you are planning to work on first.
+If you are willing to help, please [file a sub-task](https://github.com/open-workflow-specification/sdk-go/issues/221) in this EPIC describing what you are planning to work on first.
 
 ---
 
@@ -209,6 +209,6 @@ brew install diffutils
 
 ---
 
-Contributions are greatly appreciated! Check [this EPIC](https://github.com/serverlessworkflow/sdk-go/issues/221) and contribute to completing more features.
+Contributions are greatly appreciated! Check [this EPIC](https://github.com/open-workflow-specification/sdk-go/issues/221) and contribute to completing more features.
 
 Happy coding!

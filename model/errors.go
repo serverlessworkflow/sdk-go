@@ -1,4 +1,4 @@
-// Copyright 2025 The Serverless Workflow Specification Authors
+// Copyright 2025 The Open Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@ import (
 	"strings"
 )
 
-// List of Standard Errors based on the Serverless Workflow specification.
-// See: https://github.com/serverlessworkflow/specification/blob/main/dsl-reference.md#standard-error-types
+// List of Standard Errors based on the Open Workflow specification.
+// See: https://github.com/open-workflow-specification/specification/blob/main/dsl-reference.md#standard-error-types
 const (
-	ErrorTypeConfiguration  = "https://serverlessworkflow.io/spec/1.0.0/errors/configuration"
-	ErrorTypeValidation     = "https://serverlessworkflow.io/spec/1.0.0/errors/validation"
-	ErrorTypeExpression     = "https://serverlessworkflow.io/spec/1.0.0/errors/expression"
-	ErrorTypeAuthentication = "https://serverlessworkflow.io/spec/1.0.0/errors/authentication"
-	ErrorTypeAuthorization  = "https://serverlessworkflow.io/spec/1.0.0/errors/authorization"
-	ErrorTypeTimeout        = "https://serverlessworkflow.io/spec/1.0.0/errors/timeout"
-	ErrorTypeCommunication  = "https://serverlessworkflow.io/spec/1.0.0/errors/communication"
-	ErrorTypeRuntime        = "https://serverlessworkflow.io/spec/1.0.0/errors/runtime"
+	ErrorTypeConfiguration  = "https://open-workflow-specification.org/spec/1.0.0/errors/configuration"
+	ErrorTypeValidation     = "https://open-workflow-specification.org/spec/1.0.0/errors/validation"
+	ErrorTypeExpression     = "https://open-workflow-specification.org/spec/1.0.0/errors/expression"
+	ErrorTypeAuthentication = "https://open-workflow-specification.org/spec/1.0.0/errors/authentication"
+	ErrorTypeAuthorization  = "https://open-workflow-specification.org/spec/1.0.0/errors/authorization"
+	ErrorTypeTimeout        = "https://open-workflow-specification.org/spec/1.0.0/errors/timeout"
+	ErrorTypeCommunication  = "https://open-workflow-specification.org/spec/1.0.0/errors/communication"
+	ErrorTypeRuntime        = "https://open-workflow-specification.org/spec/1.0.0/errors/runtime"
 )
 
 type Error struct {

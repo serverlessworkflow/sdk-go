@@ -1,6 +1,6 @@
 # Go SDK for Open Workflow
 
-The Go SDK for Open Workflow provides strongly-typed structures for the [Open Workflow specification](https://github.com/open-workflow-specification/specification/blob/v1.0.0/schema/workflow.yaml). It simplifies parsing, validating, and interacting with workflows in Go. Starting from version `v4.0.0`, the SDK also includes a partial reference implementation, allowing users to execute workflows directly within their Go applications.
+The Go SDK for Open Workflow provides strongly-typed structures for the [Open Workflow specification](https://github.com/open-workflow-specification/specification/blob/v1.0.0/schema/workflow.yaml). It simplifies parsing, validating, and interacting with workflows in Go. Starting from version `v3.1.0`, the SDK also includes a partial reference implementation, allowing users to execute workflows directly within their Go applications.
 
 ---
 
@@ -49,6 +49,7 @@ This table indicates the current state of implementation of various SDK features
 | [v2.1.2](https://github.com/open-workflow-specification/sdk-go/releases/tag/v2.1.2) |      [v0.7](https://github.com/open-workflow-specification/specification/tree/0.7.x)       |
 | [v2.5.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v2.5.0) |      [v0.8](https://github.com/open-workflow-specification/specification/tree/0.8.x)       |
 | [v3.4.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v3.4.0) | [v1.0.0](https://github.com/open-workflow-specification/specification/releases/tag/v1.0.0) |
+| [v4.0.0](https://github.com/open-workflow-specification/sdk-go/releases/tag/v4.0.0) | [v1.0.0](https://github.com/open-workflow-specification/specification/releases/tag/v1.0.0) |
 
 ---
 

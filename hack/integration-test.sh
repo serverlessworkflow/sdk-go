@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2025 The Serverless Workflow Specification Authors
+# Copyright 2025 The Open Workflow Specification Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 # Script to fetch workflow examples, parse, and validate them using the Go parser.
 
 # Variables
-SPEC_REPO="https://github.com/serverlessworkflow/specification"
+SPEC_REPO="https://github.com/open-workflow-specification/specification"
 EXAMPLES_DIR="examples"
 PARSER_BINARY="./parser/cmd/main.go"
 JUNIT_FILE="./integration-test-junit.xml"

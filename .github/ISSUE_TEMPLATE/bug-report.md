@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug encountered with the Serverless Workflow Go SDK
+about: Report a bug encountered with the Open Workflow Go SDK
 labels: "bug :bug:"
 
 ---

@@ -1,4 +1,4 @@
-// Copyright 2020 The Serverless Workflow Specification Authors
+// Copyright 2020 The Open Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/open-workflow-specification/sdk-go/v4/model"
 
 	"sigs.k8s.io/yaml"
 )
@@ -34,7 +34,7 @@ const (
 
 var supportedExt = []string{extYAML, extYML, extJSON}
 
-// FromYAMLSource parses the given Serverless Workflow YAML source into the Workflow type.
+// FromYAMLSource parses the given Open Workflow YAML source into the Workflow type.
 func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
 	var jsonBytes []byte
 	if jsonBytes, err = yaml.YAMLToJSON(source); err != nil {
@@ -43,7 +43,7 @@ func FromYAMLSource(source []byte) (workflow *model.Workflow, err error) {
 	return FromJSONSource(jsonBytes)
 }
 
-// FromJSONSource parses the given Serverless Workflow JSON source into the Workflow type.
+// FromJSONSource parses the given Open Workflow JSON source into the Workflow type.
 func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
 	workflow = &model.Workflow{}
 	if err := json.Unmarshal(source, workflow); err != nil {
@@ -57,7 +57,7 @@ func FromJSONSource(source []byte) (workflow *model.Workflow, err error) {
 	return workflow, nil
 }
 
-// FromFile parses the given Serverless Workflow file into the Workflow type.
+// FromFile parses the given Open Workflow file into the Workflow type.
 func FromFile(path string) (*model.Workflow, error) {
 	if err := checkFilePath(path); err != nil {
 		return nil, err

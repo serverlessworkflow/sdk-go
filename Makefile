@@ -1,6 +1,6 @@
 addheaders:
 	@command -v addlicense > /dev/null || (echo "🚀 Installing addlicense..."; go install -modfile=tools.mod -v github.com/google/addlicense)
-	@addlicense -c "The Serverless Workflow Specification Authors" -l apache .
+	@addlicense -c "The Open Workflow Specification Authors" -l apache .
 
 fmt:
 	@go vet ./...

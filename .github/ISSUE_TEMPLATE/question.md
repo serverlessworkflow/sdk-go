@@ -1,6 +1,6 @@
 ---
 name: Question
-about: Ask a question about the Serverless Workflow Go SDK
+about: Ask a question about the Open Workflow Go SDK
 labels: "question :question:"
 
 ---

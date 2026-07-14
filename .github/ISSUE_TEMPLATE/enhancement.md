@@ -1,6 +1,6 @@
 ---
 name: Enhancement Request
-about: Suggest an enhancement to the Serverless Workflow Go SDK
+about: Suggest an enhancement to the Open Workflow Go SDK
 labels: "enhancement :pray:"
 
 ---

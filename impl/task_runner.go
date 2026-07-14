@@ -1,4 +1,4 @@
-// Copyright 2025 The Serverless Workflow Specification Authors
+// Copyright 2025 The Open Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/serverlessworkflow/sdk-go/v3/impl/ctx"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/open-workflow-specification/sdk-go/v4/impl/ctx"
+	"github.com/open-workflow-specification/sdk-go/v4/model"
 )
 
 var _ TaskRunner = &SetTaskRunner{}

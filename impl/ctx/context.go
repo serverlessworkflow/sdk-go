@@ -1,4 +1,4 @@
-// Copyright 2025 The Serverless Workflow Specification Authors
+// Copyright 2025 The Open Workflow Specification Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/serverlessworkflow/sdk-go/v3/impl/utils"
+	"github.com/open-workflow-specification/sdk-go/v4/impl/utils"
 
 	"github.com/google/uuid"
-	"github.com/serverlessworkflow/sdk-go/v3/model"
+	"github.com/open-workflow-specification/sdk-go/v4/model"
 )
 
 var ErrWorkflowContextNotFound = errors.New("workflow context not found")
@@ -45,8 +45,8 @@ const (
 	varsTask     = "$task"
 
 	// TODO: script during the release to update this value programmatically
-	runtimeVersion = "v3.1.0"
-	runtimeName    = "CNCF Serverless Workflow Specification Go SDK"
+	runtimeVersion = "v4.0.0"
+	runtimeName    = "Open Workflow Specification Go SDK"
 )
 
 type WorkflowContext interface {
